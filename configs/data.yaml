@@ -1,0 +1,33 @@
+# Phase 3 Dataset Pipeline Configuration
+# "Catching an LLM Lying: A Lightweight Classifier for Real-Time Hallucination Detection"
+
+seed: 42
+
+paths:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  combined_file: "combined_processed.parquet"
+
+datasets:
+  halueval:
+    hf_id: "flowaicom/HaluEval"
+    split: "test"
+    sample_size: 1500
+    balance_classes: true
+    target_file: "halueval_processed.parquet"
+
+  truthfulqa:
+    hf_id: "truthfulqa/truthful_qa"
+    config: "generation"
+    split: "validation"
+    sample_size: 1500
+    balance_classes: true
+    target_file: "truthfulqa_processed.parquet"
+
+  fever:
+    # Use dev set for lightweight cross-dataset generalization rather than 145k train set
+    url: "https://fever.ai/download/fever/shared_task_dev.jsonl"
+    sample_size: 1000
+    balance_classes: true
+    include_not_enough_info: false  # Excluded from binary classification (0: SUPPORTS, 1: REFUTES)
+    target_file: "fever_processed.parquet"

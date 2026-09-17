@@ -13,6 +13,16 @@ from src.consistency.self_consistency import (
     generate_stochastic_responses,
     run_self_consistency_pilot,
 )
+from src.consistency.nli_agreement import (
+    load_nli_model,
+    get_nli_label_indices,
+    compute_softmax_probabilities,
+    aggregate_directional_probabilities,
+    calculate_nli_disagreement,
+    extract_pairwise_nli_predictions,
+    aggregate_example_nli_signals,
+    run_nli_agreement_pilot,
+)
 
 __all__ = [
     "normalize_response",
@@ -24,4 +34,12 @@ __all__ = [
     "extract_self_consistency_signals",
     "generate_stochastic_responses",
     "run_self_consistency_pilot",
+    "load_nli_model",
+    "get_nli_label_indices",
+    "compute_softmax_probabilities",
+    "aggregate_directional_probabilities",
+    "calculate_nli_disagreement",
+    "extract_pairwise_nli_predictions",
+    "aggregate_example_nli_signals",
+    "run_nli_agreement_pilot",
 ]

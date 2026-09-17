@@ -1,0 +1,52 @@
+{
+  "nli_model_name": "cross-encoder/nli-MiniLM2-L6-H768",
+  "device": "cuda:0",
+  "model_loading_time_s": 7.553,
+  "total_inference_time_s": 1.293,
+  "avg_pair_inference_time_s": 0.0065,
+  "avg_directional_inference_time_s": 0.0032,
+  "total_examples": 20,
+  "total_pair_count": 200,
+  "total_directional_evaluations": 400,
+  "failed_evaluations": 0,
+  "mean_entailment_probability": 0.4175,
+  "mean_contradiction_probability": 0.2306,
+  "mean_neutral_probability": 0.3519,
+  "mean_fraction_entailing_pairs": 0.34,
+  "mean_fraction_contradicting_pairs": 0.225,
+  "mean_fraction_neutral_pairs": 0.435,
+  "mean_nli_disagreement": 0.4066,
+  "peak_gpu_memory_mb": 481.33,
+  "per_dataset_summary": {
+    "fever": {
+      "count": 6,
+      "mean_pairwise_entailment": 0.1427,
+      "mean_pairwise_contradiction": 0.1952,
+      "mean_pairwise_neutral": 0.6621,
+      "fraction_entailing_pairs": 0.05,
+      "fraction_contradicting_pairs": 0.1833,
+      "fraction_neutral_pairs": 0.7667,
+      "mean_nli_disagreement": 0.5263
+    },
+    "halueval": {
+      "count": 12,
+      "mean_pairwise_entailment": 0.5989,
+      "mean_pairwise_contradiction": 0.2082,
+      "mean_pairwise_neutral": 0.1928,
+      "fraction_entailing_pairs": 0.5333,
+      "fraction_contradicting_pairs": 0.2167,
+      "fraction_neutral_pairs": 0.25,
+      "mean_nli_disagreement": 0.3047
+    },
+    "truthfulqa": {
+      "count": 2,
+      "mean_pairwise_entailment": 0.1531,
+      "mean_pairwise_contradiction": 0.471,
+      "mean_pairwise_neutral": 0.3758,
+      "fraction_entailing_pairs": 0.05,
+      "fraction_contradicting_pairs": 0.4,
+      "fraction_neutral_pairs": 0.55,
+      "mean_nli_disagreement": 0.659
+    }
+  }
+}

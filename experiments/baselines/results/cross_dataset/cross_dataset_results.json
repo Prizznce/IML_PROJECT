@@ -1,0 +1,230 @@
+{
+  "metadata": {
+    "dataset": "experiments/baselines/supervised_signals_combined.parquet",
+    "random_state": 42,
+    "evaluation_protocol": "Leave-One-Dataset-Out (LODO)",
+    "num_features": 11,
+    "features_used": [
+      "min_log_prob",
+      "mean_log_prob",
+      "mean_token_prob",
+      "token_prob_std",
+      "mean_entropy",
+      "max_entropy",
+      "entropy_std",
+      "log_perplexity",
+      "log_mean_token_rank",
+      "log_max_token_rank",
+      "log_rank_std"
+    ],
+    "include_num_tokens": false,
+    "target_datasets": [
+      "halueval",
+      "truthfulqa",
+      "fever"
+    ]
+  },
+  "experiments": {
+    "test_on_halueval": {
+      "target_dataset": "halueval",
+      "train_sources": [
+        "fever",
+        "truthfulqa"
+      ],
+      "train_samples": 2500,
+      "test_samples": 1500,
+      "train_source_counts": {
+        "fever": 1000,
+        "truthfulqa": 1500
+      },
+      "train_label_distribution": {
+        "0": 1250,
+        "1": 1250
+      },
+      "test_label_distribution": {
+        "0": 750,
+        "1": 750
+      },
+      "num_features": 11,
+      "features_used": [
+        "min_log_prob",
+        "mean_log_prob",
+        "mean_token_prob",
+        "token_prob_std",
+        "mean_entropy",
+        "max_entropy",
+        "entropy_std",
+        "log_perplexity",
+        "log_mean_token_rank",
+        "log_max_token_rank",
+        "log_rank_std"
+      ],
+      "logistic_regression": {
+        "accuracy": 0.214,
+        "precision": 0.2136181575433912,
+        "recall": 0.21333333333333335,
+        "f1": 0.2134756504336224,
+        "roc_auc": 0.16006577777777778,
+        "pr_auc": 0.33655048764784123,
+        "brier_score": 0.3562736879599297,
+        "ece": 0.41935375118981905,
+        "confusion_matrix": {
+          "tn": 161,
+          "fp": 589,
+          "fn": 590,
+          "tp": 160
+        }
+      },
+      "xgboost": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3493975903614458,
+        "recall": 0.38666666666666666,
+        "f1": 0.3670886075949367,
+        "roc_auc": 0.3315822222222222,
+        "pr_auc": 0.40944084154958904,
+        "brier_score": 0.31323720448330006,
+        "ece": 0.29051945255200073,
+        "confusion_matrix": {
+          "tn": 210,
+          "fp": 540,
+          "fn": 460,
+          "tp": 290
+        }
+      }
+    },
+    "test_on_truthfulqa": {
+      "target_dataset": "truthfulqa",
+      "train_sources": [
+        "fever",
+        "halueval"
+      ],
+      "train_samples": 2500,
+      "test_samples": 1500,
+      "train_source_counts": {
+        "fever": 1000,
+        "halueval": 1500
+      },
+      "train_label_distribution": {
+        "0": 1250,
+        "1": 1250
+      },
+      "test_label_distribution": {
+        "0": 750,
+        "1": 750
+      },
+      "num_features": 11,
+      "features_used": [
+        "min_log_prob",
+        "mean_log_prob",
+        "mean_token_prob",
+        "token_prob_std",
+        "mean_entropy",
+        "max_entropy",
+        "entropy_std",
+        "log_perplexity",
+        "log_mean_token_rank",
+        "log_max_token_rank",
+        "log_rank_std"
+      ],
+      "logistic_regression": {
+        "accuracy": 0.466,
+        "precision": 0.4723127035830619,
+        "recall": 0.58,
+        "f1": 0.5206463195691203,
+        "roc_auc": 0.44393599999999994,
+        "pr_auc": 0.454353395633327,
+        "brier_score": 0.3248271701244624,
+        "ece": 0.2298869059490436,
+        "confusion_matrix": {
+          "tn": 264,
+          "fp": 486,
+          "fn": 315,
+          "tp": 435
+        }
+      },
+      "xgboost": {
+        "accuracy": 0.47733333333333333,
+        "precision": 0.48547008547008547,
+        "recall": 0.7573333333333333,
+        "f1": 0.5916666666666667,
+        "roc_auc": 0.44595822222222226,
+        "pr_auc": 0.4530586171075689,
+        "brier_score": 0.3662710453258509,
+        "ece": 0.29335154010169207,
+        "confusion_matrix": {
+          "tn": 148,
+          "fp": 602,
+          "fn": 182,
+          "tp": 568
+        }
+      }
+    },
+    "test_on_fever": {
+      "target_dataset": "fever",
+      "train_sources": [
+        "halueval",
+        "truthfulqa"
+      ],
+      "train_samples": 3000,
+      "test_samples": 1000,
+      "train_source_counts": {
+        "halueval": 1500,
+        "truthfulqa": 1500
+      },
+      "train_label_distribution": {
+        "0": 1500,
+        "1": 1500
+      },
+      "test_label_distribution": {
+        "0": 500,
+        "1": 500
+      },
+      "num_features": 11,
+      "features_used": [
+        "min_log_prob",
+        "mean_log_prob",
+        "mean_token_prob",
+        "token_prob_std",
+        "mean_entropy",
+        "max_entropy",
+        "entropy_std",
+        "log_perplexity",
+        "log_mean_token_rank",
+        "log_max_token_rank",
+        "log_rank_std"
+      ],
+      "logistic_regression": {
+        "accuracy": 0.506,
+        "precision": 0.5038461538461538,
+        "recall": 0.786,
+        "f1": 0.6140625,
+        "roc_auc": 0.486808,
+        "pr_auc": 0.48184312177528843,
+        "brier_score": 0.2951917552474855,
+        "ece": 0.1716322271140759,
+        "confusion_matrix": {
+          "tn": 113,
+          "fp": 387,
+          "fn": 107,
+          "tp": 393
+        }
+      },
+      "xgboost": {
+        "accuracy": 0.498,
+        "precision": 0.498134328358209,
+        "recall": 0.534,
+        "f1": 0.5154440154440154,
+        "roc_auc": 0.496738,
+        "pr_auc": 0.4921341004902301,
+        "brier_score": 0.26424698982773326,
+        "ece": 0.09504947532713409,
+        "confusion_matrix": {
+          "tn": 231,
+          "fp": 269,
+          "fn": 233,
+          "tp": 267
+        }
+      }
+    }
+  }
+}

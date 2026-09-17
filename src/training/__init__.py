@@ -18,6 +18,11 @@ from src.training.calibration import (
     plot_reliability_diagram,
     run_primary_calibration_analysis,
 )
+from src.training.cross_dataset import (
+    get_leave_one_out_partitions,
+    evaluate_transfer_fold,
+    run_cross_dataset_evaluation,
+)
 
 __all__ = [
     "PRIMARY_SIGNAL_FEATURES",
@@ -32,5 +37,9 @@ __all__ = [
     "compute_calibration_data",
     "plot_reliability_diagram",
     "run_primary_calibration_analysis",
+    "get_leave_one_out_partitions",
+    "evaluate_transfer_fold",
+    "run_cross_dataset_evaluation",
 ]
+
 

@@ -1,0 +1,52 @@
+{
+  "number_of_examples": 20,
+  "number_of_usable_evidence_items": 1499,
+  "number_with_successful_retrieval": 12,
+  "number_with_insufficient_evidence": 8,
+  "retrieval_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "device": "cuda:0",
+  "model_loading_time_s": 9.611,
+  "corpus_encoding_time_s": 1.516,
+  "query_retrieval_time_s": 0.366,
+  "total_retrieval_embedding_time_s": 1.882,
+  "avg_retrieval_time_per_query_s": 0.0183,
+  "mean_top1_evidence_similarity": 0.5378,
+  "mean_top3_evidence_similarity": 0.4379,
+  "mean_response_evidence_similarity": 0.4571,
+  "mean_response_top3_similarity": 0.36,
+  "mean_evidence_margin": 0.1378,
+  "mean_retrieval_agreement": 0.2733,
+  "peak_gpu_memory_mb": 631.53,
+  "per_dataset_summary": {
+    "fever": {
+      "count": 6,
+      "evidence_status": "insufficient_wikipedia_pointers_only",
+      "mean_top1_evidence_similarity": 0.3765,
+      "mean_top3_evidence_similarity": 0.3383,
+      "mean_response_top1_similarity": 0.3765,
+      "mean_response_top3_similarity": 0.3383,
+      "mean_evidence_margin": 0.0518,
+      "mean_retrieval_agreement": 0.1514
+    },
+    "halueval": {
+      "count": 12,
+      "evidence_status": "available",
+      "mean_top1_evidence_similarity": 0.657,
+      "mean_top3_evidence_similarity": 0.5155,
+      "mean_response_top1_similarity": 0.5446,
+      "mean_response_top3_similarity": 0.4088,
+      "mean_evidence_margin": 0.196,
+      "mean_retrieval_agreement": 0.3706
+    },
+    "truthfulqa": {
+      "count": 2,
+      "evidence_status": "insufficient_url_citations_only",
+      "mean_top1_evidence_similarity": 0.3071,
+      "mean_top3_evidence_similarity": 0.2708,
+      "mean_response_top1_similarity": 0.1736,
+      "mean_response_top3_similarity": 0.1324,
+      "mean_evidence_margin": 0.0466,
+      "mean_retrieval_agreement": 0.0549
+    }
+  }
+}

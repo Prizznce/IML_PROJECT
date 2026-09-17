@@ -1,0 +1,56 @@
+{
+  "logistic_regression": {
+    "accuracy": 0.62625,
+    "precision": 0.6240786240786241,
+    "recall": 0.635,
+    "f1": 0.6294919454770755,
+    "roc_auc": 0.69848125,
+    "pr_auc": 0.673782232971313,
+    "brier_score": 0.21613881896469134,
+    "ece": 0.07463606059755572,
+    "confusion_matrix": {
+      "tn": 247,
+      "fp": 153,
+      "fn": 146,
+      "tp": 254
+    }
+  },
+  "xgboost": {
+    "accuracy": 0.68625,
+    "precision": 0.6609071274298056,
+    "recall": 0.765,
+    "f1": 0.709154113557358,
+    "roc_auc": 0.76683125,
+    "pr_auc": 0.7668637106346683,
+    "brier_score": 0.19044785283099558,
+    "ece": 0.03987273998558521,
+    "confusion_matrix": {
+      "tn": 243,
+      "fp": 157,
+      "fn": 94,
+      "tp": 306
+    }
+  },
+  "split_summary": {
+    "train_size": 3200,
+    "test_size": 800,
+    "num_features": 12,
+    "features": [
+      "min_log_prob",
+      "mean_log_prob",
+      "mean_token_prob",
+      "token_prob_std",
+      "mean_entropy",
+      "max_entropy",
+      "entropy_std",
+      "log_perplexity",
+      "log_mean_token_rank",
+      "log_max_token_rank",
+      "log_rank_std",
+      "num_tokens"
+    ],
+    "include_num_tokens": true,
+    "random_state": 42,
+    "test_size_fraction": 0.2
+  }
+}

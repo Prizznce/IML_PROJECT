@@ -13,6 +13,11 @@ from src.training.baseline_models import (
     evaluate_predictions,
     run_baseline_experiment,
 )
+from src.training.calibration import (
+    compute_calibration_data,
+    plot_reliability_diagram,
+    run_primary_calibration_analysis,
+)
 
 __all__ = [
     "PRIMARY_SIGNAL_FEATURES",
@@ -24,4 +29,8 @@ __all__ = [
     "compute_ece",
     "evaluate_predictions",
     "run_baseline_experiment",
+    "compute_calibration_data",
+    "plot_reliability_diagram",
+    "run_primary_calibration_analysis",
 ]
+

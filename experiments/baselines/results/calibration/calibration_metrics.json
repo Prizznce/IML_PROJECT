@@ -1,0 +1,242 @@
+{
+  "metadata": {
+    "dataset": "experiments/baselines/supervised_signals_combined.parquet",
+    "test_size": 0.2,
+    "random_state": 42,
+    "n_bins": 10,
+    "num_features": 11,
+    "features_used": [
+      "min_log_prob",
+      "mean_log_prob",
+      "mean_token_prob",
+      "token_prob_std",
+      "mean_entropy",
+      "max_entropy",
+      "entropy_std",
+      "log_perplexity",
+      "log_mean_token_rank",
+      "log_max_token_rank",
+      "log_rank_std"
+    ],
+    "include_num_tokens": false,
+    "total_test_samples": 800
+  },
+  "logistic_regression": {
+    "bins": [
+      {
+        "bin_index": 0,
+        "bin_lower": 0.0,
+        "bin_upper": 0.1,
+        "sample_count": 1,
+        "sample_fraction": 0.0013,
+        "mean_predicted_probability": 0.0961,
+        "observed_fraction_positive": 0.0,
+        "absolute_calibration_gap": 0.0961
+      },
+      {
+        "bin_index": 1,
+        "bin_lower": 0.1,
+        "bin_upper": 0.2,
+        "sample_count": 79,
+        "sample_fraction": 0.0988,
+        "mean_predicted_probability": 0.1503,
+        "observed_fraction_positive": 0.038,
+        "absolute_calibration_gap": 0.1123
+      },
+      {
+        "bin_index": 2,
+        "bin_lower": 0.2,
+        "bin_upper": 0.3,
+        "sample_count": 55,
+        "sample_fraction": 0.0688,
+        "mean_predicted_probability": 0.2517,
+        "observed_fraction_positive": 0.2,
+        "absolute_calibration_gap": 0.0517
+      },
+      {
+        "bin_index": 3,
+        "bin_lower": 0.3,
+        "bin_upper": 0.4,
+        "sample_count": 90,
+        "sample_fraction": 0.1125,
+        "mean_predicted_probability": 0.3542,
+        "observed_fraction_positive": 0.4333,
+        "absolute_calibration_gap": 0.0792
+      },
+      {
+        "bin_index": 4,
+        "bin_lower": 0.4,
+        "bin_upper": 0.5,
+        "sample_count": 142,
+        "sample_fraction": 0.1775,
+        "mean_predicted_probability": 0.4511,
+        "observed_fraction_positive": 0.5775,
+        "absolute_calibration_gap": 0.1264
+      },
+      {
+        "bin_index": 5,
+        "bin_lower": 0.5,
+        "bin_upper": 0.6,
+        "sample_count": 165,
+        "sample_fraction": 0.2062,
+        "mean_predicted_probability": 0.5544,
+        "observed_fraction_positive": 0.5576,
+        "absolute_calibration_gap": 0.0032
+      },
+      {
+        "bin_index": 6,
+        "bin_lower": 0.6,
+        "bin_upper": 0.7,
+        "sample_count": 157,
+        "sample_fraction": 0.1963,
+        "mean_predicted_probability": 0.6491,
+        "observed_fraction_positive": 0.5732,
+        "absolute_calibration_gap": 0.0758
+      },
+      {
+        "bin_index": 7,
+        "bin_lower": 0.7,
+        "bin_upper": 0.8,
+        "sample_count": 85,
+        "sample_fraction": 0.1062,
+        "mean_predicted_probability": 0.7423,
+        "observed_fraction_positive": 0.7412,
+        "absolute_calibration_gap": 0.0012
+      },
+      {
+        "bin_index": 8,
+        "bin_lower": 0.8,
+        "bin_upper": 0.9,
+        "sample_count": 23,
+        "sample_fraction": 0.0288,
+        "mean_predicted_probability": 0.8375,
+        "observed_fraction_positive": 0.7391,
+        "absolute_calibration_gap": 0.0984
+      },
+      {
+        "bin_index": 9,
+        "bin_lower": 0.9,
+        "bin_upper": 1.0,
+        "sample_count": 3,
+        "sample_fraction": 0.0037,
+        "mean_predicted_probability": 0.9194,
+        "observed_fraction_positive": 1.0,
+        "absolute_calibration_gap": 0.0806
+      }
+    ],
+    "ece": 0.06489242806726403,
+    "mce": 0.12640413945081386,
+    "brier_score": 0.2176521367330635,
+    "total_samples": 800,
+    "non_empty_bins": 10
+  },
+  "xgboost": {
+    "bins": [
+      {
+        "bin_index": 0,
+        "bin_lower": 0.0,
+        "bin_upper": 0.1,
+        "sample_count": 78,
+        "sample_fraction": 0.0975,
+        "mean_predicted_probability": 0.051,
+        "observed_fraction_positive": 0.0128,
+        "absolute_calibration_gap": 0.0382
+      },
+      {
+        "bin_index": 1,
+        "bin_lower": 0.1,
+        "bin_upper": 0.2,
+        "sample_count": 18,
+        "sample_fraction": 0.0225,
+        "mean_predicted_probability": 0.1435,
+        "observed_fraction_positive": 0.0556,
+        "absolute_calibration_gap": 0.0879
+      },
+      {
+        "bin_index": 2,
+        "bin_lower": 0.2,
+        "bin_upper": 0.3,
+        "sample_count": 35,
+        "sample_fraction": 0.0437,
+        "mean_predicted_probability": 0.2578,
+        "observed_fraction_positive": 0.2571,
+        "absolute_calibration_gap": 0.0007
+      },
+      {
+        "bin_index": 3,
+        "bin_lower": 0.3,
+        "bin_upper": 0.4,
+        "sample_count": 56,
+        "sample_fraction": 0.07,
+        "mean_predicted_probability": 0.3595,
+        "observed_fraction_positive": 0.4107,
+        "absolute_calibration_gap": 0.0512
+      },
+      {
+        "bin_index": 4,
+        "bin_lower": 0.4,
+        "bin_upper": 0.5,
+        "sample_count": 165,
+        "sample_fraction": 0.2062,
+        "mean_predicted_probability": 0.4629,
+        "observed_fraction_positive": 0.4485,
+        "absolute_calibration_gap": 0.0144
+      },
+      {
+        "bin_index": 5,
+        "bin_lower": 0.5,
+        "bin_upper": 0.6,
+        "sample_count": 215,
+        "sample_fraction": 0.2687,
+        "mean_predicted_probability": 0.5458,
+        "observed_fraction_positive": 0.5628,
+        "absolute_calibration_gap": 0.017
+      },
+      {
+        "bin_index": 6,
+        "bin_lower": 0.6,
+        "bin_upper": 0.7,
+        "sample_count": 93,
+        "sample_fraction": 0.1163,
+        "mean_predicted_probability": 0.6442,
+        "observed_fraction_positive": 0.6237,
+        "absolute_calibration_gap": 0.0206
+      },
+      {
+        "bin_index": 7,
+        "bin_lower": 0.7,
+        "bin_upper": 0.8,
+        "sample_count": 71,
+        "sample_fraction": 0.0887,
+        "mean_predicted_probability": 0.7492,
+        "observed_fraction_positive": 0.7465,
+        "absolute_calibration_gap": 0.0027
+      },
+      {
+        "bin_index": 8,
+        "bin_lower": 0.8,
+        "bin_upper": 0.9,
+        "sample_count": 51,
+        "sample_fraction": 0.0638,
+        "mean_predicted_probability": 0.8473,
+        "observed_fraction_positive": 0.8235,
+        "absolute_calibration_gap": 0.0237
+      },
+      {
+        "bin_index": 9,
+        "bin_lower": 0.9,
+        "bin_upper": 1.0,
+        "sample_count": 18,
+        "sample_fraction": 0.0225,
+        "mean_predicted_probability": 0.9196,
+        "observed_fraction_positive": 1.0,
+        "absolute_calibration_gap": 0.0804
+      }
+    ],
+    "ece": 0.02280899469275028,
+    "mce": 0.08792059082123968,
+    "brier_score": 0.19988438097085484,
+    "total_samples": 800,
+    "non_empty_bins": 10
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "table_name": "universal_features",
+  "total_rows": 4000,
+  "total_unique_ids": 4000,
+  "total_columns": 22,
+  "metadata_columns": [
+    "id",
+    "source_dataset",
+    "label"
+  ],
+  "feature_count": 19,
+  "feature_columns": [
+    "min_log_prob",
+    "mean_log_prob",
+    "mean_token_prob",
+    "token_prob_std",
+    "mean_entropy",
+    "max_entropy",
+    "entropy_std",
+    "log_perplexity",
+    "log_mean_token_rank",
+    "log_max_token_rank",
+    "log_rank_std",
+    "exact_match_agreement",
+    "mean_pairwise_similarity",
+    "min_pairwise_similarity",
+    "max_pairwise_similarity",
+    "pairwise_similarity_std",
+    "mean_pairwise_entailment",
+    "mean_pairwise_contradiction",
+    "nli_disagreement"
+  ],
+  "feature_families": {
+    "internal_signals": [
+      "min_log_prob",
+      "mean_log_prob",
+      "mean_token_prob",
+      "token_prob_std",
+      "mean_entropy",
+      "max_entropy",
+      "entropy_std",
+      "log_perplexity",
+      "log_mean_token_rank",
+      "log_max_token_rank",
+      "log_rank_std"
+    ],
+    "self_consistency": [
+      "exact_match_agreement",
+      "mean_pairwise_similarity",
+      "min_pairwise_similarity",
+      "max_pairwise_similarity",
+      "pairwise_similarity_std"
+    ],
+    "nli_agreement": [
+      "mean_pairwise_entailment",
+      "mean_pairwise_contradiction",
+      "nli_disagreement"
+    ]
+  },
+  "missingness_rate": 0.0,
+  "near_zero_variance_features": [],
+  "exact_collinear_pairs": [
+    [
+      "mean_log_prob",
+      "log_perplexity",
+      -1.0
+    ]
+  ],
+  "dataset_distribution": {
+    "halueval": 1500,
+    "truthfulqa": 1500,
+    "fever": 1000
+  },
+  "label_distribution": {
+    "1": 2000,
+    "0": 2000
+  },
+  "per_feature_statistics": {
+    "min_log_prob": {
+      "mean": -8.389546,
+      "std": 4.810944,
+      "min": -25.223812,
+      "25%": -12.116303,
+      "median": -8.558061,
+      "75%": -4.67848,
+      "max": -0.001493
+    },
+    "mean_log_prob": {
+      "mean": -2.650018,
+      "std": 2.071657,
+      "min": -18.053619,
+      "25%": -3.967416,
+      "median": -2.147032,
+      "75%": -1.029213,
+      "max": -0.000811
+    },
+    "mean_token_prob": {
+      "mean": 0.4737,
+      "std": 0.262035,
+      "min": 0.0,
+      "25%": 0.248192,
+      "median": 0.492041,
+      "75%": 0.682433,
+      "max": 0.999189
+    },
+    "token_prob_std": {
+      "mean": 0.332517,
+      "std": 0.133909,
+      "min": 0.0,
+      "25%": 0.278472,
+      "median": 0.368574,
+      "75%": 0.417065,
+      "max": 0.706978
+    },
+    "mean_entropy": {
+      "mean": 1.61442,
+      "std": 1.030852,
+      "min": 0.007709,
+      "25%": 0.746698,
+      "median": 1.377282,
+      "75%": 2.406152,
+      "max": 5.130985
+    },
+    "max_entropy": {
+      "mean": 3.595215,
+      "std": 1.649092,
+      "min": 0.013416,
+      "25%": 2.36592,
+      "median": 3.554205,
+      "75%": 4.885365,
+      "max": 7.541663
+    },
+    "entropy_std": {
+      "mean": 1.140344,
+      "std": 0.516383,
+      "min": 0.0,
+      "25%": 0.785529,
+      "median": 1.174911,
+      "75%": 1.506763,
+      "max": 3.41137
+    },
+    "log_perplexity": {
+      "mean": 2.650018,
+      "std": 2.071657,
+      "min": 0.000811,
+      "25%": 1.029213,
+      "median": 2.147032,
+      "75%": 3.967416,
+      "max": 18.053619
+    },
+    "log_mean_token_rank": {
+      "mean": 3.072737,
+      "std": 2.145891,
+      "min": 0.693147,
+      "25%": 1.098612,
+      "median": 2.397895,
+      "75%": 4.850626,
+      "max": 10.010866
+    },
+    "log_max_token_rank": {
+      "mean": 4.490569,
+      "std": 2.752755,
+      "min": 0.693147,
+      "25%": 2.079442,
+      "median": 4.151009,
+      "75%": 6.834646,
+      "max": 12.184231
+    },
+    "log_rank_std": {
+      "mean": 3.413379,
+      "std": 2.657291,
+      "min": 0.0,
+      "25%": 0.971329,
+      "median": 2.981021,
+      "75%": 5.719216,
+      "max": 10.830073
+    },
+    "exact_match_agreement": {
+      "mean": 0.189875,
+      "std": 0.337044,
+      "min": 0.0,
+      "25%": 0.0,
+      "median": 0.0,
+      "75%": 0.3,
+      "max": 1.0
+    },
+    "mean_pairwise_similarity": {
+      "mean": 0.787481,
+      "std": 0.159732,
+      "min": 0.181341,
+      "25%": 0.698999,
+      "median": 0.819123,
+      "75%": 0.900635,
+      "max": 1.0
+    },
+    "min_pairwise_similarity": {
+      "mean": 0.655082,
+      "std": 0.255074,
+      "min": -0.112917,
+      "25%": 0.508918,
+      "median": 0.711354,
+      "75%": 0.841978,
+      "max": 1.0
+    },
+    "max_pairwise_similarity": {
+      "mean": 0.931156,
+      "std": 0.081941,
+      "min": 0.360629,
+      "25%": 0.895633,
+      "median": 0.951222,
+      "75%": 1.0,
+      "max": 1.0
+    },
+    "pairwise_similarity_std": {
+      "mean": 0.099371,
+      "std": 0.095221,
+      "min": 0.0,
+      "25%": 0.033538,
+      "median": 0.062192,
+      "75%": 0.144401,
+      "max": 0.492566
+    },
+    "mean_pairwise_entailment": {
+      "mean": 0.338072,
+      "std": 0.326666,
+      "min": 0.000568,
+      "25%": 0.068592,
+      "median": 0.210365,
+      "75%": 0.56666,
+      "max": 0.99288
+    },
+    "mean_pairwise_contradiction": {
+      "mean": 0.229829,
+      "std": 0.237378,
+      "min": 0.000479,
+      "25%": 0.018849,
+      "median": 0.152536,
+      "75%": 0.387223,
+      "max": 0.99575
+    },
+    "nli_disagreement": {
+      "mean": 0.445879,
+      "std": 0.245561,
+      "min": 0.003928,
+      "25%": 0.293797,
+      "median": 0.487697,
+      "75%": 0.613748,
+      "max": 0.997215
+    }
+  }
+}

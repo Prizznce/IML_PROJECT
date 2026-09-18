@@ -16,6 +16,13 @@ from src.evaluation.cross_dataset import (
     get_leave_one_dataset_out_partitions,
     run_cross_dataset_study,
 )
+from src.evaluation.calibration import (
+    compute_calibration_curve_and_metrics,
+    evaluate_model_prob_metrics,
+    split_training_into_model_and_calib,
+    plot_comparative_reliability_diagram,
+    run_calibration_study,
+)
 
 __all__ = [
     "ABLATION_CONDITIONS",
@@ -28,4 +35,9 @@ __all__ = [
     "compute_transfer_deltas",
     "get_leave_one_dataset_out_partitions",
     "run_cross_dataset_study",
+    "compute_calibration_curve_and_metrics",
+    "evaluate_model_prob_metrics",
+    "split_training_into_model_and_calib",
+    "plot_comparative_reliability_diagram",
+    "run_calibration_study",
 ]

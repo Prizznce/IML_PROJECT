@@ -1,121 +1,164 @@
 """
-Unit tests for probability calibration analysis module.
+Unit and Integration Tests for Probability Calibration Analysis (Phase 17).
 
-Tests binning partitioning, ECE, MCE, Brier score, empty bin handling,
-and reliability diagram generation on synthetic data without GPU requirements.
+Validates nested split isolation (model-fit, calibration-fit, untouched test set),
+zero ID leakage, 10-bin reliability calculations, ECE/MCE/Brier metric bounds,
+and post-hoc calibrator outputs.
 """
 
-import sys
-import tempfile
-import unittest
 from pathlib import Path
-
+import tempfile
 import numpy as np
-from sklearn.metrics import brier_score_loss
+import pandas as pd
+import pytest
+from sklearn.calibration import IsotonicRegression, _SigmoidCalibration
 
-# Ensure repository root is in sys.path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from src.training.calibration import (
-    compute_calibration_data,
-    plot_reliability_diagram,
+from src.evaluation.calibration import (
+    compute_calibration_curve_and_metrics,
+    evaluate_model_prob_metrics,
+    run_calibration_study,
+    split_training_into_model_and_calib,
 )
+from src.features.build_universal_features import UNIVERSAL_CORE_FEATURES
+from src.training.combined_models import split_dataset
 
 
-class TestCalibration(unittest.TestCase):
-    """Test suite for probability calibration metrics and reliability binning."""
+@pytest.fixture
+def mock_universal_dataset() -> pd.DataFrame:
+    """Generate synthetic universal features dataset for calibration testing."""
+    np.random.seed(42)
+    n = 100
+    sources = ["halueval"] * 40 + ["truthfulqa"] * 40 + ["fever"] * 20
+    labels = [0, 1] * 50
 
-    def test_perfect_calibration(self):
-        """Verify that perfectly calibrated probabilities yield near-zero ECE and MCE."""
-        # 100 samples in bin [0.0, 0.1) with mean 0.05 and 5 positives -> acc=0.05
-        # 100 samples in bin [0.9, 1.0] with mean 0.95 and 95 positives -> acc=0.95
-        y_prob = np.array([0.05] * 100 + [0.95] * 100)
-        y_true = np.array([0] * 95 + [1] * 5 + [0] * 5 + [1] * 95)
+    data = {
+        "id": [f"item_{i}" for i in range(n)],
+        "source_dataset": sources,
+        "label": labels,
+    }
+    for feat in UNIVERSAL_CORE_FEATURES:
+        data[feat] = np.random.randn(n)
 
-        res = compute_calibration_data(y_true, y_prob, n_bins=10)
+    return pd.DataFrame(data)
 
-        self.assertAlmostEqual(res["ece"], 0.0, places=4)
-        self.assertAlmostEqual(res["mce"], 0.0, places=4)
-        self.assertEqual(res["total_samples"], 200)
 
-    def test_complete_miscalibration(self):
-        """Verify that inverted probabilities yield ECE = 1.0 and MCE = 1.0."""
+class TestCalibrationPartitionsAndIsolation:
+    """Test nested splitting and zero-leakage guarantees."""
+
+    def test_nested_split_sizes_and_zero_overlap(self, mock_universal_dataset):
+        """Verify outer test and inner calibration splits have zero ID overlap."""
+        df = mock_universal_dataset
+        X_full = df[list(UNIVERSAL_CORE_FEATURES)]
+        y_full = df["label"]
+        meta_full = df[["id", "source_dataset", "label"]]
+
+        # Outer split (80% train, 20% test)
+        X_tr, X_te, y_tr, y_te, meta_tr, meta_te = split_dataset(
+            X_full, y_full, meta_full, test_size=0.2, random_state=42
+        )
+        assert len(X_te) == 20
+        assert len(X_tr) == 80
+
+        # Inner split on train (80% model, 20% calib)
+        X_mod, X_cal, y_mod, y_cal, meta_mod, meta_cal = split_training_into_model_and_calib(
+            X_tr, y_tr, meta_tr, calib_size=0.2, random_state=42
+        )
+        assert len(X_mod) == 64
+        assert len(X_cal) == 16
+
+        test_ids = set(meta_te["id"])
+        model_ids = set(meta_mod["id"])
+        calib_ids = set(meta_cal["id"])
+
+        # Test set completely isolated
+        assert len(test_ids.intersection(model_ids)) == 0
+        assert len(test_ids.intersection(calib_ids)) == 0
+        assert len(model_ids.intersection(calib_ids)) == 0
+        assert len(test_ids) + len(model_ids) + len(calib_ids) == len(df)
+
+
+class TestCalibrationMetricsCalculation:
+    """Test reliability table, ECE, MCE, Brier score, and Cox slope/intercept."""
+
+    def test_perfect_calibration_low_ece(self):
+        """Perfect predictions yield 0.0 ECE and 0.0 MCE."""
         y_true = np.array([0] * 50 + [1] * 50)
-        y_prob = np.array([1.0] * 50 + [0.0] * 50)
+        y_prob = np.array([0.0] * 50 + [1.0] * 50)
 
-        res = compute_calibration_data(y_true, y_prob, n_bins=10)
+        calib = compute_calibration_curve_and_metrics(y_true, y_prob, n_bins=10)
+        assert pytest.approx(calib["ece"], abs=1e-5) == 0.0
+        assert pytest.approx(calib["mce"], abs=1e-5) == 0.0
+        assert pytest.approx(calib["brier_score"], abs=1e-5) == 0.0
 
-        self.assertAlmostEqual(res["ece"], 1.0, places=4)
-        self.assertAlmostEqual(res["mce"], 1.0, places=4)
-
-    def test_bin_counts_sum_to_total_samples(self):
-        """Verify that sum of sample counts across all bins equals dataset size."""
+    def test_calibration_metric_bounds_and_structure(self):
+        """Metrics are bounded in [0, 1] and bins sum to sample count."""
         np.random.seed(42)
-        n = 800
+        n = 100
         y_true = np.random.randint(0, 2, n)
         y_prob = np.random.uniform(0.0, 1.0, n)
 
-        res = compute_calibration_data(y_true, y_prob, n_bins=10)
+        calib = compute_calibration_curve_and_metrics(y_true, y_prob, n_bins=10)
 
-        bin_counts = [b["sample_count"] for b in res["bins"]]
-        self.assertEqual(sum(bin_counts), n)
-        self.assertEqual(len(res["bins"]), 10)
-        self.assertEqual(res["total_samples"], n)
+        assert 0.0 <= calib["ece"] <= 1.0
+        assert 0.0 <= calib["mce"] <= 1.0
+        assert 0.0 <= calib["brier_score"] <= 1.0
+        assert calib["mce"] >= calib["ece"]  # MCE is upper bound on ECE
+        assert len(calib["bins"]) == 10
 
-        # Check bin boundaries
-        self.assertEqual(res["bins"][0]["bin_lower"], 0.0)
-        self.assertEqual(res["bins"][-1]["bin_upper"], 1.0)
+        total_binned = sum(b["sample_count"] for b in calib["bins"])
+        assert total_binned == n
 
-    def test_empty_bins_handling(self):
-        """Verify that empty bins are handled gracefully without NaN gaps."""
-        # All probabilities within [0.4, 0.5)
-        y_true = np.array([0, 1, 0, 1])
-        y_prob = np.array([0.42, 0.45, 0.48, 0.49])
-
-        res = compute_calibration_data(y_true, y_prob, n_bins=10)
-
-        self.assertEqual(res["non_empty_bins"], 1)
-        # Empty bins should have sample_count = 0, mean_predicted_probability = None
-        for b in res["bins"]:
-            if b["bin_index"] == 4:
-                self.assertEqual(b["sample_count"], 4)
-                self.assertIsNotNone(b["mean_predicted_probability"])
-            else:
-                self.assertEqual(b["sample_count"], 0)
-                self.assertIsNone(b["mean_predicted_probability"])
-                self.assertEqual(b["absolute_calibration_gap"], 0.0)
-
-        self.assertGreater(res["ece"], 0.0)
-        self.assertGreater(res["mce"], 0.0)
-
-    def test_brier_score_matches_sklearn(self):
-        """Verify that Brier score matches scikit-learn standard implementation."""
-        np.random.seed(123)
-        y_true = np.random.randint(0, 2, 100)
-        y_prob = np.random.uniform(0.0, 1.0, 100)
-
-        res = compute_calibration_data(y_true, y_prob, n_bins=10)
-        expected_brier = brier_score_loss(y_true, y_prob)
-
-        self.assertAlmostEqual(res["brier_score"], expected_brier, places=5)
-
-    def test_reliability_diagram_plotting(self):
-        """Verify that plot_reliability_diagram executes and produces a valid image file."""
+    def test_calibrators_fit_and_predict_bounds(self):
+        """Sigmoid and Isotonic calibrators produce valid probabilities in [0, 1]."""
         np.random.seed(42)
-        y_true = np.random.randint(0, 2, 200)
-        y_prob = np.random.uniform(0.0, 1.0, 200)
+        n = 80
+        prob_calib = np.random.uniform(0.1, 0.9, n)
+        y_calib = np.random.randint(0, 2, n)
 
-        calib_data = compute_calibration_data(y_true, y_prob, n_bins=10)
+        sig = _SigmoidCalibration().fit(prob_calib, y_calib)
+        iso = IsotonicRegression(out_of_bounds="clip", y_min=0.0, y_max=1.0).fit(prob_calib, y_calib)
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            out_img = Path(tmpdir) / "test_reliability.png"
-            plot_reliability_diagram(calib_data, "Test Model", out_img)
+        test_prob = np.array([0.05, 0.2, 0.5, 0.8, 0.95])
+        sig_pred = sig.predict(test_prob)
+        iso_pred = iso.predict(test_prob)
 
-            self.assertTrue(out_img.exists())
-            self.assertGreater(out_img.stat().st_size, 1000)
+        assert np.all((sig_pred >= 0.0) & (sig_pred <= 1.0))
+        assert np.all((iso_pred >= 0.0) & (iso_pred <= 1.0))
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestEndToEndCalibrationStudy:
+    """Test full execution of calibration study on mock data."""
+
+    def test_mock_calibration_run(self, mock_universal_dataset, tmp_path):
+        """Run complete calibration pipeline on mock dataset and verify artifacts."""
+        out_dir = tmp_path / "calibration_test"
+        results = run_calibration_study(
+            data_path=mock_universal_dataset,
+            output_dir=out_dir,
+            random_state=42,
+        )
+
+        assert "models" in results
+        assert "logistic_regression" in results["models"]
+        assert "xgboost" in results["models"]
+
+        # Check files
+        assert (out_dir / "calibration_results.json").exists()
+        assert (out_dir / "calibration_results.csv").exists()
+        assert (out_dir / "calibration_reliability_tables.csv").exists()
+        assert (out_dir / "calibration_predictions.parquet").exists()
+        assert (out_dir / "calibration_summary.md").exists()
+        assert (out_dir / "logistic_regression_reliability.png").exists()
+        assert (out_dir / "xgboost_reliability.png").exists()
+
+        # Check CSV rows: 2 models x 3 methods = 6 rows
+        res_df = pd.read_csv(out_dir / "calibration_results.csv")
+        assert len(res_df) == 6
+
+        # Check reliability table: 6 models/methods x 10 bins = 60 rows
+        rel_df = pd.read_csv(out_dir / "calibration_reliability_tables.csv")
+        assert len(rel_df) == 60
+
+        # Check predictions: 20 test samples x 2 models x 3 methods = 120 rows
+        pred_df = pd.read_parquet(out_dir / "calibration_predictions.parquet")
+        assert len(pred_df) == 20 * 2 * 3

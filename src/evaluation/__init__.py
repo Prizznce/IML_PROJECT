@@ -23,6 +23,18 @@ from src.evaluation.calibration import (
     plot_comparative_reliability_diagram,
     run_calibration_study,
 )
+from src.evaluation.error_analysis import (
+    PRIMARY_19_FEATURES,
+    assign_error_categories,
+    compute_confidence,
+    compute_dataset_error_metrics,
+    compute_error_category_statistics,
+    compute_feature_error_effects,
+    compute_model_disagreement,
+    extract_confusion_examples,
+    load_and_validate_error_analysis_data,
+    run_error_analysis_pipeline,
+)
 
 __all__ = [
     "ABLATION_CONDITIONS",
@@ -40,4 +52,14 @@ __all__ = [
     "split_training_into_model_and_calib",
     "plot_comparative_reliability_diagram",
     "run_calibration_study",
+    "PRIMARY_19_FEATURES",
+    "assign_error_categories",
+    "compute_confidence",
+    "compute_dataset_error_metrics",
+    "compute_error_category_statistics",
+    "compute_feature_error_effects",
+    "compute_model_disagreement",
+    "extract_confusion_examples",
+    "load_and_validate_error_analysis_data",
+    "run_error_analysis_pipeline",
 ]

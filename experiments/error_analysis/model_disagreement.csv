@@ -1,0 +1,2 @@
+total_samples,agreement_count,agreement_rate,disagreement_count,disagreement_rate,both_correct_count,both_correct_rate,both_wrong_count,both_wrong_rate,lr_correct_xgb_wrong_count,lr_correct_xgb_wrong_rate,lr_wrong_xgb_correct_count,lr_wrong_xgb_correct_rate
+800,580,0.725,220,0.275,413,0.51625,167,0.20875,90,0.1125,130,0.1625

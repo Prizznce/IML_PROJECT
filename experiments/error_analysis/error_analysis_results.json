@@ -1,0 +1,527 @@
+{
+  "metadata": {
+    "total_test_samples": 800,
+    "label_distribution": {
+      "0": 400,
+      "1": 400
+    },
+    "dataset_distribution": {
+      "halueval": 300,
+      "truthfulqa": 300,
+      "fever": 200
+    },
+    "features_analyzed": [
+      "min_log_prob",
+      "mean_log_prob",
+      "mean_token_prob",
+      "token_prob_std",
+      "mean_entropy",
+      "max_entropy",
+      "entropy_std",
+      "log_perplexity",
+      "log_mean_token_rank",
+      "log_max_token_rank",
+      "log_rank_std",
+      "exact_match_agreement",
+      "mean_pairwise_similarity",
+      "min_pairwise_similarity",
+      "max_pairwise_similarity",
+      "pairwise_similarity_std",
+      "mean_pairwise_entailment",
+      "mean_pairwise_contradiction",
+      "nli_disagreement"
+    ]
+  },
+  "logistic_regression": {
+    "error_categories": {
+      "TP": {
+        "count": 259,
+        "fraction_of_total": 0.32375,
+        "fraction_of_label": 0.6475,
+        "probability": {
+          "mean": 0.6841681116704174,
+          "median": 0.6648133530848993,
+          "std": 0.1132941017639381,
+          "min": 0.5000947106663012,
+          "max": 0.9599271715381674
+        },
+        "confidence": {
+          "mean": 0.6841681116704174,
+          "median": 0.6648133530848993,
+          "std": 0.1132941017639381
+        },
+        "text_lengths": {
+          "response_char_len": {
+            "mean": 62.12355212355212,
+            "median": 56.0,
+            "std": 33.21751466255067
+          },
+          "response_word_count": {
+            "mean": 10.749034749034749,
+            "median": 10.0,
+            "std": 5.564521911488802
+          },
+          "prompt_word_count": {
+            "mean": 14.567567567567568,
+            "median": 11.0,
+            "std": 8.704353265221132
+          },
+          "context_word_count": {
+            "valid_count": 259,
+            "mean": 26.104247104247104,
+            "median": 12.0,
+            "std": 28.197406646394164
+          }
+        }
+      },
+      "TN": {
+        "count": 244,
+        "fraction_of_total": 0.305,
+        "fraction_of_label": 0.61,
+        "probability": {
+          "mean": 0.30541461582118035,
+          "median": 0.31019792090134934,
+          "std": 0.1227925199227762,
+          "min": 0.051877911273962574,
+          "max": 0.4998784747062329
+        },
+        "confidence": {
+          "mean": 0.6945853841788195,
+          "median": 0.6898020790986507,
+          "std": 0.12279251992277622
+        },
+        "text_lengths": {
+          "response_char_len": {
+            "mean": 23.37295081967213,
+            "median": 19.0,
+            "std": 15.990359939973741
+          },
+          "response_word_count": {
+            "mean": 4.057377049180328,
+            "median": 3.0,
+            "std": 2.9039470239923832
+          },
+          "prompt_word_count": {
+            "mean": 15.581967213114755,
+            "median": 12.0,
+            "std": 10.245416651815141
+          },
+          "context_word_count": {
+            "valid_count": 244,
+            "mean": 29.5,
+            "median": 31.0,
+            "std": 27.91676340502863
+          }
+        }
+      },
+      "FP": {
+        "count": 156,
+        "fraction_of_total": 0.195,
+        "fraction_of_label": 0.39,
+        "probability": {
+          "mean": 0.6196517399199115,
+          "median": 0.605306645049249,
+          "std": 0.08487891530859103,
+          "min": 0.5027315985468347,
+          "max": 0.8756904107650578
+        },
+        "confidence": {
+          "mean": 0.6196517399199115,
+          "median": 0.605306645049249,
+          "std": 0.08487891530859103
+        },
+        "text_lengths": {
+          "response_char_len": {
+            "mean": 55.3525641025641,
+            "median": 53.0,
+            "std": 23.610496432096845
+          },
+          "response_word_count": {
+            "mean": 9.653846153846153,
+            "median": 10.0,
+            "std": 3.906411349025031
+          },
+          "prompt_word_count": {
+            "mean": 10.967948717948717,
+            "median": 10.0,
+            "std": 4.830574495714099
+          },
+          "context_word_count": {
+            "valid_count": 156,
+            "mean": 11.051282051282051,
+            "median": 4.0,
+            "std": 19.646486962269957
+          }
+        }
+      },
+      "FN": {
+        "count": 141,
+        "fraction_of_total": 0.17625,
+        "fraction_of_label": 0.3525,
+        "probability": {
+          "mean": 0.3795019739467932,
+          "median": 0.39879134783355724,
+          "std": 0.09191807070554196,
+          "min": 0.07350530053735307,
+          "max": 0.49980868860958033
+        },
+        "confidence": {
+          "mean": 0.6204980260532068,
+          "median": 0.6012086521664428,
+          "std": 0.09191807070554195
+        },
+        "text_lengths": {
+          "response_char_len": {
+            "mean": 34.163120567375884,
+            "median": 34.0,
+            "std": 14.567392213666393
+          },
+          "response_word_count": {
+            "mean": 6.00709219858156,
+            "median": 6.0,
+            "std": 2.665913014068831
+          },
+          "prompt_word_count": {
+            "mean": 12.035460992907801,
+            "median": 10.0,
+            "std": 9.580047231853245
+          },
+          "context_word_count": {
+            "valid_count": 141,
+            "mean": 14.702127659574469,
+            "median": 2.0,
+            "std": 24.142358945238332
+          }
+        }
+      }
+    },
+    "dataset_metrics": [
+      {
+        "slice": "overall",
+        "total_samples": 800,
+        "tp": 259,
+        "fp": 156,
+        "tn": 244,
+        "fn": 141,
+        "error_rate": 0.37125,
+        "false_positive_rate": 0.39,
+        "false_negative_rate": 0.3525,
+        "accuracy": 0.62875,
+        "f1": 0.6355828220858896,
+        "roc_auc": 0.70789375,
+        "mean_probability": 0.5023701961712627,
+        "mean_probability_label_0": 0.4279670942196856,
+        "mean_probability_label_1": 0.57677329812284
+      },
+      {
+        "slice": "fever",
+        "total_samples": 200,
+        "tp": 60,
+        "fp": 63,
+        "tn": 37,
+        "fn": 40,
+        "error_rate": 0.515,
+        "false_positive_rate": 0.63,
+        "false_negative_rate": 0.4,
+        "accuracy": 0.485,
+        "f1": 0.5381165919282511,
+        "roc_auc": 0.48700000000000004,
+        "mean_probability": 0.5372998565908794,
+        "mean_probability_label_0": 0.5404690376063371,
+        "mean_probability_label_1": 0.5341306755754217
+      },
+      {
+        "slice": "halueval",
+        "total_samples": 300,
+        "tp": 121,
+        "fp": 19,
+        "tn": 131,
+        "fn": 29,
+        "error_rate": 0.16,
+        "false_positive_rate": 0.12666666666666668,
+        "false_negative_rate": 0.19333333333333333,
+        "accuracy": 0.84,
+        "f1": 0.8344827586206897,
+        "roc_auc": 0.9311111111111111,
+        "mean_probability": 0.49326601614132215,
+        "mean_probability_label_0": 0.3000002105407256,
+        "mean_probability_label_1": 0.6865318217419186
+      },
+      {
+        "slice": "truthfulqa",
+        "total_samples": 300,
+        "tp": 78,
+        "fp": 74,
+        "tn": 76,
+        "fn": 72,
+        "error_rate": 0.4866666666666667,
+        "false_positive_rate": 0.49333333333333335,
+        "false_negative_rate": 0.48,
+        "accuracy": 0.5133333333333333,
+        "f1": 0.5165562913907285,
+        "roc_auc": 0.5210222222222223,
+        "mean_probability": 0.4881879359214588,
+        "mean_probability_label_0": 0.48093268230754443,
+        "mean_probability_label_1": 0.49544318953537325
+      }
+    ]
+  },
+  "xgboost": {
+    "error_categories": {
+      "TP": {
+        "count": 267,
+        "fraction_of_total": 0.33375,
+        "fraction_of_label": 0.6675,
+        "probability": {
+          "mean": 0.7250151038169861,
+          "median": 0.6840652227401733,
+          "std": 0.1578095704317093,
+          "min": 0.5014790296554565,
+          "max": 0.9737129211425781
+        },
+        "confidence": {
+          "mean": 0.7250150801537188,
+          "median": 0.6840652227401733,
+          "std": 0.15780956933756435
+        },
+        "text_lengths": {
+          "response_char_len": {
+            "mean": 58.561797752808985,
+            "median": 50.0,
+            "std": 34.11621725019791
+          },
+          "response_word_count": {
+            "mean": 10.142322097378278,
+            "median": 9.0,
+            "std": 5.725747073526615
+          },
+          "prompt_word_count": {
+            "mean": 14.749063670411985,
+            "median": 11.0,
+            "std": 9.25498997004075
+          },
+          "context_word_count": {
+            "valid_count": 267,
+            "mean": 27.299625468164795,
+            "median": 16.0,
+            "std": 28.945244519788158
+          }
+        }
+      },
+      "TN": {
+        "count": 276,
+        "fraction_of_total": 0.345,
+        "fraction_of_label": 0.69,
+        "probability": {
+          "mean": 0.2760907709598541,
+          "median": 0.3464955985546112,
+          "std": 0.17683133482933044,
+          "min": 0.013722042553126812,
+          "max": 0.4997340738773346
+        },
+        "confidence": {
+          "mean": 0.7239092519047899,
+          "median": 0.6535044014453888,
+          "std": 0.1768313341671775
+        },
+        "text_lengths": {
+          "response_char_len": {
+            "mean": 29.72463768115942,
+            "median": 23.0,
+            "std": 22.62878878080817
+          },
+          "response_word_count": {
+            "mean": 5.134057971014493,
+            "median": 4.0,
+            "std": 3.938638368810153
+          },
+          "prompt_word_count": {
+            "mean": 14.68840579710145,
+            "median": 10.0,
+            "std": 9.692959562777459
+          },
+          "context_word_count": {
+            "valid_count": 276,
+            "mean": 26.547101449275363,
+            "median": 16.0,
+            "std": 27.329530327678317
+          }
+        }
+      },
+      "FP": {
+        "count": 124,
+        "fraction_of_total": 0.155,
+        "fraction_of_label": 0.31,
+        "probability": {
+          "mean": 0.6132949590682983,
+          "median": 0.5828057527542114,
+          "std": 0.10181321948766708,
+          "min": 0.5004958510398865,
+          "max": 0.9152386784553528
+        },
+        "confidence": {
+          "mean": 0.6132950398229784,
+          "median": 0.5828057825565338,
+          "std": 0.10181321182655986
+        },
+        "text_lengths": {
+          "response_char_len": {
+            "mean": 49.46774193548387,
+            "median": 48.5,
+            "std": 24.142340596840167
+          },
+          "response_word_count": {
+            "mean": 8.701612903225806,
+            "median": 9.0,
+            "std": 4.07247320774485
+          },
+          "prompt_word_count": {
+            "mean": 11.766129032258064,
+            "median": 10.0,
+            "std": 6.1035893357895
+          },
+          "context_word_count": {
+            "valid_count": 124,
+            "mean": 12.862903225806452,
+            "median": 4.0,
+            "std": 22.118797758173507
+          }
+        }
+      },
+      "FN": {
+        "count": 133,
+        "fraction_of_total": 0.16625,
+        "fraction_of_label": 0.3325,
+        "probability": {
+          "mean": 0.4095495343208313,
+          "median": 0.4221845269203186,
+          "std": 0.0663866251707077,
+          "min": 0.18084944784641266,
+          "max": 0.49741920828819275
+        },
+        "confidence": {
+          "mean": 0.5904504777793598,
+          "median": 0.5778154730796814,
+          "std": 0.06638662727290606
+        },
+        "text_lengths": {
+          "response_char_len": {
+            "mean": 39.63157894736842,
+            "median": 38.0,
+            "std": 18.329258645347288
+          },
+          "response_word_count": {
+            "mean": 6.93984962406015,
+            "median": 6.0,
+            "std": 3.263107364795934
+          },
+          "prompt_word_count": {
+            "mean": 11.518796992481203,
+            "median": 10.0,
+            "std": 8.380715149711088
+          },
+          "context_word_count": {
+            "valid_count": 133,
+            "mean": 11.61654135338346,
+            "median": 4.0,
+            "std": 20.208279807930847
+          }
+        }
+      }
+    },
+    "dataset_metrics": [
+      {
+        "slice": "overall",
+        "total_samples": 800,
+        "tp": 267,
+        "fp": 124,
+        "tn": 276,
+        "fn": 133,
+        "error_rate": 0.32125,
+        "false_positive_rate": 0.31,
+        "false_negative_rate": 0.3325,
+        "accuracy": 0.67875,
+        "f1": 0.6750948166877371,
+        "roc_auc": 0.7688125000000001,
+        "mean_probability": 0.5003734827041626,
+        "mean_probability_label_0": 0.38062408566474915,
+        "mean_probability_label_1": 0.6201227307319641
+      },
+      {
+        "slice": "fever",
+        "total_samples": 200,
+        "tp": 50,
+        "fp": 44,
+        "tn": 56,
+        "fn": 50,
+        "error_rate": 0.47,
+        "false_positive_rate": 0.44,
+        "false_negative_rate": 0.5,
+        "accuracy": 0.53,
+        "f1": 0.5154639175257731,
+        "roc_auc": 0.5441,
+        "mean_probability": 0.49912339448928833,
+        "mean_probability_label_0": 0.49118950963020325,
+        "mean_probability_label_1": 0.507057249546051
+      },
+      {
+        "slice": "halueval",
+        "total_samples": 300,
+        "tp": 128,
+        "fp": 19,
+        "tn": 131,
+        "fn": 22,
+        "error_rate": 0.13666666666666666,
+        "false_positive_rate": 0.12666666666666668,
+        "false_negative_rate": 0.14666666666666667,
+        "accuracy": 0.8633333333333333,
+        "f1": 0.8619528619528619,
+        "roc_auc": 0.9433333333333334,
+        "mean_probability": 0.48842447996139526,
+        "mean_probability_label_0": 0.20356681942939758,
+        "mean_probability_label_1": 0.7732821702957153
+      },
+      {
+        "slice": "truthfulqa",
+        "total_samples": 300,
+        "tp": 89,
+        "fp": 61,
+        "tn": 89,
+        "fn": 61,
+        "error_rate": 0.4066666666666667,
+        "false_positive_rate": 0.4066666666666667,
+        "false_negative_rate": 0.4066666666666667,
+        "accuracy": 0.5933333333333334,
+        "f1": 0.5933333333333334,
+        "roc_auc": 0.6065777777777778,
+        "mean_probability": 0.5131556987762451,
+        "mean_probability_label_0": 0.4839709997177124,
+        "mean_probability_label_1": 0.5423403978347778
+      }
+    ]
+  },
+  "model_disagreement": {
+    "total_samples": 800,
+    "agreement_count": 580,
+    "agreement_rate": 0.725,
+    "disagreement_count": 220,
+    "disagreement_rate": 0.275,
+    "both_correct_count": 413,
+    "both_correct_rate": 0.51625,
+    "both_wrong_count": 167,
+    "both_wrong_rate": 0.20875,
+    "lr_correct_xgb_wrong_count": 90,
+    "lr_correct_xgb_wrong_rate": 0.1125,
+    "lr_wrong_xgb_correct_count": 130,
+    "lr_wrong_xgb_correct_rate": 0.1625
+  },
+  "plots_generated": [
+    "confusion_matrix_lr.png",
+    "confusion_matrix_xgb.png",
+    "probability_distribution_lr.png",
+    "probability_distribution_xgb.png",
+    "error_rate_by_dataset_lr.png",
+    "error_rate_by_dataset_xgb.png",
+    "feature_differences_comparison.png"
+  ]
+}

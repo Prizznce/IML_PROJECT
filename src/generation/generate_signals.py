@@ -112,16 +112,42 @@ def load_model_and_tokenizer(
         Tuple of (model, tokenizer).
     """
     logger.info(f"Loading tokenizer for '{model_id}'...")
-    tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+    except Exception:
+        tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True, local_files_only=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     logger.info(f"Loading causal model '{model_id}' in {torch_dtype} on {device}...")
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        dtype=torch_dtype,
-        device_map=device,
-    )
+    try:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            dtype=torch_dtype,
+            device_map=device,
+        )
+    except (ValueError, ImportError):
+        try:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_id,
+                dtype=torch_dtype,
+            )
+        except Exception:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_id,
+                dtype=torch_dtype,
+                local_files_only=True,
+            )
+        if torch.cuda.is_available() and "cuda" in str(device):
+            model = model.to(device)
+    except Exception:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            dtype=torch_dtype,
+            local_files_only=True,
+        )
+        if torch.cuda.is_available() and "cuda" in str(device):
+            model = model.to(device)
     model.eval()
 
     device_name = torch.cuda.get_device_name() if torch.cuda.is_available() else "CPU"

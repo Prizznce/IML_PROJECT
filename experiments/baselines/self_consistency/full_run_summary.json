@@ -1,0 +1,45 @@
+{
+  "dataset_path": "experiments/baselines/supervised_signals_combined.parquet",
+  "total_examples": 4000,
+  "generations_per_example": 5,
+  "total_generations": 20000,
+  "failed_examples": 0,
+  "device": "cuda:0",
+  "model_id": "Qwen/Qwen3.5-0.8B",
+  "embed_model_id": "sentence-transformers/all-MiniLM-L6-v2",
+  "sampling_parameters": {
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "max_new_tokens": 128,
+    "seed": 42,
+    "thinking_enabled": false
+  },
+  "mean_exact_match_agreement": 0.1899,
+  "mean_unique_response_ratio": 0.8124,
+  "mean_majority_response_fraction": 0.3784,
+  "mean_pairwise_similarity": 0.7875,
+  "mean_generation_disagreement": 0.2125,
+  "mean_pairwise_similarity_std": 0.0994,
+  "any_think_tags_leaked": false,
+  "peak_gpu_memory_mb": 1746.07,
+  "per_dataset_summary": {
+    "fever": {
+      "count": 1000,
+      "mean_exact_match_agreement": 0.0008,
+      "mean_pairwise_similarity": 0.8283,
+      "mean_generation_disagreement": 0.1717
+    },
+    "halueval": {
+      "count": 1500,
+      "mean_exact_match_agreement": 0.4745,
+      "mean_pairwise_similarity": 0.8126,
+      "mean_generation_disagreement": 0.1874
+    },
+    "truthfulqa": {
+      "count": 1500,
+      "mean_exact_match_agreement": 0.0313,
+      "mean_pairwise_similarity": 0.7351,
+      "mean_generation_disagreement": 0.2649
+    }
+  }
+}

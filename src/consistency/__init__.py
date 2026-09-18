@@ -12,6 +12,7 @@ from src.consistency.self_consistency import (
     extract_self_consistency_signals,
     generate_stochastic_responses,
     run_self_consistency_pilot,
+    run_self_consistency_full,
 )
 from src.consistency.nli_agreement import (
     load_nli_model,
@@ -34,6 +35,7 @@ __all__ = [
     "extract_self_consistency_signals",
     "generate_stochastic_responses",
     "run_self_consistency_pilot",
+    "run_self_consistency_full",
     "load_nli_model",
     "get_nli_label_indices",
     "compute_softmax_probabilities",

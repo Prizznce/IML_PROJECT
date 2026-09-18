@@ -653,13 +653,366 @@ def run_self_consistency_pilot(
 
 
 # ==============================================================================
+# 6. Production Full-Dataset Runner & Artifact Persistence
+# ==============================================================================
+
+def run_self_consistency_full(
+    data_path: str = "experiments/baselines/supervised_signals_combined.parquet",
+    output_dir: str = "experiments/baselines/self_consistency",
+    model_id: str = "Qwen/Qwen3.5-0.8B",
+    embed_model_id: str = "sentence-transformers/all-MiniLM-L6-v2",
+    num_generations: int = 5,
+    temperature: float = 0.7,
+    top_p: float = 0.9,
+    max_new_tokens: int = 128,
+    seed: int = 42,
+    device: str = "cuda:0",
+    checkpoint_interval: int = 50,
+    resume: bool = True,
+    limit: Optional[int] = None,
+) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, Any]]:
+    """
+    Execute production self-consistency generation pipeline across the full dataset.
+
+    Supports incremental checkpointing, --resume capability, and strict validation checks.
+
+    Parameters:
+        data_path: Path to supervised benchmark parquet (4,000 examples).
+        output_dir: Directory to store full production artifacts.
+        model_id: Causal LM identifier (Qwen/Qwen3.5-0.8B).
+        embed_model_id: SentenceTransformer model ID.
+        num_generations: K stochastic generations per prompt (5).
+        temperature: Sampling temperature (0.7).
+        top_p: Top-p nucleus sampling (0.9).
+        max_new_tokens: Maximum new tokens per generation (128).
+        seed: Deterministic base random seed (42).
+        device: Target execution device.
+        checkpoint_interval: Save intermediate progress every N examples.
+        resume: If True, detects and resumes from existing completed examples.
+        limit: Optional limit on examples to process (e.g. for smoke testing).
+
+    Returns:
+        Tuple of (df_generations, df_aggregated, summary_metrics).
+    """
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"Input supervised dataset not found at '{data_path}'")
+
+    out_path = Path(output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    gen_parquet_path = out_path / "full_generations_raw.parquet"
+    gen_csv_path = out_path / "full_generations_raw.csv"
+    agg_parquet_path = out_path / "full_self_consistency_aggregated.parquet"
+    agg_csv_path = out_path / "full_self_consistency_aggregated.csv"
+    summary_json_path = out_path / "full_run_summary.json"
+
+    ckpt_gen_path = out_path / ".checkpoint_full_generations.parquet"
+    ckpt_agg_path = out_path / ".checkpoint_full_aggregated.parquet"
+
+    logger.info(f"Loading supervised dataset from '{data_path}'...")
+    df_raw = pd.read_parquet(data_path).reset_index(drop=True)
+    total_raw = len(df_raw)
+
+    if limit is not None and limit < total_raw:
+        logger.info(f"Applying limit of {limit} examples (from total {total_raw})...")
+        df_target = df_raw.iloc[:limit].copy().reset_index(drop=True)
+    else:
+        df_target = df_raw.copy().reset_index(drop=True)
+
+    target_count = len(df_target)
+    logger.info(f"Target count to process: {target_count} examples.")
+
+    # --------------------------------------------------------------------------
+    # Checkpoint & Resume Detection
+    # --------------------------------------------------------------------------
+    completed_ids: set = set()
+    generation_records: List[Dict[str, Any]] = []
+    aggregated_records: List[Dict[str, Any]] = []
+
+    if resume:
+        # Check if full aggregated file already exists
+        if agg_parquet_path.exists() and gen_parquet_path.exists():
+            try:
+                df_existing_agg = pd.read_parquet(agg_parquet_path)
+                df_existing_gen = pd.read_parquet(gen_parquet_path)
+                existing_ids = set(df_existing_agg["id"].astype(str))
+                target_ids = set(df_target["id"].astype(str))
+                if target_ids.issubset(existing_ids):
+                    logger.info(f"All {target_count} target examples already completed in '{agg_parquet_path}'. Loading existing results.")
+                    df_target_agg = df_existing_agg[df_existing_agg["id"].isin(target_ids)].copy().reset_index(drop=True)
+                    df_target_gen = df_existing_gen[df_existing_gen["id"].isin(target_ids)].copy().reset_index(drop=True)
+                    summary = {}
+                    if summary_json_path.exists():
+                        with open(summary_json_path, "r", encoding="utf-8") as f:
+                            summary = json.load(f)
+                    return df_target_gen, df_target_agg, summary
+            except Exception as e:
+                logger.warning(f"Could not read existing completed files: {e}. Falling back to checkpoint inspection.")
+
+        # Check for intermediate checkpoint
+        if ckpt_agg_path.exists() and ckpt_gen_path.exists():
+            try:
+                df_ckpt_agg = pd.read_parquet(ckpt_agg_path)
+                df_ckpt_gen = pd.read_parquet(ckpt_gen_path)
+                completed_ids = set(df_ckpt_agg["id"].astype(str))
+                aggregated_records = df_ckpt_agg.to_dict(orient="records")
+                generation_records = df_ckpt_gen.to_dict(orient="records")
+                logger.info(f"Resuming from checkpoint: {len(completed_ids)}/{target_count} examples already completed.")
+            except Exception as e:
+                logger.warning(f"Failed to load checkpoint files: {e}. Starting fresh.")
+                completed_ids = set()
+                generation_records = []
+                aggregated_records = []
+
+    remaining_indices = [i for i, row in df_target.iterrows() if str(row["id"]) not in completed_ids]
+    logger.info(f"Remaining examples to generate: {len(remaining_indices)} of {target_count}.")
+
+    if not remaining_indices and aggregated_records:
+        logger.info("All target examples completed. Assembling outputs...")
+    else:
+        # Determine compute device
+        dev = device if torch.cuda.is_available() and "cuda" in str(device) else "cpu"
+        if "cuda" in str(device) and not torch.cuda.is_available():
+            logger.warning(f"Requested device '{device}' but CUDA is unavailable. Falling back to CPU.")
+
+        # Reset GPU stats
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.reset_peak_memory_stats()
+
+        # Load models
+        from src.generation.generate_signals import load_model_and_tokenizer
+        logger.info(f"Loading causal model '{model_id}' on device '{dev}'...")
+        model, tokenizer = load_model_and_tokenizer(model_id=model_id, device=dev)
+
+        logger.info(f"Loading embedding model '{embed_model_id}' on device '{dev}'...")
+        embed_model = load_embedding_model(model_name=embed_model_id, device=dev)
+
+        total_gen_time = 0.0
+        failed_count = 0
+        any_think_tags = False
+        start_time_all = time.perf_counter()
+
+        for step_idx, row_idx in enumerate(remaining_indices):
+            row = df_target.iloc[row_idx]
+            ex_id = str(row["id"])
+            source = str(row["source_dataset"])
+            orig_label = int(row["label"])
+            prompt = str(row["prompt"])
+            context = str(row["context"]) if "context" in row and pd.notna(row["context"]) else ""
+            orig_resp = str(row["response"]) if "response" in row and pd.notna(row["response"]) else ""
+
+            # Deterministic seed per row index ensures exact reproducibility across runs/resumes
+            ex_seed = seed + int(row_idx) * 100
+
+            try:
+                raw_resps, gen_time, think_leak = generate_stochastic_responses(
+                    model=model,
+                    tokenizer=tokenizer,
+                    prompt=prompt,
+                    context=context,
+                    source_dataset=source,
+                    original_response=orig_resp,
+                    num_generations=num_generations,
+                    temperature=temperature,
+                    top_p=top_p,
+                    max_new_tokens=max_new_tokens,
+                    device=dev,
+                    seed=ex_seed,
+                )
+                total_gen_time += gen_time
+                if think_leak:
+                    any_think_tags = True
+
+                for g_idx, resp_text in enumerate(raw_resps):
+                    generation_records.append({
+                        "id": ex_id,
+                        "source_dataset": source,
+                        "prompt": prompt,
+                        "context": context,
+                        "original_response": orig_resp,
+                        "original_label": orig_label,
+                        "generation_index": g_idx,
+                        "generated_response": resp_text,
+                        "normalized_response": normalize_response(resp_text),
+                    })
+
+                signals = extract_self_consistency_signals(
+                    responses=raw_resps,
+                    embedding_model=embed_model,
+                    device=dev,
+                )
+
+                aggregated_records.append({
+                    "id": ex_id,
+                    "source_dataset": source,
+                    "original_label": orig_label,
+                    "num_generations": signals["num_generations"],
+                    "exact_match_agreement": signals["exact_match_agreement"],
+                    "unique_response_ratio": signals["unique_response_ratio"],
+                    "majority_response_fraction": signals["majority_response_fraction"],
+                    "mean_pairwise_similarity": signals["mean_pairwise_similarity"],
+                    "min_pairwise_similarity": signals["min_pairwise_similarity"],
+                    "max_pairwise_similarity": signals["max_pairwise_similarity"],
+                    "pairwise_similarity_std": signals["pairwise_similarity_std"],
+                    "generation_disagreement": signals["generation_disagreement"],
+                })
+
+                completed_ids.add(ex_id)
+
+                if (step_idx + 1) % 10 == 0 or (step_idx + 1) == len(remaining_indices):
+                    elapsed_so_far = time.perf_counter() - start_time_all
+                    avg_ex_time = elapsed_so_far / (step_idx + 1)
+                    rem_time_s = avg_ex_time * (len(remaining_indices) - (step_idx + 1))
+                    rem_time_min = rem_time_s / 60.0
+                    logger.info(
+                        f"[{len(completed_ids)}/{target_count}] ({step_idx + 1}/{len(remaining_indices)}) "
+                        f"{ex_id} ({source}) | EM: {signals['exact_match_agreement']:.2f} | "
+                        f"Sim: {signals['mean_pairwise_similarity']:.2f} | "
+                        f"{gen_time:.2f}s/ex | Pace: {avg_ex_time:.2f}s | ETA: {rem_time_min:.1f}m"
+                    )
+
+                # Periodic Checkpoint
+                if (step_idx + 1) % checkpoint_interval == 0:
+                    logger.info(f"Saving checkpoint at {len(completed_ids)} completed examples...")
+                    df_ckpt_g = pd.DataFrame(generation_records)
+                    df_ckpt_a = pd.DataFrame(aggregated_records)
+                    df_ckpt_g.to_parquet(ckpt_gen_path, index=False)
+                    df_ckpt_a.to_parquet(ckpt_agg_path, index=False)
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+
+            except Exception as e:
+                logger.error(f"Error generating self-consistency for {ex_id}: {e}", exc_info=True)
+                failed_count += 1
+
+    # --------------------------------------------------------------------------
+    # Assemble & Validate Final DataFrames
+    # --------------------------------------------------------------------------
+    df_generations = pd.DataFrame(generation_records)
+    df_aggregated = pd.DataFrame(aggregated_records)
+
+    logger.info("Executing comprehensive validation assertions on generated features...")
+
+    # 1. Row count validation
+    assert len(df_aggregated) == target_count, (
+        f"Mismatch in aggregated examples: expected {target_count}, got {len(df_aggregated)}"
+    )
+    expected_generations = target_count * num_generations
+    assert len(df_generations) == expected_generations, (
+        f"Mismatch in total generations: expected {expected_generations}, got {len(df_generations)}"
+    )
+
+    # 2. Duplicate ID validation
+    assert df_aggregated["id"].nunique() == len(df_aggregated), (
+        f"Duplicate IDs detected in aggregated table! Unique: {df_aggregated['id'].nunique()}, Total: {len(df_aggregated)}"
+    )
+
+    # 3. Numeric feature completeness & finiteness
+    numeric_cols = [
+        "exact_match_agreement",
+        "unique_response_ratio",
+        "majority_response_fraction",
+        "mean_pairwise_similarity",
+        "min_pairwise_similarity",
+        "max_pairwise_similarity",
+        "pairwise_similarity_std",
+        "generation_disagreement",
+    ]
+    for col in numeric_cols:
+        assert not df_aggregated[col].isna().any(), f"NaN values detected in feature column '{col}'"
+        assert np.all(np.isfinite(df_aggregated[col].values)), f"Non-finite values detected in column '{col}'"
+
+    # 4. Valid range checks
+    assert (df_aggregated["exact_match_agreement"] >= 0.0).all() and (df_aggregated["exact_match_agreement"] <= 1.0).all()
+    assert (df_aggregated["unique_response_ratio"] >= (1.0 / num_generations) - 1e-6).all() and (df_aggregated["unique_response_ratio"] <= 1.0 + 1e-6).all()
+    assert (df_aggregated["majority_response_fraction"] >= (1.0 / num_generations) - 1e-6).all() and (df_aggregated["majority_response_fraction"] <= 1.0 + 1e-6).all()
+    assert (df_aggregated["mean_pairwise_similarity"] >= -1.0 - 1e-6).all() and (df_aggregated["mean_pairwise_similarity"] <= 1.0 + 1e-6).all()
+    assert (df_aggregated["min_pairwise_similarity"] >= -1.0 - 1e-6).all() and (df_aggregated["min_pairwise_similarity"] <= 1.0 + 1e-6).all()
+    assert (df_aggregated["max_pairwise_similarity"] >= -1.0 - 1e-6).all() and (df_aggregated["max_pairwise_similarity"] <= 1.0 + 1e-6).all()
+    assert (df_aggregated["pairwise_similarity_std"] >= 0.0).all()
+    assert (df_aggregated["generation_disagreement"] >= 0.0 - 1e-6).all() and (df_aggregated["generation_disagreement"] <= 2.0 + 1e-6).all()
+
+    # 5. Exact generation disagreement identity
+    diff = np.abs(df_aggregated["generation_disagreement"] - (1.0 - df_aggregated["mean_pairwise_similarity"]))
+    assert (diff < 1e-5).all(), "generation_disagreement does not equal 1 - mean_pairwise_similarity!"
+
+    logger.info("All validation assertions passed successfully.")
+
+    # --------------------------------------------------------------------------
+    # Save Final Artifacts & Cleanup Checkpoints
+    # --------------------------------------------------------------------------
+    logger.info(f"Saving final raw generations artifact to '{gen_parquet_path}'...")
+    df_generations.to_parquet(gen_parquet_path, index=False)
+    df_generations.to_csv(gen_csv_path, index=False)
+
+    logger.info(f"Saving final aggregated features artifact to '{agg_parquet_path}'...")
+    df_aggregated.to_parquet(agg_parquet_path, index=False)
+    df_aggregated.to_csv(agg_csv_path, index=False)
+
+    # Clean up transient checkpoint files
+    for ckpt in [ckpt_gen_path, ckpt_agg_path]:
+        if ckpt.exists():
+            try:
+                ckpt.unlink()
+                logger.info(f"Cleaned up transient checkpoint '{ckpt.name}'.")
+            except OSError:
+                pass
+
+    peak_vram_mb = torch.cuda.max_memory_allocated() / (1024 ** 2) if torch.cuda.is_available() else 0.0
+
+    summary_metrics: Dict[str, Any] = {
+        "dataset_path": str(data_path),
+        "total_examples": len(df_aggregated),
+        "generations_per_example": num_generations,
+        "total_generations": len(df_generations),
+        "failed_examples": failed_count,
+        "device": dev,
+        "model_id": model_id,
+        "embed_model_id": embed_model_id,
+        "sampling_parameters": {
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_new_tokens": max_new_tokens,
+            "seed": seed,
+            "thinking_enabled": False,
+        },
+        "mean_exact_match_agreement": round(float(df_aggregated["exact_match_agreement"].mean()), 4),
+        "mean_unique_response_ratio": round(float(df_aggregated["unique_response_ratio"].mean()), 4),
+        "mean_majority_response_fraction": round(float(df_aggregated["majority_response_fraction"].mean()), 4),
+        "mean_pairwise_similarity": round(float(df_aggregated["mean_pairwise_similarity"].mean()), 4),
+        "mean_generation_disagreement": round(float(df_aggregated["generation_disagreement"].mean()), 4),
+        "mean_pairwise_similarity_std": round(float(df_aggregated["pairwise_similarity_std"].mean()), 4),
+        "any_think_tags_leaked": any_think_tags,
+        "peak_gpu_memory_mb": round(peak_vram_mb, 2),
+        "per_dataset_summary": {
+            src: {
+                "count": int((df_aggregated["source_dataset"] == src).sum()),
+                "mean_exact_match_agreement": round(float(df_aggregated[df_aggregated["source_dataset"] == src]["exact_match_agreement"].mean()), 4),
+                "mean_pairwise_similarity": round(float(df_aggregated[df_aggregated["source_dataset"] == src]["mean_pairwise_similarity"].mean()), 4),
+                "mean_generation_disagreement": round(float(df_aggregated[df_aggregated["source_dataset"] == src]["generation_disagreement"].mean()), 4),
+            }
+            for src in sorted(df_aggregated["source_dataset"].unique())
+        },
+    }
+
+    with open(summary_json_path, "w", encoding="utf-8") as f:
+        json.dump(summary_metrics, f, indent=2)
+    logger.info(f"Full run summary saved to '{summary_json_path}'.")
+
+    return df_generations, df_aggregated, summary_metrics
+
+
+# ==============================================================================
 # CLI Entrypoint
 # ==============================================================================
 
 def main():
     parser = argparse.ArgumentParser(description="Self-consistency signal extraction pipeline.")
-    parser.add_argument("--data", type=str, default="data/processed/combined_processed.parquet", help="Path to input parquet.")
-    parser.add_argument("--sample-size", type=int, default=20, help="Number of pilot examples.")
+    parser.add_argument("--mode", type=str, choices=["pilot", "full"], default="full", help="Execution mode ('pilot' for 20-ex pilot, 'full' for 4,000 production).")
+    parser.add_argument("--data", type=str, default=None, help="Path to input parquet (default: supervised_signals_combined.parquet for full, combined_processed.parquet for pilot).")
+    parser.add_argument("--sample-size", type=int, default=20, help="Number of pilot examples (pilot mode only).")
+    parser.add_argument("--limit", type=int, default=None, help="Optional limit for dry-runs / smoke tests (full mode only).")
     parser.add_argument("--seed", type=int, default=42, help="Deterministic random seed.")
     parser.add_argument("--num-generations", type=int, default=5, help="Stochastic generations per prompt.")
     parser.add_argument("--temperature", type=float, default=0.7, help="Sampling temperature.")
@@ -669,23 +1022,46 @@ def main():
     parser.add_argument("--embed-model-id", type=str, default="sentence-transformers/all-MiniLM-L6-v2", help="SentenceTransformer model ID.")
     parser.add_argument("--device", type=str, default="cuda:0", help="CUDA device or cpu.")
     parser.add_argument("--output-dir", type=str, default="experiments/baselines/self_consistency", help="Output directory.")
+    parser.add_argument("--checkpoint-interval", type=int, default=50, help="Checkpoint interval for full mode.")
+    parser.add_argument("--resume", action="store_true", default=True, help="Resume from existing checkpoints (default: True).")
+    parser.add_argument("--no-resume", action="store_true", help="Disable resume from existing checkpoints.")
 
     args = parser.parse_args()
 
-    run_self_consistency_pilot(
-        data_path=args.data,
-        sample_size=args.sample_size,
-        seed=args.seed,
-        num_generations=args.num_generations,
-        temperature=args.temperature,
-        top_p=args.top_p,
-        max_new_tokens=args.max_new_tokens,
-        model_id=args.model_id,
-        embed_model_id=args.embed_model_id,
-        device=args.device,
-        output_dir=args.output_dir,
-    )
+    if args.mode == "pilot":
+        data_path = args.data or "data/processed/combined_processed.parquet"
+        run_self_consistency_pilot(
+            data_path=data_path,
+            sample_size=args.sample_size,
+            seed=args.seed,
+            num_generations=args.num_generations,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            max_new_tokens=args.max_new_tokens,
+            model_id=args.model_id,
+            embed_model_id=args.embed_model_id,
+            device=args.device,
+            output_dir=args.output_dir,
+        )
+    else:
+        data_path = args.data or "experiments/baselines/supervised_signals_combined.parquet"
+        run_self_consistency_full(
+            data_path=data_path,
+            output_dir=args.output_dir,
+            model_id=args.model_id,
+            embed_model_id=args.embed_model_id,
+            num_generations=args.num_generations,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            max_new_tokens=args.max_new_tokens,
+            seed=args.seed,
+            device=args.device,
+            checkpoint_interval=args.checkpoint_interval,
+            resume=not args.no_resume,
+            limit=args.limit,
+        )
 
 
 if __name__ == "__main__":
     main()
+

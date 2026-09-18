@@ -1,0 +1,166 @@
+# Feature Integration Configuration
+# "Catching an LLM Lying: A Lightweight Classifier for Real-Time Hallucination Detection"
+# Defines canonical feature groups, model tiers, forbidden columns, and missing-value policies.
+
+version: "1.0"
+description: "Canonical feature schema specification for the multi-signal combined hallucination detector."
+
+# ------------------------------------------------------------------------------
+# 1. Metadata Columns (Must be preserved in output tables, strictly excluded from X)
+# ------------------------------------------------------------------------------
+metadata_columns:
+  - id
+  - source_dataset
+  - label
+
+# ------------------------------------------------------------------------------
+# 2. Forbidden Feature Columns (Policy enforcement: MUST NEVER enter primary model)
+# ------------------------------------------------------------------------------
+forbidden_feature_columns:
+  # Identifiers & labels
+  - id
+  - source_dataset
+  - label
+  # Raw text payloads
+  - prompt
+  - context
+  - response
+  - model_input
+  - query_text
+  - retrieved_rank_1_text
+  - retrieved_rank_2_text
+  - retrieved_rank_3_text
+  # Runtime / diagnostic metadata
+  - forward_time_s
+  - num_generations
+  - evidence_status
+  - retrieved_rank_1
+  - retrieved_rank_2
+  - retrieved_rank_3
+  # Length-shortcut feature (forbidden from primary model; designated as ablation only)
+  - num_tokens
+
+# ------------------------------------------------------------------------------
+# 3. Feature Families & Definitions
+# ------------------------------------------------------------------------------
+feature_families:
+  internal_signals:
+    description: "Token-level white-box probability, entropy, perplexity, and rank statistics from Qwen3.5-0.8B."
+    availability: "universal"
+    extraction_source: "src/signals/score_labeled_responses.py"
+    primary_features:
+      - min_log_prob
+      - mean_log_prob
+      - mean_token_prob
+      - token_prob_std
+      - mean_entropy
+      - max_entropy
+      - entropy_std
+      - log_perplexity
+      - log_mean_token_rank
+      - log_max_token_rank
+      - log_rank_std
+    ablation_features:
+      - num_tokens
+    derived_or_raw_omitted:
+      - perplexity           # Replaced by log_perplexity
+      - mean_token_rank      # Replaced by log_mean_token_rank
+      - max_token_rank       # Replaced by log_max_token_rank
+      - rank_std             # Replaced by log_rank_std
+      - min_token_prob       # Highly collinear with min_log_prob
+      - min_token_rank       # Degenerate near 0
+
+  self_consistency:
+    description: "Consensus and semantic similarity across K=5 stochastic generations (T=0.7, top_p=0.9)."
+    availability: "universal"
+    extraction_source: "src/consistency/self_consistency.py"
+    primary_features:
+      - exact_match_agreement
+      - mean_pairwise_similarity
+      - min_pairwise_similarity
+      - max_pairwise_similarity
+      - pairwise_similarity_std
+    ablation_features:
+      - unique_response_ratio       # Highly collinear with exact_match_agreement (r = -0.972)
+      - majority_response_fraction  # Exact collinear with unique_response_ratio (r = -1.000)
+      - generation_disagreement     # Mathematically redundant affine transform (1.0 - mean_pairwise_similarity)
+    bidirectionally_aggregated: false # Symmetric cosine similarity
+
+  nli_agreement:
+    description: "Bidirectional pairwise Natural Language Inference across stochastic responses via cross-encoder."
+    availability: "universal"
+    extraction_source: "src/consistency/nli_agreement.py"
+    primary_features:
+      - mean_pairwise_entailment
+      - mean_pairwise_contradiction
+      - nli_disagreement
+    ablation_features:
+      - mean_pairwise_neutral          # Sums to 1.0 with entailment and contradiction (rank-deficient in linear models)
+      - fraction_entailing_pairs       # Discrete view collinear with mean_pairwise_entailment (r = 0.915)
+      - fraction_contradicting_pairs   # Discrete view collinear with mean_pairwise_contradiction (r = 0.968)
+      - fraction_neutral_pairs         # Discrete sum-to-one constraint
+    bidirectionally_aggregated: true   # Explicitly evaluates both (i->j) and (j->i)
+
+  evidence_retrieval:
+    description: "Dense passage retrieval and agreement features via sentence-transformers/all-MiniLM-L6-v2."
+    availability: "dataset_dependent"
+    dataset_coverage:
+      halueval: "available"                         # Authentic reference passages present (1,499 chunks)
+      fever: "insufficient_wikipedia_pointers_only"  # Local split contains pointer tuples, not raw sentence text
+      truthfulqa: "insufficient_url_citations_only" # Local split contains URLs, not raw article text
+    extraction_source: "src/retrieval/evidence_retrieval.py"
+    primary_features:
+      - top1_evidence_similarity
+      - response_top1_evidence_similarity
+      - evidence_margin
+      - retrieval_agreement
+    ablation_features:
+      - mean_top3_evidence_similarity          # Highly collinear with top1_evidence_similarity (r = 0.947)
+      - mean_response_top3_evidence_similarity # Highly collinear with response_top1_evidence_similarity (r = 0.950)
+
+# ------------------------------------------------------------------------------
+# 4. Model Tiers
+# ------------------------------------------------------------------------------
+model_tiers:
+  tier1_universal_core:
+    description: "Zero-dependency universal detector. Universally extractable for any prompt and response."
+    feature_families:
+      - internal_signals
+      - self_consistency
+      - nli_agreement
+    feature_count: 19 # 11 internal + 5 self-consistency + 3 NLI
+    missing_value_rate: 0.0
+
+  tier1_full_all_signals:
+    description: "Full non-retrieval candidate set including derived scalar metrics."
+    feature_families:
+      - internal_signals
+      - self_consistency
+      - nli_agreement
+    feature_count: 26 # 11 internal + 8 self-consistency + 7 NLI
+    missing_value_rate: 0.0
+
+  tier2_retrieval_augmented:
+    description: "Multi-signal model augmented with external evidence retrieval features."
+    feature_families:
+      - internal_signals
+      - self_consistency
+      - nli_agreement
+      - evidence_retrieval
+    feature_count_primary: 23 # 19 universal primary + 4 retrieval primary
+    feature_count_all: 32     # 26 universal full + 6 retrieval all
+    missing_value_rate: 0.40  # 8 of 20 pilot examples lack local textual evidence
+
+# ------------------------------------------------------------------------------
+# 5. Missing-Value Strategy
+# ------------------------------------------------------------------------------
+missing_value_strategy:
+  selected_strategy: "modular_tiered_evaluation_with_neutral_constant_imputation"
+  prohibited_strategies:
+    - name: "explicit_missingness_indicator"
+      reason: "Missingness indicator is perfectly collinear with source_dataset == 'halueval', introducing severe shortcut learning leakage."
+    - name: "dataset_specific_isolated_models"
+      reason: "Precludes universal zero-shot cross-dataset evaluation and violates single-classifier project goals."
+  policy:
+    tier1: "Zero missing values. No imputation needed."
+    tier2: "Neutral constant imputation (retrieval_agreement=0.0, similarities=0.0, margin=0.0) reflecting ungrounded state without indicator masks."

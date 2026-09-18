@@ -23,6 +23,13 @@ from src.training.cross_dataset import (
     evaluate_transfer_fold,
     run_cross_dataset_evaluation,
 )
+from src.training.combined_models import (
+    UNIVERSAL_MODEL_FEATURES,
+    prepare_combined_feature_dataframe,
+    evaluate_by_source_dataset,
+    compute_baseline_comparison,
+    run_combined_experiment,
+)
 
 __all__ = [
     "PRIMARY_SIGNAL_FEATURES",
@@ -40,6 +47,11 @@ __all__ = [
     "get_leave_one_out_partitions",
     "evaluate_transfer_fold",
     "run_cross_dataset_evaluation",
+    "UNIVERSAL_MODEL_FEATURES",
+    "prepare_combined_feature_dataframe",
+    "evaluate_by_source_dataset",
+    "compute_baseline_comparison",
+    "run_combined_experiment",
 ]
 
 

@@ -9,6 +9,13 @@ from src.evaluation.ablation_study import (
     run_ablation_study,
     validate_ablation_conditions,
 )
+from src.evaluation.cross_dataset import (
+    CROSS_DATASET_CONFIGURATIONS,
+    CROSS_DATASET_EXPERIMENTS,
+    compute_transfer_deltas,
+    get_leave_one_dataset_out_partitions,
+    run_cross_dataset_study,
+)
 
 __all__ = [
     "ABLATION_CONDITIONS",
@@ -16,4 +23,9 @@ __all__ = [
     "compute_ablation_deltas",
     "run_ablation_study",
     "validate_ablation_conditions",
+    "CROSS_DATASET_EXPERIMENTS",
+    "CROSS_DATASET_CONFIGURATIONS",
+    "compute_transfer_deltas",
+    "get_leave_one_dataset_out_partitions",
+    "run_cross_dataset_study",
 ]

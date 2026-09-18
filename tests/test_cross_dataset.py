@@ -182,5 +182,120 @@ class TestCrossDataset(unittest.TestCase):
                 self.assertEqual(exp["num_features"], 11)
 
 
+class TestUniversalCrossDatasetEvaluation(unittest.TestCase):
+    """Test suite for Phase 16 Universal Cross-Dataset Generalization Evaluation."""
+
+    def setUp(self):
+        np.random.seed(42)
+        n = 120
+        sources = ["halueval"] * 50 + ["truthfulqa"] * 40 + ["fever"] * 30
+        labels = [0, 1] * 60
+
+        from src.features.build_universal_features import UNIVERSAL_CORE_FEATURES
+        data = {
+            "id": [f"univ_{i}" for i in range(n)],
+            "source_dataset": sources,
+            "label": labels,
+        }
+        for feat in UNIVERSAL_CORE_FEATURES:
+            data[feat] = np.random.randn(n)
+
+        self.mock_universal_df = pd.DataFrame(data)
+
+    def test_universal_configurations_and_feature_counts(self):
+        """Verify the 4 configurations have exact feature counts (11, 16, 14, 19)."""
+        from src.evaluation.cross_dataset import (
+            CROSS_DATASET_CONFIGURATIONS,
+            REFERENCE_CONFIG_KEY,
+        )
+        self.assertEqual(len(CROSS_DATASET_CONFIGURATIONS), 4)
+        self.assertEqual(REFERENCE_CONFIG_KEY, "internal_only")
+        expected_counts = {
+            "internal_only": 11,
+            "internal_plus_self_consistency": 16,
+            "internal_plus_nli": 14,
+            "all_three": 19,
+        }
+        for k, exp_cnt in expected_counts.items():
+            cfg = CROSS_DATASET_CONFIGURATIONS[k]
+            self.assertEqual(cfg["feature_count"], exp_cnt)
+            self.assertEqual(len(cfg["features"]), exp_cnt)
+
+    def test_universal_experiments_structure(self):
+        """Verify the 3 Leave-One-Dataset-Out experiment definitions."""
+        from src.evaluation.cross_dataset import CROSS_DATASET_EXPERIMENTS
+        self.assertEqual(len(CROSS_DATASET_EXPERIMENTS), 3)
+        self.assertIn("exp1_test_fever", CROSS_DATASET_EXPERIMENTS)
+        self.assertIn("exp2_test_truthfulqa", CROSS_DATASET_EXPERIMENTS)
+        self.assertIn("exp3_test_halueval", CROSS_DATASET_EXPERIMENTS)
+
+        exp1 = CROSS_DATASET_EXPERIMENTS["exp1_test_fever"]
+        self.assertEqual(exp1["test_dataset"], "fever")
+        self.assertEqual(set(exp1["train_datasets"]), {"halueval", "truthfulqa"})
+
+    def test_universal_lodo_partitions_isolation(self):
+        """Verify strict partition isolation and zero ID overlap."""
+        from src.evaluation.cross_dataset import (
+            CROSS_DATASET_CONFIGURATIONS,
+            get_leave_one_dataset_out_partitions,
+        )
+        feats = CROSS_DATASET_CONFIGURATIONS["all_three"]["features"]
+        for target in ["fever", "truthfulqa", "halueval"]:
+            X_tr, X_te, y_tr, y_te, meta_tr, meta_te = get_leave_one_dataset_out_partitions(
+                df=self.mock_universal_df, test_dataset=target, feature_cols=feats
+            )
+            # Zero ID overlap
+            train_ids = set(meta_tr["id"])
+            test_ids = set(meta_te["id"])
+            self.assertEqual(len(train_ids.intersection(test_ids)), 0)
+
+            # Target completely absent from train
+            self.assertNotIn(target, meta_tr["source_dataset"].values)
+            # Test contains strictly target
+            self.assertEqual(set(meta_te["source_dataset"].unique()), {target})
+
+    def test_universal_deltas_zero_for_reference(self):
+        """Verify deltas relative to reference condition are 0.0."""
+        from src.evaluation.cross_dataset import compute_transfer_deltas
+        metrics = {
+            "accuracy": 0.65,
+            "f1": 0.60,
+            "roc_auc": 0.70,
+            "pr_auc": 0.68,
+            "brier_score": 0.21,
+            "ece": 0.05,
+        }
+        deltas = compute_transfer_deltas(metrics, metrics)
+        for k, v in deltas.items():
+            self.assertEqual(v, 0.0)
+
+    def test_mock_cross_dataset_study_run(self):
+        """Run complete 24-run study on mock data and verify artifacts."""
+        from src.evaluation.cross_dataset import run_cross_dataset_study
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "cross_dataset_test"
+            results = run_cross_dataset_study(
+                data_path=self.mock_universal_df,
+                output_dir=out_dir,
+                random_state=42,
+            )
+
+            self.assertEqual(len(results["experiments"]), 3)
+            self.assertTrue((out_dir / "cross_dataset_results.json").exists())
+            self.assertTrue((out_dir / "cross_dataset_results.csv").exists())
+            self.assertTrue((out_dir / "cross_dataset_per_dataset.csv").exists())
+            self.assertTrue((out_dir / "cross_dataset_predictions.parquet").exists())
+            self.assertTrue((out_dir / "cross_dataset_summary.md").exists())
+
+            # 24 rows in results CSV
+            res_df = pd.read_csv(out_dir / "cross_dataset_results.csv")
+            self.assertEqual(len(res_df), 24)
+
+            # Predictions check
+            pred_df = pd.read_parquet(out_dir / "cross_dataset_predictions.parquet")
+            self.assertEqual(len(pred_df), 120 * 4 * 2)  # Total test samples across 3 exps (all 120 items) x 4 cfgs x 2 models
+            self.assertTrue(np.all((pred_df["y_probability"] >= 0.0) & (pred_df["y_probability"] <= 1.0)))
+
+
 if __name__ == "__main__":
     unittest.main()

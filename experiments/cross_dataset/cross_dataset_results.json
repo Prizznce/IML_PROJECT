@@ -1,0 +1,1112 @@
+{
+  "experiment_metadata": {
+    "dataset": "experiments/baselines/combined/universal_features.parquet",
+    "total_samples": 4000,
+    "random_state": 42,
+    "num_experiments": 3,
+    "num_configurations": 4,
+    "total_runs": 24,
+    "experiments": [
+      "exp1_test_fever",
+      "exp2_test_truthfulqa",
+      "exp3_test_halueval"
+    ],
+    "configurations": [
+      "internal_only",
+      "internal_plus_self_consistency",
+      "internal_plus_nli",
+      "all_three"
+    ]
+  },
+  "experiments": {
+    "exp1_test_fever": {
+      "experiment_id": "exp1",
+      "name": "Train on HaluEval + TruthfulQA -> Test on FEVER",
+      "train_datasets": [
+        "halueval",
+        "truthfulqa"
+      ],
+      "test_dataset": "fever",
+      "configurations": {
+        "internal_only": {
+          "config_id": "A",
+          "name": "Internal ONLY",
+          "feature_count": 11,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std"
+          ],
+          "train_n": 3000,
+          "test_n": 1000,
+          "test_label_distribution": {
+            "0": 500,
+            "1": 500
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.506,
+                "precision": 0.5038461538461538,
+                "recall": 0.786,
+                "f1": 0.6140625,
+                "roc_auc": 0.486808,
+                "pr_auc": 0.48184312177528843,
+                "brier_score": 0.2951917552474855,
+                "ece": 0.1716322271140759,
+                "confusion_matrix": {
+                  "tn": 113,
+                  "fp": 387,
+                  "fn": 107,
+                  "tp": 393
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0,
+                "delta_f1": 0.0,
+                "delta_roc_auc": 0.0,
+                "delta_pr_auc": 0.0,
+                "delta_brier": 0.0,
+                "delta_ece": 0.0
+              },
+              "predicted_positives": 780,
+              "prob_min": 0.05817376271080223,
+              "prob_max": 0.9548716368378021
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.483,
+                "precision": 0.48261758691206547,
+                "recall": 0.472,
+                "f1": 0.47724974721941354,
+                "roc_auc": 0.490256,
+                "pr_auc": 0.48696160016337997,
+                "brier_score": 0.26807556199530524,
+                "ece": 0.11862686046957967,
+                "confusion_matrix": {
+                  "tn": 247,
+                  "fp": 253,
+                  "fn": 264,
+                  "tp": 236
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0,
+                "delta_f1": 0.0,
+                "delta_roc_auc": 0.0,
+                "delta_pr_auc": 0.0,
+                "delta_brier": 0.0,
+                "delta_ece": 0.0
+              },
+              "predicted_positives": 489,
+              "prob_min": 0.16833142936229706,
+              "prob_max": 0.8074016571044922
+            }
+          }
+        },
+        "internal_plus_self_consistency": {
+          "config_id": "B",
+          "name": "Internal + Self-Consistency",
+          "feature_count": 16,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "exact_match_agreement",
+            "mean_pairwise_similarity",
+            "min_pairwise_similarity",
+            "max_pairwise_similarity",
+            "pairwise_similarity_std"
+          ],
+          "train_n": 3000,
+          "test_n": 1000,
+          "test_label_distribution": {
+            "0": 500,
+            "1": 500
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.506,
+                "precision": 0.5036764705882353,
+                "recall": 0.822,
+                "f1": 0.6246200607902735,
+                "roc_auc": 0.488236,
+                "pr_auc": 0.48254164329622173,
+                "brier_score": 0.2993166693117788,
+                "ece": 0.18254710071437524,
+                "confusion_matrix": {
+                  "tn": 95,
+                  "fp": 405,
+                  "fn": 89,
+                  "tp": 411
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0,
+                "delta_f1": 0.01055756079027359,
+                "delta_roc_auc": 0.0014279999999999848,
+                "delta_pr_auc": 0.000698521520933304,
+                "delta_brier": 0.004124914064293328,
+                "delta_ece": 0.01091487360029933
+              },
+              "predicted_positives": 816,
+              "prob_min": 0.06761184405071656,
+              "prob_max": 0.9607405915481649
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.509,
+                "precision": 0.5076923076923077,
+                "recall": 0.594,
+                "f1": 0.5474654377880185,
+                "roc_auc": 0.49989600000000006,
+                "pr_auc": 0.4891287338607465,
+                "brier_score": 0.263628395329248,
+                "ece": 0.08239211575686929,
+                "confusion_matrix": {
+                  "tn": 212,
+                  "fp": 288,
+                  "fn": 203,
+                  "tp": 297
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.026000000000000023,
+                "delta_f1": 0.07021569056860494,
+                "delta_roc_auc": 0.009640000000000037,
+                "delta_pr_auc": 0.002167133697366541,
+                "delta_brier": -0.004447166666057267,
+                "delta_ece": -0.036234744712710376
+              },
+              "predicted_positives": 585,
+              "prob_min": 0.21732363104820251,
+              "prob_max": 0.8301321268081665
+            }
+          }
+        },
+        "internal_plus_nli": {
+          "config_id": "C",
+          "name": "Internal + NLI",
+          "feature_count": 14,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "mean_pairwise_entailment",
+            "mean_pairwise_contradiction",
+            "nli_disagreement"
+          ],
+          "train_n": 3000,
+          "test_n": 1000,
+          "test_label_distribution": {
+            "0": 500,
+            "1": 500
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.497,
+                "precision": 0.49818621523579204,
+                "recall": 0.824,
+                "f1": 0.6209495101733233,
+                "roc_auc": 0.48746,
+                "pr_auc": 0.48472067372292105,
+                "brier_score": 0.30715710948443586,
+                "ece": 0.20957370771945547,
+                "confusion_matrix": {
+                  "tn": 85,
+                  "fp": 415,
+                  "fn": 88,
+                  "tp": 412
+                }
+              },
+              "deltas": {
+                "delta_accuracy": -0.009000000000000008,
+                "delta_f1": 0.006887010173323382,
+                "delta_roc_auc": 0.0006519999999999859,
+                "delta_pr_auc": 0.0028775519476326172,
+                "delta_brier": 0.011965354236950387,
+                "delta_ece": 0.03794148060537955
+              },
+              "predicted_positives": 827,
+              "prob_min": 0.06424474618260008,
+              "prob_max": 0.9771000600330565
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.507,
+                "precision": 0.5061295971978984,
+                "recall": 0.578,
+                "f1": 0.5396825396825397,
+                "roc_auc": 0.514336,
+                "pr_auc": 0.5260001316758781,
+                "brier_score": 0.259250098568988,
+                "ece": 0.08763149602711202,
+                "confusion_matrix": {
+                  "tn": 218,
+                  "fp": 282,
+                  "fn": 211,
+                  "tp": 289
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.02400000000000002,
+                "delta_f1": 0.06243279246312611,
+                "delta_roc_auc": 0.02407999999999999,
+                "delta_pr_auc": 0.03903853151249814,
+                "delta_brier": -0.008825463426317237,
+                "delta_ece": -0.030995364442467643
+              },
+              "predicted_positives": 571,
+              "prob_min": 0.15114322304725647,
+              "prob_max": 0.915820300579071
+            }
+          }
+        },
+        "all_three": {
+          "config_id": "D",
+          "name": "ALL THREE",
+          "feature_count": 19,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "exact_match_agreement",
+            "mean_pairwise_similarity",
+            "min_pairwise_similarity",
+            "max_pairwise_similarity",
+            "pairwise_similarity_std",
+            "mean_pairwise_entailment",
+            "mean_pairwise_contradiction",
+            "nli_disagreement"
+          ],
+          "train_n": 3000,
+          "test_n": 1000,
+          "test_label_distribution": {
+            "0": 500,
+            "1": 500
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.496,
+                "precision": 0.49759615384615385,
+                "recall": 0.828,
+                "f1": 0.6216216216216216,
+                "roc_auc": 0.487508,
+                "pr_auc": 0.4839525503988669,
+                "brier_score": 0.3072030690759917,
+                "ece": 0.20644412111098479,
+                "confusion_matrix": {
+                  "tn": 82,
+                  "fp": 418,
+                  "fn": 86,
+                  "tp": 414
+                }
+              },
+              "deltas": {
+                "delta_accuracy": -0.010000000000000009,
+                "delta_f1": 0.007559121621621645,
+                "delta_roc_auc": 0.0006999999999999784,
+                "delta_pr_auc": 0.002109428623578491,
+                "delta_brier": 0.012011313828506232,
+                "delta_ece": 0.03481189399690887
+              },
+              "predicted_positives": 832,
+              "prob_min": 0.06541696887764588,
+              "prob_max": 0.9763645286049818
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.506,
+                "precision": 0.5048543689320388,
+                "recall": 0.624,
+                "f1": 0.5581395348837209,
+                "roc_auc": 0.516684,
+                "pr_auc": 0.507766239244396,
+                "brier_score": 0.2599162133663128,
+                "ece": 0.0911609657406807,
+                "confusion_matrix": {
+                  "tn": 194,
+                  "fp": 306,
+                  "fn": 188,
+                  "tp": 312
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.02300000000000002,
+                "delta_f1": 0.08088978766430738,
+                "delta_roc_auc": 0.026428000000000007,
+                "delta_pr_auc": 0.02080463908101604,
+                "delta_brier": -0.008159348628992424,
+                "delta_ece": -0.027465894728898974
+              },
+              "predicted_positives": 618,
+              "prob_min": 0.18305018544197083,
+              "prob_max": 0.8809976577758789
+            }
+          }
+        }
+      }
+    },
+    "exp2_test_truthfulqa": {
+      "experiment_id": "exp2",
+      "name": "Train on HaluEval + FEVER -> Test on TruthfulQA",
+      "train_datasets": [
+        "halueval",
+        "fever"
+      ],
+      "test_dataset": "truthfulqa",
+      "configurations": {
+        "internal_only": {
+          "config_id": "A",
+          "name": "Internal ONLY",
+          "feature_count": 11,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std"
+          ],
+          "train_n": 2500,
+          "test_n": 1500,
+          "test_label_distribution": {
+            "0": 750,
+            "1": 750
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.466,
+                "precision": 0.4723127035830619,
+                "recall": 0.58,
+                "f1": 0.5206463195691203,
+                "roc_auc": 0.44393599999999994,
+                "pr_auc": 0.454353395633327,
+                "brier_score": 0.3248271701244624,
+                "ece": 0.2298869059490436,
+                "confusion_matrix": {
+                  "tn": 264,
+                  "fp": 486,
+                  "fn": 315,
+                  "tp": 435
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0,
+                "delta_f1": 0.0,
+                "delta_roc_auc": 0.0,
+                "delta_pr_auc": 0.0,
+                "delta_brier": 0.0,
+                "delta_ece": 0.0
+              },
+              "predicted_positives": 921,
+              "prob_min": 0.01574149557640258,
+              "prob_max": 0.980235316590068
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.47933333333333333,
+                "precision": 0.4868532654792197,
+                "recall": 0.7653333333333333,
+                "f1": 0.5951270088128564,
+                "roc_auc": 0.4538711111111111,
+                "pr_auc": 0.45840402421400955,
+                "brier_score": 0.36509059676273214,
+                "ece": 0.2948770493455231,
+                "confusion_matrix": {
+                  "tn": 145,
+                  "fp": 605,
+                  "fn": 176,
+                  "tp": 574
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0,
+                "delta_f1": 0.0,
+                "delta_roc_auc": 0.0,
+                "delta_pr_auc": 0.0,
+                "delta_brier": 0.0,
+                "delta_ece": 0.0
+              },
+              "predicted_positives": 1179,
+              "prob_min": 0.007986793294548988,
+              "prob_max": 0.974157989025116
+            }
+          }
+        },
+        "internal_plus_self_consistency": {
+          "config_id": "B",
+          "name": "Internal + Self-Consistency",
+          "feature_count": 16,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "exact_match_agreement",
+            "mean_pairwise_similarity",
+            "min_pairwise_similarity",
+            "max_pairwise_similarity",
+            "pairwise_similarity_std"
+          ],
+          "train_n": 2500,
+          "test_n": 1500,
+          "test_label_distribution": {
+            "0": 750,
+            "1": 750
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.4786666666666667,
+                "precision": 0.4781420765027322,
+                "recall": 0.4666666666666667,
+                "f1": 0.47233468286099867,
+                "roc_auc": 0.4553937777777778,
+                "pr_auc": 0.45926193888843697,
+                "brier_score": 0.31789848490543615,
+                "ece": 0.2051811347983391,
+                "confusion_matrix": {
+                  "tn": 368,
+                  "fp": 382,
+                  "fn": 400,
+                  "tp": 350
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.01266666666666666,
+                "delta_f1": -0.048311636708121664,
+                "delta_roc_auc": 0.011457777777777844,
+                "delta_pr_auc": 0.004908543255109976,
+                "delta_brier": -0.006928685219026232,
+                "delta_ece": -0.024705771150704492
+              },
+              "predicted_positives": 732,
+              "prob_min": 0.010717226637588952,
+              "prob_max": 0.9609966930838778
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.48133333333333334,
+                "precision": 0.488034188034188,
+                "recall": 0.7613333333333333,
+                "f1": 0.5947916666666667,
+                "roc_auc": 0.4581635555555556,
+                "pr_auc": 0.4678421853036503,
+                "brier_score": 0.34336341910202556,
+                "ece": 0.2621276021519055,
+                "confusion_matrix": {
+                  "tn": 151,
+                  "fp": 599,
+                  "fn": 179,
+                  "tp": 571
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0020000000000000018,
+                "delta_f1": -0.0003353421461896877,
+                "delta_roc_auc": 0.004292444444444488,
+                "delta_pr_auc": 0.00943816108964074,
+                "delta_brier": -0.021727177660706587,
+                "delta_ece": -0.03274944719361761
+              },
+              "predicted_positives": 1170,
+              "prob_min": 0.008998197503387928,
+              "prob_max": 0.9677176475524902
+            }
+          }
+        },
+        "internal_plus_nli": {
+          "config_id": "C",
+          "name": "Internal + NLI",
+          "feature_count": 14,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "mean_pairwise_entailment",
+            "mean_pairwise_contradiction",
+            "nli_disagreement"
+          ],
+          "train_n": 2500,
+          "test_n": 1500,
+          "test_label_distribution": {
+            "0": 750,
+            "1": 750
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.4746666666666667,
+                "precision": 0.47301136363636365,
+                "recall": 0.444,
+                "f1": 0.4580467675378267,
+                "roc_auc": 0.4455697777777778,
+                "pr_auc": 0.4541463482966786,
+                "brier_score": 0.32164152522076145,
+                "ece": 0.21148612333967376,
+                "confusion_matrix": {
+                  "tn": 379,
+                  "fp": 371,
+                  "fn": 417,
+                  "tp": 333
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.008666666666666656,
+                "delta_f1": -0.06259955203129364,
+                "delta_roc_auc": 0.001633777777777845,
+                "delta_pr_auc": -0.0002070473366483916,
+                "delta_brier": -0.003185644903700935,
+                "delta_ece": -0.018400782609369837
+              },
+              "predicted_positives": 704,
+              "prob_min": 0.018045111020487805,
+              "prob_max": 0.9692506212327843
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.48333333333333334,
+                "precision": 0.4888691006233304,
+                "recall": 0.732,
+                "f1": 0.5862253069941271,
+                "roc_auc": 0.4581288888888889,
+                "pr_auc": 0.4656527195637009,
+                "brier_score": 0.34314310848829777,
+                "ece": 0.2554882860134045,
+                "confusion_matrix": {
+                  "tn": 176,
+                  "fp": 574,
+                  "fn": 201,
+                  "tp": 549
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0040000000000000036,
+                "delta_f1": -0.00890170181872929,
+                "delta_roc_auc": 0.004257777777777805,
+                "delta_pr_auc": 0.007248695349691359,
+                "delta_brier": -0.02194748827443438,
+                "delta_ece": -0.039388763332118604
+              },
+              "predicted_positives": 1123,
+              "prob_min": 0.008028359152376652,
+              "prob_max": 0.9710251688957214
+            }
+          }
+        },
+        "all_three": {
+          "config_id": "D",
+          "name": "ALL THREE",
+          "feature_count": 19,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "exact_match_agreement",
+            "mean_pairwise_similarity",
+            "min_pairwise_similarity",
+            "max_pairwise_similarity",
+            "pairwise_similarity_std",
+            "mean_pairwise_entailment",
+            "mean_pairwise_contradiction",
+            "nli_disagreement"
+          ],
+          "train_n": 2500,
+          "test_n": 1500,
+          "test_label_distribution": {
+            "0": 750,
+            "1": 750
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.47533333333333333,
+                "precision": 0.47104851330203446,
+                "recall": 0.4013333333333333,
+                "f1": 0.4334053275737941,
+                "roc_auc": 0.45754133333333336,
+                "pr_auc": 0.46037117400749755,
+                "brier_score": 0.32005330557808226,
+                "ece": 0.21692917912627957,
+                "confusion_matrix": {
+                  "tn": 412,
+                  "fp": 338,
+                  "fn": 449,
+                  "tp": 301
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.009333333333333305,
+                "delta_f1": -0.08724099199532626,
+                "delta_roc_auc": 0.013605333333333414,
+                "delta_pr_auc": 0.006017778374170557,
+                "delta_brier": -0.004773864546380124,
+                "delta_ece": -0.012957726822764026
+              },
+              "predicted_positives": 639,
+              "prob_min": 0.010123475607713848,
+              "prob_max": 0.9616458476583299
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.48533333333333334,
+                "precision": 0.49056603773584906,
+                "recall": 0.7626666666666667,
+                "f1": 0.5970772442588727,
+                "roc_auc": 0.4607697777777777,
+                "pr_auc": 0.4748081178013671,
+                "brier_score": 0.3339421014750432,
+                "ece": 0.24368454913515597,
+                "confusion_matrix": {
+                  "tn": 156,
+                  "fp": 594,
+                  "fn": 178,
+                  "tp": 572
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.006000000000000005,
+                "delta_f1": 0.0019502354460162463,
+                "delta_roc_auc": 0.0068986666666666085,
+                "delta_pr_auc": 0.01640409358735756,
+                "delta_brier": -0.031148495287688927,
+                "delta_ece": -0.05119250021036714
+              },
+              "predicted_positives": 1166,
+              "prob_min": 0.006932595279067755,
+              "prob_max": 0.96694016456604
+            }
+          }
+        }
+      }
+    },
+    "exp3_test_halueval": {
+      "experiment_id": "exp3",
+      "name": "Train on TruthfulQA + FEVER -> Test on HaluEval",
+      "train_datasets": [
+        "truthfulqa",
+        "fever"
+      ],
+      "test_dataset": "halueval",
+      "configurations": {
+        "internal_only": {
+          "config_id": "A",
+          "name": "Internal ONLY",
+          "feature_count": 11,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std"
+          ],
+          "train_n": 2500,
+          "test_n": 1500,
+          "test_label_distribution": {
+            "0": 750,
+            "1": 750
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.214,
+                "precision": 0.2136181575433912,
+                "recall": 0.21333333333333335,
+                "f1": 0.2134756504336224,
+                "roc_auc": 0.16006577777777778,
+                "pr_auc": 0.33655048764784123,
+                "brier_score": 0.3562736879599297,
+                "ece": 0.41935375118981905,
+                "confusion_matrix": {
+                  "tn": 161,
+                  "fp": 589,
+                  "fn": 590,
+                  "tp": 160
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0,
+                "delta_f1": 0.0,
+                "delta_roc_auc": 0.0,
+                "delta_pr_auc": 0.0,
+                "delta_brier": 0.0,
+                "delta_ece": 0.0
+              },
+              "predicted_positives": 749,
+              "prob_min": 0.06874617801813067,
+              "prob_max": 0.8193373833323065
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.398,
+                "precision": 0.3981358189081225,
+                "recall": 0.39866666666666667,
+                "f1": 0.3984010659560293,
+                "roc_auc": 0.3598737777777778,
+                "pr_auc": 0.42146978473013874,
+                "brier_score": 0.30828569450306775,
+                "ece": 0.2272013631761074,
+                "confusion_matrix": {
+                  "tn": 298,
+                  "fp": 452,
+                  "fn": 451,
+                  "tp": 299
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.0,
+                "delta_f1": 0.0,
+                "delta_roc_auc": 0.0,
+                "delta_pr_auc": 0.0,
+                "delta_brier": 0.0,
+                "delta_ece": 0.0
+              },
+              "predicted_positives": 751,
+              "prob_min": 0.19484485685825348,
+              "prob_max": 0.8773348927497864
+            }
+          }
+        },
+        "internal_plus_self_consistency": {
+          "config_id": "B",
+          "name": "Internal + Self-Consistency",
+          "feature_count": 16,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "exact_match_agreement",
+            "mean_pairwise_similarity",
+            "min_pairwise_similarity",
+            "max_pairwise_similarity",
+            "pairwise_similarity_std"
+          ],
+          "train_n": 2500,
+          "test_n": 1500,
+          "test_label_distribution": {
+            "0": 750,
+            "1": 750
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.4186666666666667,
+                "precision": 0.44804088586030666,
+                "recall": 0.7013333333333334,
+                "f1": 0.5467775467775468,
+                "roc_auc": 0.27060622222222225,
+                "pr_auc": 0.3630131827998211,
+                "brier_score": 0.36050159901965023,
+                "ece": 0.32131008524684557,
+                "confusion_matrix": {
+                  "tn": 102,
+                  "fp": 648,
+                  "fn": 224,
+                  "tp": 526
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.2046666666666667,
+                "delta_f1": 0.3333018963439244,
+                "delta_roc_auc": 0.11054044444444447,
+                "delta_pr_auc": 0.026462695151979854,
+                "delta_brier": 0.004227911059720535,
+                "delta_ece": -0.09804366594297348
+              },
+              "predicted_positives": 1174,
+              "prob_min": 0.0590929913812836,
+              "prob_max": 0.9294262294050664
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.416,
+                "precision": 0.4441489361702128,
+                "recall": 0.668,
+                "f1": 0.5335463258785943,
+                "roc_auc": 0.39935644444444446,
+                "pr_auc": 0.4508474932102245,
+                "brier_score": 0.3048526382611904,
+                "ece": 0.22767774733901022,
+                "confusion_matrix": {
+                  "tn": 123,
+                  "fp": 627,
+                  "fn": 249,
+                  "tp": 501
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.01799999999999996,
+                "delta_f1": 0.135145259922565,
+                "delta_roc_auc": 0.039482666666666666,
+                "delta_pr_auc": 0.02937770848008575,
+                "delta_brier": -0.0034330562418773414,
+                "delta_ece": 0.0004763841629028265
+              },
+              "predicted_positives": 1128,
+              "prob_min": 0.22736918926239014,
+              "prob_max": 0.8877677321434021
+            }
+          }
+        },
+        "internal_plus_nli": {
+          "config_id": "C",
+          "name": "Internal + NLI",
+          "feature_count": 14,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "mean_pairwise_entailment",
+            "mean_pairwise_contradiction",
+            "nli_disagreement"
+          ],
+          "train_n": 2500,
+          "test_n": 1500,
+          "test_label_distribution": {
+            "0": 750,
+            "1": 750
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.388,
+                "precision": 0.42486583184257604,
+                "recall": 0.6333333333333333,
+                "f1": 0.5085653104925053,
+                "roc_auc": 0.19883377777777778,
+                "pr_auc": 0.3446768303067422,
+                "brier_score": 0.36008959935446183,
+                "ece": 0.38386817566466463,
+                "confusion_matrix": {
+                  "tn": 107,
+                  "fp": 643,
+                  "fn": 275,
+                  "tp": 475
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.17400000000000002,
+                "delta_f1": 0.29508966005888293,
+                "delta_roc_auc": 0.038768,
+                "delta_pr_auc": 0.008126342658900942,
+                "delta_brier": 0.0038159113945321343,
+                "delta_ece": -0.03548557552515441
+              },
+              "predicted_positives": 1118,
+              "prob_min": 0.06638799385389316,
+              "prob_max": 0.9006780247577565
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.44333333333333336,
+                "precision": 0.4651924651924652,
+                "recall": 0.7573333333333333,
+                "f1": 0.5763571790969051,
+                "roc_auc": 0.4445244444444445,
+                "pr_auc": 0.49435131737456384,
+                "brier_score": 0.30249646921814943,
+                "ece": 0.22734116888046266,
+                "confusion_matrix": {
+                  "tn": 97,
+                  "fp": 653,
+                  "fn": 182,
+                  "tp": 568
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.04533333333333334,
+                "delta_f1": 0.17795611314087578,
+                "delta_roc_auc": 0.08465066666666671,
+                "delta_pr_auc": 0.0728815326444251,
+                "delta_brier": -0.00578922528491832,
+                "delta_ece": 0.0001398057043552614
+              },
+              "predicted_positives": 1221,
+              "prob_min": 0.17610150575637817,
+              "prob_max": 0.908064067363739
+            }
+          }
+        },
+        "all_three": {
+          "config_id": "D",
+          "name": "ALL THREE",
+          "feature_count": 19,
+          "features": [
+            "min_log_prob",
+            "mean_log_prob",
+            "mean_token_prob",
+            "token_prob_std",
+            "mean_entropy",
+            "max_entropy",
+            "entropy_std",
+            "log_perplexity",
+            "log_mean_token_rank",
+            "log_max_token_rank",
+            "log_rank_std",
+            "exact_match_agreement",
+            "mean_pairwise_similarity",
+            "min_pairwise_similarity",
+            "max_pairwise_similarity",
+            "pairwise_similarity_std",
+            "mean_pairwise_entailment",
+            "mean_pairwise_contradiction",
+            "nli_disagreement"
+          ],
+          "train_n": 2500,
+          "test_n": 1500,
+          "test_label_distribution": {
+            "0": 750,
+            "1": 750
+          },
+          "models": {
+            "logistic_regression": {
+              "metrics": {
+                "accuracy": 0.4493333333333333,
+                "precision": 0.46900489396411094,
+                "recall": 0.7666666666666667,
+                "f1": 0.5819838056680162,
+                "roc_auc": 0.25828977777777773,
+                "pr_auc": 0.3593496595515846,
+                "brier_score": 0.36311647992415114,
+                "ece": 0.32290992059079554,
+                "confusion_matrix": {
+                  "tn": 99,
+                  "fp": 651,
+                  "fn": 175,
+                  "tp": 575
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.2353333333333333,
+                "delta_f1": 0.36850815523439384,
+                "delta_roc_auc": 0.09822399999999995,
+                "delta_pr_auc": 0.022799171903743365,
+                "delta_brier": 0.00684279196422144,
+                "delta_ece": -0.0964438305990235
+              },
+              "predicted_positives": 1226,
+              "prob_min": 0.05857688489274404,
+              "prob_max": 0.9323234641128288
+            },
+            "xgboost": {
+              "metrics": {
+                "accuracy": 0.432,
+                "precision": 0.4577114427860697,
+                "recall": 0.736,
+                "f1": 0.5644171779141104,
+                "roc_auc": 0.43676799999999993,
+                "pr_auc": 0.4663785313033443,
+                "brier_score": 0.3048033268669379,
+                "ece": 0.230180623849233,
+                "confusion_matrix": {
+                  "tn": 96,
+                  "fp": 654,
+                  "fn": 198,
+                  "tp": 552
+                }
+              },
+              "deltas": {
+                "delta_accuracy": 0.033999999999999975,
+                "delta_f1": 0.16601611195808108,
+                "delta_roc_auc": 0.07689422222222214,
+                "delta_pr_auc": 0.04490874657320554,
+                "delta_brier": -0.0034823676361298572,
+                "delta_ece": 0.0029792606731255944
+              },
+              "predicted_positives": 1206,
+              "prob_min": 0.2166229635477066,
+              "prob_max": 0.9129807949066162
+            }
+          }
+        }
+      }
+    }
+  }
+}

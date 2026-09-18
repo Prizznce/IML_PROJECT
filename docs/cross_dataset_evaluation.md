@@ -1,128 +1,127 @@
-# Cross-Dataset Evaluation Report (Phase 6)
+# Universal Cross-Dataset Generalization Evaluation (Phase 16)
 
-## 1. Purpose of Cross-Dataset Evaluation
+## 1. Executive Summary
 
-The primary baseline established in Phase 6 evaluated classifiers on a combined test partition that shared the same source distribution as the training data (in-domain stratified evaluation). While this benchmark validated that internal logit signals (token probabilities, predictive entropy, sequence perplexity, and vocabulary rank dispersion) correlate with hallucination labels within the combined pool, it does not assess **out-of-domain transferability**.
+This document presents the methodology, quantitative findings, and diagnostic hypotheses for the **Leave-One-Dataset-Out (LODO) Cross-Dataset Generalization Study** of the Universal Core Hallucination Detector.
 
-In real-world deployment, an LLM hallucination detector encounters diverse task formats, prompting styles, and grounding conditions. Cross-dataset evaluation measures whether a classifier trained on one or more benchmark domains can generalize to an unseen domain without re-training or domain adaptation.
+The objective is to evaluate how effectively supervised hallucination detection signals transfer to completely unseen task distributions without domain-specific fine-tuning or target-domain adaptation.
 
----
-
-## 2. Experimental Protocol: Leave-One-Dataset-Out (LODO)
-
-To evaluate domain transfer under strict scientific controls, we employ a **Leave-One-Dataset-Out (LODO)** evaluation protocol across the three canonical benchmarks:
-- **HaluEval** (Question Answering with Reference Context)
-- **TruthfulQA** (Adversarial Misconceptions and False Beliefs)
-- **FEVER** (Fact Verification / Isolated Claim Verification)
-
-### 2.1 The Three Transfer Configurations
-
-| Experiment | Training Sources | Training Samples ($N_{\text{train}}$) | Unseen Target Dataset | Test Samples ($N_{\text{test}}$) | Target Task Type |
-| :---: | :--- | :---: | :--- | :---: | :--- |
-| **Exp 1** | HaluEval + TruthfulQA | 3,000 (1,500 / 1,500) | **FEVER** | 1,000 (500 / 500) | Isolated claim verification without context |
-| **Exp 2** | HaluEval + FEVER | 2,500 (1,250 / 1,250) | **TruthfulQA** | 1,500 (750 / 750) | Open-domain questions probing common false beliefs |
-| **Exp 3** | TruthfulQA + FEVER | 2,500 (1,250 / 1,250) | **HaluEval** | 1,500 (750 / 750) | Context-grounded question answering |
-
-### 2.2 Strict Leakage Prevention & Feature Policy
-1. **Zero Target Contamination**:
-   The target dataset is completely withheld from all model fitting, feature scaling, and parameter selection.
-2. **Feature Set (11 Primary Internal Signals)**:
-   - Token Probabilities: `min_log_prob`, `mean_log_prob`, `mean_token_prob`, `token_prob_std`
-   - Predictive Uncertainty: `mean_entropy`, `max_entropy`, `entropy_std`
-   - Sequence Statistics: `log_perplexity` ($\log(\text{perplexity})$)
-   - Rank Dispersion: `log_mean_token_rank` ($\log(1 + \text{mean\_token\_rank})$), `log_max_token_rank` ($\log(1 + \text{max\_token\_rank})$), `log_rank_std` ($\log(1 + \text{rank\_std})$)
-3. **Quarantined Columns**:
-   `num_tokens` is **strictly excluded** from all transfer models, along with `id`, `source_dataset`, `label`, `prompt`, `context`, `response`, `model_input`, and `forward_time_s`.
-4. **Preprocessing Execution**:
-   For Logistic Regression, `StandardScaler` is fitted **strictly on the training partition** $\mathbf{X}_{\text{train}}$ and transforms $\mathbf{X}_{\text{test}}$ using the training parameters ($\boldsymbol{\mu}_{\text{train}}, \boldsymbol{\sigma}_{\text{train}}$). Tree-based XGBoost models operate directly on unscaled features from $\mathbf{X}_{\text{train}}$.
-
-### 2.3 Estimator Configurations
-- **Logistic Regression**: Scikit-learn `Pipeline([('scaler', StandardScaler()), ('classifier', LogisticRegression(max_iter=1000, random_state=42))])`.
-- **XGBoost**: `XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8, gamma=0.1, random_state=42, eval_metric='logloss')`.
+The evaluation investigates 3 Leave-One-Dataset-Out experiments across 4 nested feature configurations and 2 model architectures, yielding 24 full training and evaluation runs.
 
 ---
 
-## 3. Quantitative Cross-Dataset Results
+## 2. Experimental Protocol & Partition Invariance
 
-Machine-readable JSON metrics for all three experiments are stored in:
-[`experiments/baselines/results/cross_dataset/cross_dataset_results.json`](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/baselines/results/cross_dataset/cross_dataset_results.json)
+### Zero-Leakage Leave-One-Dataset-Out (LODO) Design
+1. **Experiment 1 (Held-out FEVER)**:
+   - **Training Set**: HaluEval + TruthfulQA ($N = 1,500 + 1,500 = 3,000$).
+   - **Test Set**: FEVER ($N = 1,000$).
+2. **Experiment 2 (Held-out TruthfulQA)**:
+   - **Training Set**: HaluEval + FEVER ($N = 1,500 + 1,000 = 2,500$).
+   - **Test Set**: TruthfulQA ($N = 1,500$).
+3. **Experiment 3 (Held-out HaluEval)**:
+   - **Training Set**: TruthfulQA + FEVER ($N = 1,500 + 1,000 = 2,500$).
+   - **Test Set**: HaluEval ($N = 1,500$).
 
-### 3.1 Complete Performance Table
-
-| Target Dataset | Model | Accuracy | Precision | Recall | F1 Score | ROC-AUC | PR-AUC | Brier Score | ECE ($M=10$) | Confusion Matrix ($TN, FP, FN, TP$) |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **FEVER**<br>($N=1,000$)<br>Train: HaluEval + TruthfulQA | Logistic Regression<br>XGBoost | 0.5060<br>0.4980 | 0.5038<br>0.4981 | **0.7860**<br>0.5340 | **0.6141**<br>0.5154 | 0.4868<br>0.4967 | 0.4818<br>0.4921 | 0.2952<br>0.2642 | 0.1716<br>0.0950 | TN: 113, FP: 387, FN: 107, TP: 393<br>TN: 231, FP: 269, FN: 233, TP: 267 |
-| **TruthfulQA**<br>($N=1,500$)<br>Train: HaluEval + FEVER | Logistic Regression<br>XGBoost | 0.4660<br>0.4773 | 0.4723<br>0.4855 | 0.5800<br>**0.7573** | 0.5206<br>**0.5917** | 0.4439<br>0.4460 | 0.4544<br>0.4531 | 0.3248<br>0.3663 | 0.2299<br>0.2934 | TN: 264, FP: 486, FN: 315, TP: 435<br>TN: 148, FP: 602, FN: 182, TP: 568 |
-| **HaluEval**<br>($N=1,500$)<br>Train: TruthfulQA + FEVER | Logistic Regression<br>XGBoost | 0.2140<br>0.3333 | 0.2136<br>0.3494 | 0.2133<br>0.3867 | 0.2135<br>0.3671 | 0.1601<br>0.3316 | 0.3366<br>0.4094 | 0.3563<br>0.3132 | 0.4194<br>0.2905 | TN: 161, FP: 589, FN: 590, TP: 160<br>TN: 210, FP: 540, FN: 460, TP: 290 |
-
----
-
-## 4. In-Domain Baseline vs. Cross-Dataset Performance
-
-To understand domain transferability, we compare the **in-domain test partition performance** (from Phase 6 primary baseline) against the **cross-dataset transfer performance**:
-
-| Evaluation Paradigm | Training Data | Evaluation Target | LR ROC-AUC | XGB ROC-AUC | LR Accuracy | XGB Accuracy |
-| :--- | :--- | :--- | :---: | :---: | :---: | :---: |
-| **In-Domain (Stratified Hold-Out)** | 80% Combined Pool | 20% Combined Test ($N=800$) | **0.6930** | **0.7411** | **62.13%** | **67.00%** |
-| *In-Domain Subgroup: HaluEval* | 80% Combined Pool | 20% HaluEval Test ($N=300$) | **0.9467** | **0.9357** | **84.67%** | **86.33%** |
-| *In-Domain Subgroup: TruthfulQA* | 80% Combined Pool | 20% TruthfulQA Test ($N=300$) | **0.5044** | **0.5983** | **51.33%** | **57.67%** |
-| *In-Domain Subgroup: FEVER* | 80% Combined Pool | 20% FEVER Test ($N=200$) | **0.4656** | **0.4854** | **44.50%** | **52.00%** |
-| **Cross-Dataset Transfer (LODO)** | HaluEval + TruthfulQA | **FEVER** ($N=1,000$) | 0.4868 | 0.4967 | 50.60% | 49.80% |
-| **Cross-Dataset Transfer (LODO)** | HaluEval + FEVER | **TruthfulQA** ($N=1,500$) | 0.4439 | 0.4460 | 46.60% | 47.73% |
-| **Cross-Dataset Transfer (LODO)** | TruthfulQA + FEVER | **HaluEval** ($N=1,500$) | 0.1601 | 0.3316 | 21.40% | 33.33% |
+### Partition Verification
+- Zero random splitting: training partitions contain 100% of rows from the two training datasets, and test partitions contain 100% of rows from the held-out dataset.
+- Exact sample counts: Exp 1 (Train=3,000, Test=1,000); Exp 2 (Train=2,500, Test=1,500); Exp 3 (Train=2,500, Test=1,500).
+- Zero ID overlap: $\text{len}(\text{train\_ids} \cap \text{test\_ids}) = 0$ across all 3 experiments.
+- Preprocessing isolation: `StandardScaler` in the Logistic Regression pipeline is fit **exclusively on the training partition**. The held-out test dataset is never seen during scaling or model fitting.
 
 ---
 
-## 5. Per-Dataset Interpretation & Analysis of Domain Shift
+## 3. Four Feature Configurations
 
-### 5.1 Transfer to FEVER (Target: FEVER; Train: HaluEval + TruthfulQA)
-- **Measured Metrics**:
-  - Logistic Regression: Accuracy = **50.60%**, ROC-AUC = **0.4868**, Recall = **78.60%**, Precision = **50.38%**.
-  - XGBoost: Accuracy = **49.80%**, ROC-AUC = **0.4967**, Recall = **53.40%**, Precision = **49.81%**.
-- **Factual Interpretation**:
-  Performance on FEVER hovers at chance level (ROC-AUC $\approx 0.49$, Accuracy $\approx 50\%$). FEVER consists of isolated factual assertions without conditioning passages. When trained on HaluEval (which has context passages) and TruthfulQA (conversational misconception queries), the models do not find transferable logit signatures that discriminate refuted versus supported claims in FEVER.
+To isolate which signal families facilitate or hinder cross-domain transfer, every experiment evaluates:
 
-### 5.2 Transfer to TruthfulQA (Target: TruthfulQA; Train: HaluEval + FEVER)
-- **Measured Metrics**:
-  - Logistic Regression: Accuracy = **46.60%**, ROC-AUC = **0.4439**, F1 = **0.5206**.
-  - XGBoost: Accuracy = **47.73%**, ROC-AUC = **0.4460**, F1 = **0.5917**.
-- **Factual Interpretation**:
-  Transfer performance on TruthfulQA falls slightly below random chance (ROC-AUC $\approx 0.44$). As observed during the feature analysis, TruthfulQA queries probe common human myths and misconceptions. When the model generates a widespread false belief learned during pre-training, it often outputs tokens with low entropy and low rank (high confidence). Models trained on HaluEval and FEVER expect factual hallucinations to exhibit elevated uncertainty, leading to misclassification of fluent misconceptions.
+| Config ID | Key | Features Included | Feat Count | Role |
+| :---: | :--- | :--- | :---: | :--- |
+| **A** | `internal_only` | 11 internal token probability, entropy, rank signals | 11 | **Reference Baseline** |
+| **B** | `internal_plus_self_consistency` | 11 internal + 5 self-consistency similarity signals | 16 | Hybrid token + sampling consensus |
+| **C** | `internal_plus_nli` | 11 internal + 3 NLI agreement signals | 14 | Hybrid token + logical entailment |
+| **D** | `all_three` | 11 internal + 5 self-consistency + 3 NLI signals | 19 | Universal Core Detector |
 
-### 5.3 Transfer to HaluEval (Target: HaluEval; Train: TruthfulQA + FEVER)
-- **Measured Metrics**:
-  - Logistic Regression: Accuracy = **21.40%**, ROC-AUC = **0.1601**, Brier = **0.3563**, ECE = **0.4194**.
-  - XGBoost: Accuracy = **33.33%**, ROC-AUC = **0.3316**, Brier = **0.3132**, ECE = **0.2905**.
-- **Factual Interpretation**:
-  Transfer to HaluEval exhibits severe performance degradation with inverted discrimination (ROC-AUC $< 0.35$).
-  - In HaluEval, questions are accompanied by a **reference context passage**. When generating answers conditioned on context, faithful responses exhibit high probability and low rank because they verbatim or semantically reproduce context tokens. Hallucinations depart from the context, producing marked spikes in entropy and vocabulary rank.
-  - In TruthfulQA and FEVER, **no reference passage** is provided; responses are generated unconditionally from parametric memory, resulting in fundamentally different baseline log-probabilities and entropy distributions.
-  - When a classifier trained strictly on unconditioned text (TruthfulQA + FEVER) is applied to context-grounded text (HaluEval), the distributional shift in feature scales and baselines causes the learned decision thresholds to misclassify context-grounded faithful responses as hallucinations, resulting in high false alarm rates (FP = 589 for LR, 540 for XGBoost out of 750 negative samples).
+All deltas are computed relative to the internal reference baseline:
+$$\Delta = \text{Configuration Metric} - \text{Internal ONLY Metric}$$
 
 ---
 
-## 6. Discussion: Mechanisms of Dataset and Task Shift
+## 4. Complete Cross-Dataset Empirical Results (24 Runs)
 
-1. **Context Grounding vs. Open-Domain Generation**:
-   The presence or absence of a conditioning document alters the model's forward logit dynamics:
-   - Grounded generation (HaluEval) concentrates probability mass on context tokens.
-   - Ungrounded generation (TruthfulQA, FEVER) distributes probability mass across general vocabulary.
-   Classifiers trained without awareness of prompt conditioning structure cannot normalize for this task-level baseline shift.
-2. **Memorized Misconceptions vs. Generation Errors**:
-   The nature of the hallucination differs:
-   - In HaluEval, hallucinations are synthetic factual discrepancies.
-   - In TruthfulQA, hallucinations are culturally entrenched false beliefs that the model has seen frequently during web pre-training.
-   Internal signals measure epistemic confidence, not objective truth; when a model is confidently incorrect, raw logit signals align with the error rather than the factual truth.
-3. **Threshold Brittleness across Domains**:
-   Both linear decision boundaries (Logistic Regression) and orthogonal axis splits (XGBoost) fit absolute numerical thresholds on the training distribution. When evaluated on a domain with shifted feature baselines, fixed thresholds fail unless normalized by task type or conditioning length.
+| Test Dataset | Configuration | Feats | Model | Accuracy ($\Delta$) | F1 ($\Delta$) | ROC-AUC ($\Delta$) | PR-AUC ($\Delta$) | Brier ($\Delta$) | ECE ($\Delta$) |
+| :--- | :--- | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **FEVER** ($N=1,000$) | `internal_only` | 11 | Logistic Regression | 0.5060 (+0.0000) | 0.6141 (+0.0000) | 0.4868 (+0.0000) | 0.4818 (+0.0000) | 0.2952 (+0.0000) | 0.1716 (+0.0000) |
+| | `internal_only` | 11 | XGBoost | 0.4830 (+0.0000) | 0.4772 (+0.0000) | 0.4903 (+0.0000) | 0.4870 (+0.0000) | 0.2681 (+0.0000) | 0.1186 (+0.0000) |
+| | `internal_plus_sc` | 16 | Logistic Regression | 0.5060 (+0.0000) | 0.6246 (+0.0106) | 0.4882 (+0.0014) | 0.4825 (+0.0007) | 0.2993 (+0.0041) | 0.1825 (+0.0109) |
+| | `internal_plus_sc` | 16 | XGBoost | 0.5090 (+0.0260) | 0.5475 (+0.0702) | 0.4999 (+0.0096) | 0.4891 (+0.0022) | 0.2636 (-0.0044) | 0.0824 (-0.0362) |
+| | `internal_plus_nli` | 14 | Logistic Regression | 0.4970 (-0.0090) | 0.6209 (+0.0069) | 0.4875 (+0.0007) | 0.4847 (+0.0029) | 0.3072 (+0.0120) | 0.2096 (+0.0379) |
+| | `internal_plus_nli` | 14 | XGBoost | 0.5070 (+0.0240) | 0.5397 (+0.0624) | 0.5143 (+0.0241) | 0.5260 (+0.0390) | 0.2593 (-0.0088) | 0.0876 (-0.0310) |
+| | `all_three` | 19 | Logistic Regression | 0.4960 (-0.0100) | 0.6216 (+0.0076) | 0.4875 (+0.0007) | 0.4840 (+0.0021) | 0.3072 (+0.0120) | 0.2064 (+0.0348) |
+| | `all_three` | 19 | XGBoost | 0.5060 (+0.0230) | 0.5581 (+0.0809) | 0.5167 (+0.0264) | 0.5078 (+0.0208) | 0.2599 (-0.0082) | 0.0912 (-0.0275) |
+| **TruthfulQA** ($N=1,500$) | `internal_only` | 11 | Logistic Regression | 0.4660 (+0.0000) | 0.5206 (+0.0000) | 0.4439 (+0.0000) | 0.4544 (+0.0000) | 0.3248 (+0.0000) | 0.2299 (+0.0000) |
+| | `internal_only` | 11 | XGBoost | 0.4793 (+0.0000) | 0.5951 (+0.0000) | 0.4539 (+0.0000) | 0.4584 (+0.0000) | 0.3651 (+0.0000) | 0.2949 (+0.0000) |
+| | `internal_plus_sc` | 16 | Logistic Regression | 0.4787 (+0.0127) | 0.4723 (-0.0483) | 0.4554 (+0.0115) | 0.4593 (+0.0049) | 0.3179 (-0.0069) | 0.2052 (-0.0247) |
+| | `internal_plus_sc` | 16 | XGBoost | 0.4813 (+0.0020) | 0.5948 (-0.0003) | 0.4582 (+0.0043) | 0.4678 (+0.0094) | 0.3434 (-0.0217) | 0.2621 (-0.0327) |
+| | `internal_plus_nli` | 14 | Logistic Regression | 0.4747 (+0.0087) | 0.4580 (-0.0626) | 0.4456 (+0.0016) | 0.4541 (-0.0002) | 0.3216 (-0.0032) | 0.2115 (-0.0184) |
+| | `internal_plus_nli` | 14 | XGBoost | 0.4833 (+0.0040) | 0.5862 (-0.0089) | 0.4581 (+0.0043) | 0.4657 (+0.0072) | 0.3431 (-0.0219) | 0.2555 (-0.0394) |
+| | `all_three` | 19 | Logistic Regression | 0.4753 (+0.0093) | 0.4334 (-0.0872) | 0.4575 (+0.0136) | 0.4604 (+0.0060) | 0.3201 (-0.0048) | 0.2169 (-0.0130) |
+| | `all_three` | 19 | XGBoost | 0.4853 (+0.0060) | 0.5971 (+0.0020) | 0.4608 (+0.0069) | 0.4748 (+0.0164) | 0.3339 (-0.0311) | 0.2437 (-0.0512) |
+| **HaluEval** ($N=1,500$) | `internal_only` | 11 | Logistic Regression | 0.2140 (+0.0000) | 0.2135 (+0.0000) | 0.1601 (+0.0000) | 0.3366 (+0.0000) | 0.3563 (+0.0000) | 0.4194 (+0.0000) |
+| | `internal_only` | 11 | XGBoost | 0.3980 (+0.0000) | 0.3984 (+0.0000) | 0.3599 (+0.0000) | 0.4215 (+0.0000) | 0.3083 (+0.0000) | 0.2272 (+0.0000) |
+| | `internal_plus_sc` | 16 | Logistic Regression | 0.4187 (+0.2047) | 0.5468 (+0.3333) | 0.2706 (+0.1105) | 0.3630 (+0.0265) | 0.3605 (+0.0042) | 0.3213 (-0.0980) |
+| | `internal_plus_sc` | 16 | XGBoost | 0.4160 (+0.0180) | 0.5335 (+0.1351) | 0.3994 (+0.0395) | 0.4508 (+0.0294) | 0.3049 (-0.0034) | 0.2277 (+0.0005) |
+| | `internal_plus_nli` | 14 | Logistic Regression | 0.3880 (+0.1740) | 0.5086 (+0.2951) | 0.1988 (+0.0388) | 0.3447 (+0.0081) | 0.3601 (+0.0038) | 0.3839 (-0.0355) |
+| | `internal_plus_nli` | 14 | XGBoost | 0.4433 (+0.0453) | 0.5764 (+0.1780) | 0.4445 (+0.0847) | 0.4944 (+0.0729) | 0.3025 (-0.0058) | 0.2273 (+0.0001) |
+| | `all_three` | 19 | Logistic Regression | 0.4493 (+0.2353) | 0.5820 (+0.3685) | 0.2583 (+0.0982) | 0.3593 (+0.0228) | 0.3631 (+0.0068) | 0.3229 (-0.0964) |
+| | `all_three` | 19 | XGBoost | 0.4320 (+0.0340) | 0.5644 (+0.1660) | 0.4368 (+0.0769) | 0.4664 (+0.0449) | 0.3048 (-0.0035) | 0.2302 (+0.0030) |
 
 ---
 
-## 7. Limitations & Scientific Scope
+## 5. Dataset-Specific Transfer Observations & Working Hypotheses
 
-1. **No Target Adaptation**:
-   This experiment evaluated pure zero-shot domain transfer without domain adaptation, unlabelled target domain calibration, or task conditioning.
-2. **Fixed Parameterization**:
-   Models were evaluated with fixed baseline hyperparameters without tuning for cross-domain robustness.
-3. **Scope of Claim**:
-   These results do not demonstrate that internal signals cannot be used for cross-domain detection; rather, they show that **raw unnormalized internal signals from an unaugmented classifier do not transfer zero-shot across divergent task formats without domain alignment or grounding-aware normalization**.
+### 1. FEVER ($N=1,000$) Transfer Analysis
+- **Observed Behavior**:
+  - `internal_only` yields near-chance discrimination (XGBoost ROC-AUC $0.4903$, Accuracy $0.4830$).
+  - Incorporating NLI agreement (`internal_plus_nli`) improves XGBoost ROC-AUC by $+0.0241$ (to $0.5143$) and PR-AUC by $+0.0390$ (to $0.5260$).
+  - In `all_three`, XGBoost ROC-AUC reaches $0.5167$ ($\Delta = +0.0264$), and Brier score improves from $0.2681$ to $0.2599$.
+- **Hypothesis**:
+  - *Fact Verification Alignment*: FEVER requires verifying whether a claim is supported or refuted by world knowledge. The pairwise NLI agreement signals evaluate logical contradiction and entailment between independently generated claims, which maps closely to FEVER's task structure, providing positive transfer signal that internal token probabilities alone lack.
+
+### 2. TruthfulQA ($N=1,500$) Transfer Analysis
+- **Observed Behavior**:
+  - Across all four feature configurations, out-of-domain transfer to TruthfulQA remains below chance discrimination (ROC-AUC ranges from $0.4439$ to $0.4608$).
+  - Adding consistency and NLI signals yields small positive increments in ROC-AUC (XGBoost: $+0.0043$ for SC, $+0.0043$ for NLI, $+0.0069$ for All Three) and decreases Brier error (from $0.3651$ to $0.3339$, $\Delta = -0.0311$).
+- **Hypothesis**:
+  - *Misconception Confidence Inversion*: TruthfulQA targets widespread human misconceptions and conspiracy theories. Models frequently generate these misconceptions with high internal confidence (low perplexity, high token probabilities) and repeat them consistently across stochastic samples. Consequently, models trained on HaluEval and FEVER (where hallucinations correlate with high uncertainty or contradiction) encounter inverted calibration when applied out-of-domain to TruthfulQA.
+
+### 3. HaluEval ($N=1,500$) Transfer Analysis
+- **Observed Behavior**:
+  - When trained strictly on TruthfulQA + FEVER ($N=2,500$), the `internal_only` model suffers severe negative transfer on HaluEval (Logistic Regression Accuracy $0.2140$, ROC-AUC $0.1601$; XGBoost Accuracy $0.3980$, ROC-AUC $0.3599$).
+  - Adding Self-Consistency (`internal_plus_sc`) substantially mitigates this failure: Logistic Regression Accuracy rises by $+0.2047$ (to $0.4187$) and F1 by $+0.3333$ (to $0.5468$).
+  - Adding NLI (`internal_plus_nli`) yields the strongest recovery: XGBoost ROC-AUC increases by $+0.0847$ (from $0.3599$ to $0.4445$), and PR-AUC increases by $+0.0729$ (from $0.4215$ to $0.4944$).
+  - In `all_three`, Logistic Regression accuracy improves by $+0.2353$ (to $0.4493$).
+- **Hypothesis**:
+  - *Signal Orthogonality and Inversion Damping*: In HaluEval, dialogue and QA hallucination patterns differ markedly in sequence structure and prompt length from short FEVER claims and TruthfulQA questions. Internal token statistics become miscalibrated across this distribution gap. Adding behavioral consensus and cross-encoder logic provides scale-invariant semantic signals that counteract internal feature distortion.
+
+---
+
+## 6. Methodological Integrity Checks
+
+- **Zero Overlap Confirmed**: All training partitions strictly excluded the held-out dataset ($0$ rows in train).
+- **Preprocessing Isolation**: `StandardScaler` was fit only on the two training datasets; no test set data was accessible during feature scaling.
+- **No Forbidden Features**: Neither `source_dataset`, `id`, `prompt`, `response`, `context`, nor `num_tokens` entered the model feature matrix.
+- **Numerical Validity**: All probabilities are strictly within $[0.0, 1.0]$ across all 32,000 predictions, and all computed metrics are finite.
+
+---
+
+## 7. Artifact Manifest
+
+- **Evaluation Pipeline**: [src/evaluation/cross_dataset.py](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/src/evaluation/cross_dataset.py)
+- **Module Interface**: [src/evaluation/\_\_init\_\_.py](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/src/evaluation/__init__.py)
+- **Unit & Integration Tests**: [tests/test_cross_dataset.py](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/tests/test_cross_dataset.py)
+- **Results JSON**: [cross_dataset_results.json](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/cross_dataset/cross_dataset_results.json)
+- **Results CSV (24 runs)**: [cross_dataset_results.csv](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/cross_dataset/cross_dataset_results.csv)
+- **Per-Dataset CSV (24 runs)**: [cross_dataset_per_dataset.csv](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/cross_dataset/cross_dataset_per_dataset.csv)
+- **Predictions Parquet (32,000 rows)**: [cross_dataset_predictions.parquet](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/cross_dataset/cross_dataset_predictions.parquet)
+- **Summary Report**: [cross_dataset_summary.md](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/cross_dataset/cross_dataset_summary.md)

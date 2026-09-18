@@ -23,6 +23,7 @@ from src.consistency.nli_agreement import (
     extract_pairwise_nli_predictions,
     aggregate_example_nli_signals,
     run_nli_agreement_pilot,
+    run_nli_agreement_full,
 )
 
 __all__ = [
@@ -44,4 +45,5 @@ __all__ = [
     "extract_pairwise_nli_predictions",
     "aggregate_example_nli_signals",
     "run_nli_agreement_pilot",
+    "run_nli_agreement_full",
 ]

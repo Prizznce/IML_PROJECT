@@ -1,0 +1,23 @@
+{
+  "source_dataset_file": "data\\processed\\combined_processed.parquet",
+  "halueval": {
+    "corpus_size": 1499,
+    "evidence_type": "benchmark_reference_passages",
+    "sample_evidence": [
+      "Criminal Mindscape is a television documentary series on MSNBC that profiles the minds of extreme criminals. Different interviewers interview subjects such as Ron Luff and Joseph Paul Franklin.Joseph Paul Franklin (born James Clayton Vaughn, Jr.; April 13, 1950 \u2013 November 20, 2013) was an American serial killer who gained notoriety for numerous murders in the late 1970s and early 1980s. His killing spree was the subject of a fictional novel entitled \"Hunter\" by White supremacist William L. Pierce, who said of Franklin that \u201che saw his duty as a white man and did what a responsible son of his race must do.\u201d",
+      "It is located entirely in Washington and runs from SR 17 to SR 105.Washington, officially the Town of Washington, is a town in Knox County, Maine."
+    ]
+  },
+  "fever": {
+    "corpus_size": 829,
+    "evidence_type": "clean_wikipedia_article_titles_from_context_pointers",
+    "sample_evidence": [
+      "Temple Grandin (film)",
+      "Tenacious D"
+    ]
+  },
+  "truthfulqa": {
+    "status": "excluded_from_retrieval_experiment",
+    "reason": "TruthfulQA context field contains external reference URLs and brief keywords rather than a local evidence corpus. Excluded to prevent artificial missingness from acting as a dataset-identifying confounder."
+  }
+}

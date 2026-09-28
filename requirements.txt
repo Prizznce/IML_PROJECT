@@ -1,20 +1,50 @@
-numpy
-pandas
-scipy
-scikit-learn
-xgboost
-matplotlib
-seaborn
-jupyter
-tqdm
-datasets
-transformers
-sentence-transformers
-torch
-rank-bm25
-faiss-cpu
-nltk
-joblib
-streamlit
-requests
-evaluate
+# ==============================================================================
+# PyTorch with CUDA 13.0 Support
+# ==============================================================================
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.13.0+cu130
+torchvision==0.28.0+cu130
+
+# ==============================================================================
+# Core Transformers & Language Modeling
+# ==============================================================================
+transformers==5.17.0
+tokenizers==0.23.2
+sentence-transformers==6.0.1
+datasets==5.0.1
+evaluate==0.4.6
+huggingface_hub==1.32.0
+safetensors==0.8.0
+
+# ==============================================================================
+# Scientific Computing & Tabular Machine Learning
+# ==============================================================================
+numpy==2.4.6
+scipy==1.17.1
+pandas==3.0.6
+pyarrow==25.0.1
+scikit-learn==1.9.1
+xgboost==3.2.0
+joblib==1.6.0
+
+# ==============================================================================
+# Retrieval & NLP Utilities
+# ==============================================================================
+rank-bm25==0.2.2
+faiss-cpu==1.15.1
+nltk==3.10.3
+
+# ==============================================================================
+# Interactive Web Application & Visualization
+# ==============================================================================
+streamlit==1.64.0
+matplotlib==3.11.2
+seaborn==0.13.2
+tqdm==4.70.1
+requests==2.34.2
+pyyaml==6.0.3
+
+# ==============================================================================
+# Testing Framework
+# ==============================================================================
+pytest==9.1.1

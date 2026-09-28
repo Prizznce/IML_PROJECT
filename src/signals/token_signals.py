@@ -263,10 +263,12 @@ def extract_raw_sequence_signals(
     Returns:
         SequenceSignals: Complete token-level and sequence-level metrics.
     """
-    if device is None:
-        try:
-            device = next(model.parameters()).device
-        except StopIteration:
+    try:
+        model_dev = next(model.parameters()).device
+        if device is None or torch.device(device) != model_dev:
+            device = model_dev
+    except (StopIteration, AttributeError):
+        if device is None:
             device = torch.device("cpu")
 
     # Tokenize prompt and response

@@ -4,10 +4,16 @@ Streamlit Live Demonstration Application for LLM Hallucination Detection.
 Title: Catching an LLM Lying: A Lightweight Classifier for Real-Time Hallucination
 Detection from Internal Generation Signals
 
-This presentation layer calls app/inference.py to execute the complete 19-feature
-Universal Core Detector on user-supplied queries or benchmark presets.
+This presentation layer interfaces with app/inference.py to execute the complete
+19-feature Universal Core Detector on user-supplied queries or benchmark presets.
+Provides:
+  - Token-by-token generation uncertainty heatmap with interactive tooltips.
+  - Model-native explainability ("Why was this response flagged?").
+  - Detection mode selection (Universal Core vs. Evidence Groundedness).
+  - Detailed signal breakdowns and research benchmark comparisons.
 """
 
+import html
 import sys
 from pathlib import Path
 
@@ -18,11 +24,24 @@ if _repo_root not in sys.path:
 
 import pandas as pd
 import streamlit as st
+import torch
 
 from app.inference import (
     UNIVERSAL_CORE_FEATURES,
+    load_inference_models,
     run_live_inference,
 )
+
+
+@st.cache_resource(show_spinner="Loading detection models into memory (one-time initialization)...")
+def get_cached_models():
+    """
+    Load and persist models in Streamlit's resource cache across sessions and reruns.
+    Ensures Qwen3.5-0.8B, all-MiniLM-L6-v2, nli-MiniLM2-L6-H768, and trained classifiers
+    are loaded strictly once in memory on CUDA when available (or CPU as fallback).
+    """
+    target_device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    return load_inference_models(device=target_device)
 
 # ==============================================================================
 # 1. Page Configuration and Header
@@ -38,8 +57,31 @@ st.set_page_config(
 st.title("Catching an LLM Lying")
 st.subheader("Lightweight Hallucination Detection from Internal Generation Signals")
 
+# Badges
+dev_name = f"🚀 Compute: {torch.cuda.get_device_name(0)}" if torch.cuda.is_available() else "🖥️ Compute: CPU"
+badge_html = f"""
+<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+  <span style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid rgba(59, 130, 246, 0.3);">
+    🟢 Model: Qwen/Qwen3.5-0.8B (Greedy)
+  </span>
+  <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid rgba(16, 185, 129, 0.3);">
+    🔬 Universal Core: 19 Features
+  </span>
+  <span style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid rgba(139, 92, 246, 0.3);">
+    ⚡ Classifiers: XGBoost + Logistic Regression
+  </span>
+  <span style="background: rgba(14, 165, 233, 0.15); color: #0284c7; padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid rgba(14, 165, 233, 0.3);">
+    {dev_name}
+  </span>
+  <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid rgba(245, 158, 11, 0.3);">
+    🏛️ Academic Research Demo
+  </span>
+</div>
+"""
+st.markdown(badge_html, unsafe_allow_html=True)
+
 st.info(
-    "**Research Demonstration**: Probability represents model-estimated hallucination risk, "
+    "**Research Demonstration**: Probability values represent model-estimated hallucination risk, "
     "not a guarantee of factual correctness. All benchmark evaluations reported in the academic "
     "manuscript were conducted offline across 4,000 curated benchmark instances."
 )
@@ -55,29 +97,54 @@ if "user_context" not in st.session_state:
 if "inference_result" not in st.session_state:
     st.session_state["inference_result"] = None
 
-st.markdown("### 1. Input Query & Optional Context")
+st.markdown("### 1. Input Query & Detection Mode")
+
+# Detection Mode Radio
+mode_selection = st.radio(
+    "**Detection Mode**",
+    options=[
+        "Internal Signals (Universal Core — 19 Features)",
+        "Check Against Evidence (Phase 19 Retrieval Variant)",
+    ],
+    index=0,
+    horizontal=True,
+    help="Universal Core evaluates internal generation, self-consistency, and NLI. Evidence mode additionally inspects reference passage groundedness.",
+)
+
+is_evidence_mode = "Check Against Evidence" in mode_selection
+
+if is_evidence_mode:
+    st.caption(
+        "ℹ️ **Evidence Mode Active**: When an optional reference context is provided below, the system "
+        "calculates live evidence groundedness (query-evidence similarity, response-evidence similarity, "
+        "and retrieval agreement) using `all-MiniLM-L6-v2`. *(Note: The offline Phase 19 retrieval experiment "
+        "achieved ROC-AUC 0.9184 on the 2,500-instance HaluEval+FEVER evaluated subset; open-web search is not run locally.)*"
+    )
 
 # Preset selection buttons
 st.markdown("**Sample Presets** *(Click to populate the prompt field)*:")
 p_col1, p_col2, p_col3, p_col4 = st.columns(4)
 
 with p_col1:
-    if st.button("Preset 1: Moon Landing", use_container_width=True):
+    if st.button("Preset 1: Moon Landing\n\n*(✓ Factual question)*", use_container_width=True):
         st.session_state["user_prompt"] = "Who was the first person to walk on the Moon?"
         st.session_state["user_context"] = ""
+        st.session_state["inference_result"] = None
 
 with p_col2:
-    if st.button("Preset 2: Capital of France", use_container_width=True):
+    if st.button("Preset 2: Capital of France\n\n*(✓ Simple factual question)*", use_container_width=True):
         st.session_state["user_prompt"] = "What is the capital of France?"
         st.session_state["user_context"] = ""
+        st.session_state["inference_result"] = None
 
 with p_col3:
-    if st.button("Preset 3: Mars Exploration", use_container_width=True):
+    if st.button("Preset 3: Mars Walking\n\n*(⚠ False-premise stress test)*", use_container_width=True):
         st.session_state["user_prompt"] = "Who was the first human to walk on Mars?"
         st.session_state["user_context"] = ""
+        st.session_state["inference_result"] = None
 
 with p_col4:
-    if st.button("Clear Input", use_container_width=True):
+    if st.button("Clear Input\n\n*(Reset prompt & results)*", use_container_width=True):
         st.session_state["user_prompt"] = ""
         st.session_state["user_context"] = ""
         st.session_state["inference_result"] = None
@@ -96,7 +163,7 @@ context_text = st.text_area(
     value=st.session_state["user_context"],
     placeholder="Optional supporting evidence, background passage, or reference document...",
     height=80,
-    help="Optional background passage for document-grounded question answering.",
+    help="Optional background passage for document-grounded question answering and evidence checking.",
 )
 
 btn_col1, btn_col2 = st.columns([1, 4])
@@ -117,9 +184,19 @@ if analyze_clicked:
 
         with st.spinner("Generating response and analyzing hallucination signals..."):
             try:
+                cached_models = get_cached_models()
                 result = run_live_inference(
                     prompt=clean_p,
                     context=context_text.strip() if context_text.strip() else None,
+                    device=cached_models.get("device"),
+                    causal_model=cached_models["causal_model"],
+                    tokenizer=cached_models["tokenizer"],
+                    embedding_model=cached_models["embedding_model"],
+                    nli_model=cached_models["nli_model"],
+                    nli_label_indices=cached_models["nli_label_indices"],
+                    lr_pipeline=cached_models["lr_pipeline"],
+                    xgb_model=cached_models["xgb_model"],
+                    is_evidence_mode=is_evidence_mode,
                 )
                 st.session_state["inference_result"] = result
             except Exception as exc:
@@ -176,8 +253,194 @@ if res is not None:
         "and do not constitute a validated clinical or safety threshold.*"
     )
 
+    # ==========================================================================
+    # FEATURE 1: Token-by-Token Heatmap
+    # ==========================================================================
     st.markdown("---")
-    st.markdown("### 3. Detailed Signal Breakdown")
+    st.markdown("### 3. Token-by-Token Generation Confidence Heatmap")
+    st.write(
+        "Inline token highlighting visualizes model uncertainty during the forward generation pass. "
+        "Green tokens denote high generation likelihood and low predictive entropy; yellow tokens indicate "
+        "intermediate confidence; red tokens signal elevated predictive uncertainty or depressed likelihood."
+    )
+
+    token_details = res.get("token_details", [])
+    if token_details:
+        heatmap_spans = []
+        for t in token_details:
+            t_token = html.escape(t["token"])
+            t_prob = t["probability"]
+            t_ent = t["entropy"]
+            t_rank = t["rank"]
+            t_band = t["band"]
+            t_step = t["step"]
+
+            if t_band == "High confidence":
+                bg = "rgba(46, 204, 113, 0.22)"
+                border_col = "#2ecc71"
+                txt_col = "#27ae60"
+            elif t_band == "Low confidence":
+                bg = "rgba(231, 76, 60, 0.25)"
+                border_col = "#e74c3c"
+                txt_col = "#c0392b"
+            else:
+                bg = "rgba(241, 196, 15, 0.22)"
+                border_col = "#f1c40f"
+                txt_col = "#d4ac0d"
+
+            tooltip = f"Step {t_step}: '{t_token}' | Prob: {t_prob:.4f} | Entropy: {t_ent:.3f} | Rank: {t_rank} | {t_band}"
+            span_html = (
+                f'<span title="{html.escape(tooltip)}" style="background: {bg}; border-bottom: 2px solid {border_col}; '
+                f'color: {txt_col}; padding: 2px 4px; margin: 1px 0px; border-radius: 3px; font-family: monospace; '
+                f'font-size: 15px; font-weight: 500; display: inline-block; white-space: pre-wrap;">{t_token}</span>'
+            )
+            heatmap_spans.append(span_html)
+
+        rendered_heatmap = "".join(heatmap_spans)
+        box_html = f"""
+        <div style="padding: 14px 18px; border-radius: 8px; border: 1px solid rgba(128, 128, 128, 0.25);
+                    background: rgba(128, 128, 128, 0.05); line-height: 2.2; margin-bottom: 10px;">
+            {rendered_heatmap}
+        </div>
+        """
+        st.markdown(box_html, unsafe_allow_html=True)
+
+        # Heatmap legend
+        legend_html = """
+        <div style="display: flex; gap: 18px; font-size: 13px; margin-bottom: 10px; flex-wrap: wrap;">
+            <span><span style="color: #27ae60; font-weight: bold;">🟩 High confidence</span> (P ≥ 65%, low entropy)</span>
+            <span><span style="color: #d4ac0d; font-weight: bold;">🟨 Medium confidence</span> (30% ≤ P &lt; 65%)</span>
+            <span><span style="color: #c0392b; font-weight: bold;">🟥 Low confidence</span> (P &lt; 30% or elevated entropy)</span>
+        </div>
+        """
+        st.markdown(legend_html, unsafe_allow_html=True)
+        st.caption("*Token color represents generation confidence/uncertainty during token production, not factual correctness.*")
+
+        with st.expander("🔍 Inspect Token-by-Token Logit Dynamics Table", expanded=False):
+            t_rows = []
+            for t in token_details:
+                t_rows.append({
+                    "Step": t["step"],
+                    "Token": repr(t["token"]),
+                    "Probability": f"{t['probability']:.4f}",
+                    "Log-Prob": f"{t['log_prob']:.4f}",
+                    "Entropy": f"{t['entropy']:.4f}",
+                    "Rank": t["rank"],
+                    "Confidence Band": t["band"],
+                })
+            st.dataframe(pd.DataFrame(t_rows), use_container_width=True, hide_index=True)
+
+    # ==========================================================================
+    # FEATURE 2: Why Was It Flagged? (Explainability)
+    # ==========================================================================
+    st.markdown("---")
+    st.markdown("### 4. Why Was This Response Flagged? (Model Feature Contributions)")
+    st.write(
+        "Model-level Tree SHAP feature contributions indicating which generation uncertainty "
+        "signals drove the classifier toward or away from flagging hallucination risk."
+    )
+
+    feature_contribs = res.get("feature_contributions", [])
+    if feature_contribs:
+        max_mag = max([c["magnitude"] for c in feature_contribs]) if feature_contribs else 1.0
+        if max_mag == 0.0:
+            max_mag = 1.0
+
+        for c in feature_contribs:
+            disp_name = c["display_name"]
+            feat_name = c["feature"]
+            val = c["value"]
+            contrib = c["contribution"]
+            direction = c["direction"]
+            mag = c["magnitude"]
+            pct_bar = min(100.0, max(5.0, (mag / max_mag) * 100.0))
+
+            if direction == "increases risk":
+                badge_bg = "rgba(231, 76, 60, 0.18)"
+                badge_color = "#e74c3c"
+                bar_color = "#e74c3c"
+                dir_label = "▲ INCREASES RISK"
+            else:
+                badge_bg = "rgba(46, 204, 113, 0.18)"
+                badge_color = "#2ecc71"
+                bar_color = "#2ecc71"
+                dir_label = "▼ DECREASES RISK"
+
+            card_html = f"""
+            <div style="background: rgba(128, 128, 128, 0.05); border: 1px solid rgba(128, 128, 128, 0.2);
+                        border-radius: 6px; padding: 10px 14px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-weight: 600; font-size: 14px;">{disp_name} <code style="font-size: 12px; color: #888;">({feat_name})</code></span>
+                    <span style="font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: {badge_bg}; color: {badge_color};">
+                        {dir_label}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                    <span>Measured Value: <strong>{val:.4f}</strong></span>
+                    <span>Contribution: <strong>{contrib:+.4f}</strong> log-odds</span>
+                </div>
+                <div style="background: rgba(128, 128, 128, 0.2); height: 6px; border-radius: 3px; overflow: hidden;">
+                    <div style="background: {bar_color}; width: {pct_bar:.1f}%; height: 100%; border-radius: 3px;"></div>
+                </div>
+            </div>
+            """
+            st.markdown(card_html, unsafe_allow_html=True)
+
+        st.caption(
+            "*Disclaimer: These values are model-level feature contributions (Tree SHAP log-odds values from the primary "
+            "XGBoost classifier) for this specific prediction, not causal explanations.*"
+        )
+
+    # ==========================================================================
+    # FEATURE 3: Evidence Groundedness Section
+    # ==========================================================================
+    evidence_data = res.get("evidence_analysis", {})
+    if is_evidence_mode or (evidence_data and evidence_data.get("has_reference_context")):
+        st.markdown("---")
+        st.markdown("### 5. Evidence Groundedness Analysis")
+
+        if evidence_data.get("has_reference_context"):
+            e_col1, e_col2, e_col3 = st.columns(3)
+            with e_col1:
+                st.metric(
+                    label="Query-Evidence Similarity",
+                    value=f"{evidence_data.get('top1_evidence_similarity', 0.0):.4f}",
+                    help="Cosine similarity between user query and rank-1 reference context chunk.",
+                )
+            with e_col2:
+                st.metric(
+                    label="Response-Evidence Similarity",
+                    value=f"{evidence_data.get('response_top1_similarity', 0.0):.4f}",
+                    help="Cosine similarity between generated response and rank-1 reference context chunk.",
+                )
+            with e_col3:
+                st.metric(
+                    label="Retrieval Agreement Score",
+                    value=f"{evidence_data.get('retrieval_agreement', 0.0):.4f}",
+                    help="Dual groundedness index: max(0, q_sim) * max(0, r_sim).",
+                )
+
+            ev_cards = evidence_data.get("retrieved_evidence", [])
+            if ev_cards:
+                st.markdown("**Ranked Reference Context Passages:**")
+                for card in ev_cards:
+                    st.markdown(
+                        f"- **Rank {card['rank']}** *(Query Sim: {card['query_similarity']:.4f} | Response Sim: {card['response_similarity']:.4f})*:\n"
+                        f"  > {card['text']}"
+                    )
+        else:
+            st.info(
+                "**No Reference Context Provided**: To evaluate live groundedness against reference text, "
+                "enter a reference passage in the input text area above. "
+                "In the offline research evaluation (Phase 19), retrieval-augmented classification achieved "
+                "**ROC-AUC 0.9184** across 2,500 curated HaluEval and FEVER instances."
+            )
+
+    # ==========================================================================
+    # Detailed Signals Breakdown
+    # ==========================================================================
+    st.markdown("---")
+    st.markdown("### 6. Detailed Signal Breakdown")
 
     tab_internal, tab_sc, tab_nli, tab_vec = st.tabs([
         "Internal Signals (11)",
@@ -213,20 +476,6 @@ if res is not None:
         ]
         st.dataframe(pd.DataFrame(internal_table_data), use_container_width=True, hide_index=True)
 
-        if "tokens" in int_sig and int_sig["tokens"]:
-            with st.expander("Inspect Token-Level Logit Dynamics", expanded=False):
-                token_rows = []
-                for t in int_sig["tokens"]:
-                    token_rows.append({
-                        "Step": t["step"],
-                        "Token": repr(t["token_text"]),
-                        "Probability": f"{t['probability']:.4f}",
-                        "Log-Prob": f"{t['log_probability']:.4f}",
-                        "Entropy": f"{t['entropy']:.4f}",
-                        "Rank": t["rank"],
-                    })
-                st.dataframe(pd.DataFrame(token_rows), use_container_width=True, hide_index=True)
-
     # --------------------------------------------------------------------------
     # Tab 2: Self-Consistency
     # --------------------------------------------------------------------------
@@ -237,18 +486,18 @@ if res is not None:
             "consistency. Disagreement among candidate outputs indicates epistemic uncertainty."
         )
 
-        sc_sig = res["self_consistency_features"]
+        sc_sig = res.get("self_consistency_features", {})
         sc_table_data = [
-            {"Signal": "exact_match_agreement", "Value": f"{sc_sig['exact_match_agreement']:.4f}", "Description": "Fraction of candidate pairs that match identically"},
-            {"Signal": "mean_pairwise_similarity", "Value": f"{sc_sig['mean_pairwise_similarity']:.4f}", "Description": "Mean embedding cosine similarity among candidate outputs"},
-            {"Signal": "min_pairwise_similarity", "Value": f"{sc_sig['min_pairwise_similarity']:.4f}", "Description": "Minimum pairwise cosine similarity"},
-            {"Signal": "max_pairwise_similarity", "Value": f"{sc_sig['max_pairwise_similarity']:.4f}", "Description": "Maximum pairwise cosine similarity"},
-            {"Signal": "pairwise_similarity_std", "Value": f"{sc_sig['pairwise_similarity_std']:.4f}", "Description": "Standard deviation of pairwise cosine similarities"},
+            {"Signal": "exact_match_agreement", "Value": f"{sc_sig.get('exact_match_agreement', 0.0):.4f}", "Description": "Fraction of candidate pairs that match identically"},
+            {"Signal": "mean_pairwise_similarity", "Value": f"{sc_sig.get('mean_pairwise_similarity', 0.0):.4f}", "Description": "Mean embedding cosine similarity among candidate outputs"},
+            {"Signal": "min_pairwise_similarity", "Value": f"{sc_sig.get('min_pairwise_similarity', 0.0):.4f}", "Description": "Minimum pairwise cosine similarity"},
+            {"Signal": "max_pairwise_similarity", "Value": f"{sc_sig.get('max_pairwise_similarity', 0.0):.4f}", "Description": "Maximum pairwise cosine similarity"},
+            {"Signal": "pairwise_similarity_std", "Value": f"{sc_sig.get('pairwise_similarity_std', 0.0):.4f}", "Description": "Standard deviation of pairwise cosine similarities"},
         ]
         st.dataframe(pd.DataFrame(sc_table_data), use_container_width=True, hide_index=True)
 
         st.markdown("**Sampled Stochastic Responses ($k=5$):**")
-        for i, resp in enumerate(res["consistency_responses"], 1):
+        for i, resp in enumerate(res.get("consistency_responses", []), 1):
             st.text(f"Candidate {i}: {resp}")
 
     # --------------------------------------------------------------------------
@@ -264,15 +513,11 @@ if res is not None:
 
         nli_sig = res.get("nli_scores", res.get("nli_features", {}))
         nli_table_data = [
-            {"Signal": "mean_pairwise_entailment", "Value": f"{nli_sig['mean_pairwise_entailment']:.4f}", "Description": "Average cross-encoder entailment probability across candidate pairs"},
-            {"Signal": "mean_pairwise_contradiction", "Value": f"{nli_sig['mean_pairwise_contradiction']:.4f}", "Description": "Average cross-encoder contradiction probability across candidate pairs"},
-            {"Signal": "nli_disagreement", "Value": f"{nli_sig['nli_disagreement']:.4f}", "Description": "Composite NLI disagreement index [contradiction + 0.5 * (1 - entailment)]"},
+            {"Signal": "mean_pairwise_entailment", "Value": f"{nli_sig.get('mean_pairwise_entailment', 0.0):.4f}", "Description": "Average cross-encoder entailment probability across candidate pairs"},
+            {"Signal": "mean_pairwise_contradiction", "Value": f"{nli_sig.get('mean_pairwise_contradiction', 0.0):.4f}", "Description": "Average cross-encoder contradiction probability across candidate pairs"},
+            {"Signal": "nli_disagreement", "Value": f"{nli_sig.get('nli_disagreement', 0.0):.4f}", "Description": "Composite NLI disagreement index [contradiction + 0.5 * (1 - entailment)]"},
         ]
         st.dataframe(pd.DataFrame(nli_table_data), use_container_width=True, hide_index=True)
-
-        with st.expander("Candidate Responses Evaluated", expanded=False):
-            for i, resp in enumerate(res["consistency_responses"], 1):
-                st.text(f"Candidate {i}: {resp}")
 
     # --------------------------------------------------------------------------
     # Tab 4: 19-Feature Vector
@@ -294,6 +539,30 @@ if res is not None:
             })
         st.dataframe(pd.DataFrame(vector_rows), use_container_width=True, hide_index=True)
 
+    # ==========================================================================
+    # Pipeline Latency & Stage Profiling (Instrumentation)
+    # ==========================================================================
+    st.markdown("---")
+    st.markdown("### 7. Execution Latency & Pipeline Profiling")
+    timing_data = res.get("stage_latencies_ms", res.get("timing_ms", {}))
+    total_elapsed = res.get("total_latency_ms", sum(timing_data.values()) if timing_data else 0.0)
+
+    st.write(
+        f"Live pipeline execution completed in **{total_elapsed / 1000.0:.2f} s** ({total_elapsed:.1f} ms). "
+        "Per-stage latency breakdown across all 15 pipeline stages:"
+    )
+
+    if timing_data:
+        timing_rows = []
+        for s_name, s_ms in timing_data.items():
+            pct = (s_ms / total_elapsed * 100.0) if total_elapsed > 0 else 0.0
+            timing_rows.append({
+                "Stage": s_name,
+                "Latency (ms)": f"{s_ms:.2f}",
+                "Share (%)": f"{pct:.1f}%",
+            })
+        st.dataframe(pd.DataFrame(timing_rows), use_container_width=True, hide_index=True)
+
 # ==============================================================================
 # 5. Offline Research Benchmark Results (Reference)
 # ==============================================================================
@@ -312,6 +581,13 @@ with st.expander("📊 Research Benchmark Results (Offline Holdout Evaluation)",
         {"Model": "Logistic Regression Baseline (Phase 6 Internal-Only)", "Accuracy": "0.6212", "F1 Score": "0.6363", "ROC-AUC": "0.6930", "PR-AUC": "0.6618", "Brier Score": "0.2177", "ECE": "0.0649"},
     ]
     st.dataframe(pd.DataFrame(benchmark_data), use_container_width=True, hide_index=True)
+
+    st.markdown(
+        "**Phase 19 Retrieval-Augmented Variant (Offline Evaluation)**:\n"
+        "- Evaluated on N=2,500 subset (HaluEval + FEVER) with reference passages/pointers.\n"
+        "- Condition E (Universal Core + Retrieval) achieved **ROC-AUC: 0.9184**, PR-AUC: 0.9192, Accuracy: 0.8160, F1: 0.8258.\n"
+        "- *Note: This is an offline benchmark experiment on curated corpora, not a live-query accuracy claim.*"
+    )
 
 # ==============================================================================
 # 6. Technical Details & Pipeline Architecture
@@ -337,20 +613,26 @@ Generated Response
       └────────────────────────┼────────────────────────┘
                                │
                                ▼
-               19 Canonical Universal Features
+                19 Canonical Universal Features
                                │
                                ▼
                  XGBoost & Logistic Regression
                                │
                                ▼
                    Hallucination Risk Score
+                               │
+            ┌──────────────────┴──────────────────┐
+            ▼                                     ▼
+Token Confidence Heatmap               Tree SHAP Explainability
+(P(y_t), H_t per token)                ("Why was it flagged?")
 ```
 
 #### Core Experimental Configurations:
-- **Base Generative LM**: `Qwen/Qwen3.5-0.8B` (unquantized bfloat16).
+- **Base Generative LM**: `Qwen/Qwen3.5-0.8B` (unquantized bfloat16, greedy decoding).
 - **Self-Consistency**: $k = 5$ stochastic candidate responses ($T = 0.7, \\text{top\\_}p = 0.9, \\text{max\\_tokens} = 128$).
 - **Sentence Embedding Model**: `sentence-transformers/all-MiniLM-L6-v2`.
 - **NLI Cross-Encoder**: `cross-encoder/nli-MiniLM2-L6-H768`.
 - **Primary Supervised Classifier**: `XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8, gamma=0.1)`.
 - **Linear Baseline Classifier**: `StandardScaler + LogisticRegression(C=1.0, solver='lbfgs', max_iter=1000)`.
+- **Feature Isolation Policy**: Sequence length (`num_tokens`), prompt text, and dataset metadata are strictly excluded from feature space.
     """)

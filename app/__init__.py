@@ -9,6 +9,10 @@ from app.inference import (
     assemble_feature_vector,
     format_risk_level,
     predict_hallucination_risk,
+    get_token_confidence_band,
+    format_token_details,
+    compute_feature_contributions,
+    compute_reference_evidence_agreement,
 )
 
 __all__ = [
@@ -18,4 +22,8 @@ __all__ = [
     "assemble_feature_vector",
     "format_risk_level",
     "predict_hallucination_risk",
+    "get_token_confidence_band",
+    "format_token_details",
+    "compute_feature_contributions",
+    "compute_reference_evidence_agreement",
 ]

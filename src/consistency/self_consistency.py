@@ -416,21 +416,33 @@ def generate_stochastic_responses(
         system_instruction=system_instruction,
     )
 
+    target_dev = device
+    try:
+        model_param_dev = next(model.parameters()).device
+        target_dev = model_param_dev
+    except (StopIteration, AttributeError):
+        pass
+
     enc = tokenizer(model_input, return_tensors="pt")
-    input_ids = enc.input_ids.to(device)
+    input_ids = enc.input_ids.to(target_dev)
+    attention_mask = enc.attention_mask.to(target_dev) if hasattr(enc, "attention_mask") and enc.attention_mask is not None else None
     input_len = input_ids.shape[1]
+
+    gen_kwargs = {
+        "input_ids": input_ids,
+        "do_sample": True,
+        "temperature": temperature,
+        "top_p": top_p,
+        "num_return_sequences": num_generations,
+        "max_new_tokens": max_new_tokens,
+        "pad_token_id": tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
+    }
+    if attention_mask is not None:
+        gen_kwargs["attention_mask"] = attention_mask
 
     t_start = time.perf_counter()
     with torch.no_grad():
-        gen_out = model.generate(
-            input_ids=input_ids,
-            do_sample=True,
-            temperature=temperature,
-            top_p=top_p,
-            num_return_sequences=num_generations,
-            max_new_tokens=max_new_tokens,
-            pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
-        )
+        gen_out = model.generate(**gen_kwargs)
     t_elapsed = time.perf_counter() - t_start
 
     raw_responses: List[str] = []

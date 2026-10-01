@@ -1,0 +1,67 @@
+{
+  "model_id": "google/gemma-3-1b-it",
+  "model_slug": "gemma_3_1b_it",
+  "training_time_s": 6769.84,
+  "train_samples": 3200,
+  "test_samples": 800,
+  "features_count": 19,
+  "features": [
+    "min_log_prob",
+    "mean_log_prob",
+    "mean_token_prob",
+    "token_prob_std",
+    "mean_entropy",
+    "max_entropy",
+    "entropy_std",
+    "log_perplexity",
+    "log_mean_token_rank",
+    "log_max_token_rank",
+    "log_rank_std",
+    "exact_match_agreement",
+    "mean_pairwise_similarity",
+    "min_pairwise_similarity",
+    "max_pairwise_similarity",
+    "pairwise_similarity_std",
+    "mean_pairwise_entailment",
+    "mean_pairwise_contradiction",
+    "nli_disagreement"
+  ],
+  "logistic_regression": {
+    "accuracy": 0.6475,
+    "precision": 0.6322869955156951,
+    "recall": 0.705,
+    "f1": 0.6666666666666666,
+    "roc_auc": 0.70915625,
+    "pr_auc": 0.7053642298689506,
+    "brier_score": 0.2140362590325492,
+    "ece": 0.052082648277272575,
+    "confusion_matrix": {
+      "tp": 282,
+      "fp": 164,
+      "tn": 236,
+      "fn": 118
+    }
+  },
+  "xgboost": {
+    "accuracy": 0.715,
+    "precision": 0.7047619047619048,
+    "recall": 0.74,
+    "f1": 0.7219512195121951,
+    "roc_auc": 0.79134375,
+    "pr_auc": 0.7913830085357259,
+    "brier_score": 0.18537597358226776,
+    "ece": 0.041038061990402636,
+    "confusion_matrix": {
+      "tp": 296,
+      "fp": 124,
+      "tn": 276,
+      "fn": 104
+    }
+  },
+  "artifacts": {
+    "signals_parquet": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\experiments\\models\\gemma_3_1b_it\\supervised_signals_combined.parquet",
+    "universal_features_parquet": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\experiments\\models\\gemma_3_1b_it\\combined\\universal_features.parquet",
+    "lr_model_joblib": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\models\\gemma_3_1b_it\\lr_pipeline.joblib",
+    "xgb_model_joblib": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\models\\gemma_3_1b_it\\xgb_model.joblib"
+  }
+}

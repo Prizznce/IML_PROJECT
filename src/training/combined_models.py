@@ -144,13 +144,27 @@ def split_dataset(
 
     stratify_key = metadata["source_dataset"].astype(str) + "_" + y.astype(str)
 
+    # Check if joint stratification is viable (minimum 2 samples per class)
+    min_count = stratify_key.value_counts().min()
+    if min_count < 2:
+        logger.warning(
+            f"Joint stratification contains classes with only {min_count} member(s). "
+            f"Falling back to target label stratification or unstratified split."
+        )
+        if y.value_counts().min() >= 2:
+            stratify = y
+        else:
+            stratify = None
+    else:
+        stratify = stratify_key
+
     X_train, X_test, y_train, y_test, meta_train, meta_test = train_test_split(
         X,
         y,
         metadata,
         test_size=test_size,
         random_state=random_state,
-        stratify=stratify_key,
+        stratify=stratify,
     )
 
     return (

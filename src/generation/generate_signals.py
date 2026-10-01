@@ -84,14 +84,26 @@ def format_model_input(
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": user_content},
         ]
-        return tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=False,
-        )
+        # Attempt Qwen-specific thinking suppression first
+        try:
+            return tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=False,
+            )
+        except (TypeError, Exception):
+            # Standard chat template (e.g. Llama 3.2 Instruct)
+            try:
+                return tokenizer.apply_chat_template(
+                    messages,
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+            except Exception:
+                pass
 
-    # Fallback to plain prompt format (v1 baseline)
+    # Fallback to plain prompt format (v1 baseline / base models without chat templates)
     return f"{user_content}\nAnswer:"
 
 
@@ -99,38 +111,60 @@ def load_model_and_tokenizer(
     model_id: str = "Qwen/Qwen3.5-0.8B",
     device: str = "cuda:0",
     torch_dtype: torch.dtype = torch.bfloat16,
+    token: Optional[str] = None,
 ) -> Tuple[AutoModelForCausalLM, AutoTokenizer]:
     """
-    Load tokenizer and causal language model with verified device placement.
+    Load tokenizer and causal language model with verified device placement and token support.
 
     Parameters:
         model_id: Hugging Face model repository ID.
-        device: CUDA device identifier.
+        device: CUDA device identifier or 'cpu'.
         torch_dtype: Tensor precision (bfloat16 recommended for Ampere+).
+        token: Hugging Face access token for gated models (e.g. Llama 3.2).
 
     Returns:
         Tuple of (model, tokenizer).
     """
+    from src.utils.model_registry import get_hf_token
+    auth_token = get_hf_token(token)
+
     logger.info(f"Loading tokenizer for '{model_id}'...")
+    tok_kwargs: Dict[str, Any] = {"use_fast": True}
+    if auth_token:
+        tok_kwargs["token"] = auth_token
+
     try:
-        tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+        tokenizer = AutoTokenizer.from_pretrained(model_id, **tok_kwargs)
     except Exception:
-        tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True, local_files_only=True)
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True, local_files_only=True)
+        except Exception as e:
+            if not auth_token and ("llama" in model_id.lower() or "restricted" in str(e).lower()):
+                raise PermissionError(
+                    f"Model '{model_id}' requires authentication. Please set HF_TOKEN in your .env "
+                    "or environment variables with access to https://huggingface.co/meta-llama/Llama-3.2-1B"
+                ) from e
+            raise
+
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     logger.info(f"Loading causal model '{model_id}' in {torch_dtype} on {device}...")
+    model_kwargs: Dict[str, Any] = {"dtype": torch_dtype}
+    if auth_token:
+        model_kwargs["token"] = auth_token
+
     try:
         model = AutoModelForCausalLM.from_pretrained(
             model_id,
-            dtype=torch_dtype,
             device_map=device,
+            **model_kwargs,
         )
     except (ValueError, ImportError):
         try:
             model = AutoModelForCausalLM.from_pretrained(
                 model_id,
-                dtype=torch_dtype,
+                **model_kwargs,
             )
         except Exception:
             model = AutoModelForCausalLM.from_pretrained(
@@ -140,14 +174,23 @@ def load_model_and_tokenizer(
             )
         if torch.cuda.is_available() and "cuda" in str(device):
             model = model.to(device)
-    except Exception:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_id,
-            dtype=torch_dtype,
-            local_files_only=True,
-        )
-        if torch.cuda.is_available() and "cuda" in str(device):
-            model = model.to(device)
+    except Exception as e:
+        if not auth_token and ("llama" in model_id.lower() or "restricted" in str(e).lower()):
+            raise PermissionError(
+                f"Model '{model_id}' is a gated Hugging Face repository. Please configure HF_TOKEN in your "
+                ".env file with an authorized Hugging Face token."
+            ) from e
+        try:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_id,
+                dtype=torch_dtype,
+                local_files_only=True,
+            )
+            if torch.cuda.is_available() and "cuda" in str(device):
+                model = model.to(device)
+        except Exception:
+            raise e
+
     model.eval()
 
     device_name = torch.cuda.get_device_name() if torch.cuda.is_available() else "CPU"

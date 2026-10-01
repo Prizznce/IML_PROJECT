@@ -82,53 +82,97 @@ _GLOBAL_MODEL_CACHE: Dict[str, Any] = {}
 # ==============================================================================
 
 def get_trained_classifiers(
-    data_path: Union[str, Path] = "experiments/baselines/combined/universal_features.parquet",
+    data_path: Optional[Union[str, Path]] = None,
     force_reload: bool = False,
+    model_id: str = "Qwen/Qwen3.5-0.8B",
 ) -> Tuple[Any, Any]:
     """
-    Load and fit the Phase 14 Logistic Regression and XGBoost classifiers strictly
-    on the 3,200 training examples using the exact Phase 14 stratified split (random_state=42).
+    Load or fit the Logistic Regression and XGBoost classifiers for a specific model.
+
+    Checks:
+      1. Pre-serialized joblib model artifacts in models/{slug}/
+      2. In-memory cache
+      3. Fitting on data_path / get_universal_features_path(model_id)
+      4. Graceful fallback to Universal Baseline classifiers if new model has not been trained yet.
 
     Parameters:
-        data_path: Path to universal features parquet table.
+        data_path: Path to universal features parquet table (optional; auto-resolved if None).
         force_reload: If True, forces re-fitting from training parquet.
+        model_id: Model repository ID for which classifiers were trained.
 
     Returns:
         Tuple of (fitted_lr_pipeline, fitted_xgb_model).
     """
     global _GLOBAL_MODEL_CACHE
-    if (
-        not force_reload
-        and "lr_pipeline" in _GLOBAL_MODEL_CACHE
-        and "xgb_model" in _GLOBAL_MODEL_CACHE
-    ):
-        return _GLOBAL_MODEL_CACHE["lr_pipeline"], _GLOBAL_MODEL_CACHE["xgb_model"]
+    from src.utils.model_registry import get_model_slug, get_saved_model_dir, get_universal_features_path
 
-    path = Path(data_path)
-    if not path.exists():
-        raise FileNotFoundError(f"Universal feature dataset not found at '{path}'")
+    slug = get_model_slug(model_id)
+    cache_key_lr = f"lr_pipeline_{slug}"
+    cache_key_xgb = f"xgb_model_{slug}"
 
-    df = pd.read_parquet(path)
+    if not force_reload and cache_key_lr in _GLOBAL_MODEL_CACHE and cache_key_xgb in _GLOBAL_MODEL_CACHE:
+        return _GLOBAL_MODEL_CACHE[cache_key_lr], _GLOBAL_MODEL_CACHE[cache_key_xgb]
+
+    # Check for pre-serialized model artifacts on disk
+    model_dir = get_saved_model_dir(model_id)
+    lr_saved = model_dir / "lr_pipeline.joblib"
+    xgb_saved = model_dir / "xgb_model.joblib"
+    if not force_reload and lr_saved.exists() and xgb_saved.exists():
+        try:
+            import joblib
+            logger.info(f"Loading serialized classifiers from '{model_dir}' for '{model_id}'...")
+            lr_pipe = joblib.load(lr_saved)
+            xgb_mdl = joblib.load(xgb_saved)
+            _GLOBAL_MODEL_CACHE[cache_key_lr] = lr_pipe
+            _GLOBAL_MODEL_CACHE[cache_key_xgb] = xgb_mdl
+            return lr_pipe, xgb_mdl
+        except Exception as e:
+            logger.warning(f"Could not load pre-saved classifiers from {model_dir}: {e}")
+
+    # Determine dataset path
+    resolved_path = Path(data_path) if data_path is not None else get_universal_features_path(model_id)
+
+    if not resolved_path.exists():
+        if model_id != "Qwen/Qwen3.5-0.8B":
+            logger.warning(
+                f"Universal features for '{model_id}' not found at '{resolved_path}'. "
+                "Falling back to baseline classifiers until retrained."
+            )
+            return get_trained_classifiers(model_id="Qwen/Qwen3.5-0.8B", force_reload=force_reload)
+        raise FileNotFoundError(f"Universal feature dataset not found at '{resolved_path}'")
+
+    df = pd.read_parquet(resolved_path)
     X, y, meta = prepare_combined_feature_dataframe(df)
 
-    # Reproduce exact Phase 14 stratified split (3,200 train / 800 test)
+    # Use stratified split (80/20)
     X_train, _, y_train, _, _, _ = split_dataset(
         X, y, meta, test_size=0.2, random_state=42
     )
 
-    if len(X_train) != 3200:
-        raise ValueError(f"Expected 3,200 training samples, but got {len(X_train)}")
-
-    logger.info("Fitting Phase 14 Logistic Regression pipeline on 3,200 training rows...")
+    logger.info(f"Fitting Logistic Regression pipeline on {len(X_train)} training rows for '{model_id}'...")
     lr_pipeline = build_logistic_regression_pipeline(random_state=42)
     lr_pipeline.fit(X_train, y_train)
 
-    logger.info("Fitting Phase 14 XGBoost model on 3,200 training rows...")
+    logger.info(f"Fitting XGBoost model on {len(X_train)} training rows for '{model_id}'...")
     xgb_model = build_xgboost_model(random_state=42)
     xgb_model.fit(X_train, y_train)
 
-    _GLOBAL_MODEL_CACHE["lr_pipeline"] = lr_pipeline
-    _GLOBAL_MODEL_CACHE["xgb_model"] = xgb_model
+    # Serialize to model directory for instant subsequent loading
+    try:
+        import joblib
+        joblib.dump(lr_pipeline, lr_saved)
+        joblib.dump(xgb_model, xgb_saved)
+        logger.info(f"Saved fitted classifiers to '{model_dir}'")
+    except Exception as e:
+        logger.warning(f"Could not cache fitted models to disk: {e}")
+
+    _GLOBAL_MODEL_CACHE[cache_key_lr] = lr_pipeline
+    _GLOBAL_MODEL_CACHE[cache_key_xgb] = xgb_model
+
+    # Backward compatibility keys for Qwen
+    if "qwen" in slug:
+        _GLOBAL_MODEL_CACHE["lr_pipeline"] = lr_pipeline
+        _GLOBAL_MODEL_CACHE["xgb_model"] = xgb_model
 
     return lr_pipeline, xgb_model
 
@@ -138,6 +182,7 @@ def load_inference_models(
     model_id: str = "Qwen/Qwen3.5-0.8B",
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
     nli_model_name: str = "cross-encoder/nli-MiniLM2-L6-H768",
+    token: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Load generative LLM, sentence embedding model, NLI model, and trained tabular classifiers.
@@ -147,23 +192,35 @@ def load_inference_models(
         model_id: Causal LM repository ID.
         embedding_model_name: SentenceTransformer repository ID.
         nli_model_name: CrossEncoder NLI repository ID.
+        token: Hugging Face authentication token for gated repositories (e.g. Llama 3.2).
 
     Returns:
         Dict containing loaded model instances and metadata.
     """
     global _GLOBAL_MODEL_CACHE
+    from src.utils.model_registry import get_hf_token, get_model_slug
+    auth_token = get_hf_token(token)
+    slug = get_model_slug(model_id)
+
     if device is None:
         target = "cuda:0" if torch.cuda.is_available() else "cpu"
     else:
         target = str(device)
     actual_device = target if torch.cuda.is_available() and "cuda" in target else "cpu"
 
-    if "causal_model" not in _GLOBAL_MODEL_CACHE:
+    causal_key = f"causal_model_{slug}"
+    tok_key = f"tokenizer_{slug}"
+
+    if causal_key not in _GLOBAL_MODEL_CACHE:
         logger.info(f"Loading causal model '{model_id}' on {actual_device}...")
-        causal_model, tokenizer = load_model_and_tokenizer(model_id=model_id, device=actual_device)
+        causal_model, tokenizer = load_model_and_tokenizer(model_id=model_id, device=actual_device, token=auth_token)
+        _GLOBAL_MODEL_CACHE[causal_key] = causal_model
+        _GLOBAL_MODEL_CACHE[tok_key] = tokenizer
         _GLOBAL_MODEL_CACHE["causal_model"] = causal_model
         _GLOBAL_MODEL_CACHE["tokenizer"] = tokenizer
     else:
+        _GLOBAL_MODEL_CACHE["causal_model"] = _GLOBAL_MODEL_CACHE[causal_key]
+        _GLOBAL_MODEL_CACHE["tokenizer"] = _GLOBAL_MODEL_CACHE[tok_key]
         try:
             curr_dev = str(next(_GLOBAL_MODEL_CACHE["causal_model"].parameters()).device)
             if ("cuda" in actual_device and "cuda" not in curr_dev) or ("cpu" in actual_device and "cuda" in curr_dev):
@@ -207,7 +264,7 @@ def load_inference_models(
         except Exception:
             pass
 
-    lr_pipeline, xgb_model = get_trained_classifiers()
+    lr_pipeline, xgb_model = get_trained_classifiers(model_id=model_id)
 
     return {
         "causal_model": _GLOBAL_MODEL_CACHE["causal_model"],
@@ -218,6 +275,8 @@ def load_inference_models(
         "lr_pipeline": lr_pipeline,
         "xgb_model": xgb_model,
         "device": actual_device,
+        "model_id": model_id,
+        "model_slug": slug,
     }
 
 

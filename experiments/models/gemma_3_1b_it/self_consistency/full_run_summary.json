@@ -1,0 +1,45 @@
+{
+  "dataset_path": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\experiments\\models\\gemma_3_1b_it\\supervised_signals_combined.parquet",
+  "total_examples": 4000,
+  "generations_per_example": 5,
+  "total_generations": 20000,
+  "failed_examples": 0,
+  "device": "cuda:0",
+  "model_id": "google/gemma-3-1b-it",
+  "embed_model_id": "sentence-transformers/all-MiniLM-L6-v2",
+  "sampling_parameters": {
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "max_new_tokens": 128,
+    "seed": 42,
+    "thinking_enabled": false
+  },
+  "mean_exact_match_agreement": 0.6303,
+  "mean_unique_response_ratio": 0.4454,
+  "mean_majority_response_fraction": 0.7375,
+  "mean_pairwise_similarity": 0.8976,
+  "mean_generation_disagreement": 0.1024,
+  "mean_pairwise_similarity_std": 0.0715,
+  "any_think_tags_leaked": false,
+  "peak_gpu_memory_mb": 2183.32,
+  "per_dataset_summary": {
+    "fever": {
+      "count": 1000,
+      "mean_exact_match_agreement": 0.6087,
+      "mean_pairwise_similarity": 0.8719,
+      "mean_generation_disagreement": 0.1281
+    },
+    "halueval": {
+      "count": 1500,
+      "mean_exact_match_agreement": 0.9076,
+      "mean_pairwise_similarity": 0.9726,
+      "mean_generation_disagreement": 0.0274
+    },
+    "truthfulqa": {
+      "count": 1500,
+      "mean_exact_match_agreement": 0.3673,
+      "mean_pairwise_similarity": 0.8398,
+      "mean_generation_disagreement": 0.1602
+    }
+  }
+}

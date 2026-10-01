@@ -84,12 +84,22 @@ def format_scoring_prompt(
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": user_content},
         ]
-        return tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=False,
-        )
+        try:
+            return tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                enable_thinking=False,
+            )
+        except (TypeError, Exception):
+            try:
+                return tokenizer.apply_chat_template(
+                    messages,
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+            except Exception:
+                pass
 
     return f"{user_content}\nAnswer:"
 
@@ -196,6 +206,7 @@ def score_labeled_dataset(
     resume: bool = True,
     model: Optional[Any] = None,
     tokenizer: Optional[Any] = None,
+    token: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Score labeled benchmark responses using unadulterated forward passes.
@@ -265,18 +276,12 @@ def score_labeled_dataset(
 
     # Load model & tokenizer if not passed
     if model is None or tokenizer is None:
-        logger.info(f"Loading tokenizer for '{model_id}'...")
-        tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-
-        logger.info(f"Loading model '{model_id}' in bfloat16 on {device}...")
-        model = AutoModelForCausalLM.from_pretrained(
-            model_id,
-            dtype=torch.bfloat16,
-            device_map=device,
+        from src.generation.generate_signals import load_model_and_tokenizer
+        model, tokenizer = load_model_and_tokenizer(
+            model_id=model_id,
+            device=device,
+            token=token,
         )
-        model.eval()
 
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
@@ -419,6 +424,7 @@ def main():
         help="Optional override path for checkpoint file",
     )
     parser.add_argument("--model-id", default="Qwen/Qwen3.5-0.8B", help="Hugging Face model ID")
+    parser.add_argument("--hf-token", default=None, help="Hugging Face access token for gated models")
     parser.add_argument("--device", default="cuda:0", help="Execution device")
     parser.add_argument("--limit", type=int, default=None, help="Optional sample limit for testing")
     parser.add_argument("--seed", type=int, default=42, help="Deterministic sampling seed")
@@ -427,6 +433,9 @@ def main():
     args = parser.parse_args()
 
     # Resolve default paths
+    from src.utils.model_registry import get_model_slug
+    slug = get_model_slug(args.model_id)
+
     input_path = args.input_path
     if input_path is None:
         if args.dataset == "combined":
@@ -436,11 +445,17 @@ def main():
 
     output_parquet = args.output_parquet
     if output_parquet is None:
-        output_parquet = f"experiments/baselines/supervised_signals_{args.dataset}.parquet"
+        if args.model_id == "Qwen/Qwen3.5-0.8B":
+            output_parquet = f"experiments/baselines/supervised_signals_{args.dataset}.parquet"
+        else:
+            output_parquet = f"experiments/models/{slug}/supervised_signals_{args.dataset}.parquet"
 
     output_csv = args.output_csv
     if output_csv is None:
-        output_csv = f"experiments/baselines/supervised_signals_{args.dataset}.csv"
+        if args.model_id == "Qwen/Qwen3.5-0.8B":
+            output_csv = f"experiments/baselines/supervised_signals_{args.dataset}.csv"
+        else:
+            output_csv = f"experiments/models/{slug}/supervised_signals_{args.dataset}.csv"
 
     results_df, summary = score_labeled_dataset(
         input_path=input_path,
@@ -453,6 +468,7 @@ def main():
         seed=args.seed,
         checkpoint_interval=args.checkpoint_interval,
         resume=not args.no_resume,
+        token=args.hf_token,
     )
 
     logger.info("=" * 60)

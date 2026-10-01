@@ -1,0 +1,54 @@
+{
+  "nli_model_name": "cross-encoder/nli-MiniLM2-L6-H768",
+  "device": "cuda:0",
+  "input_generations_path": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\experiments\\models\\llama_3_2_1b_instruct\\self_consistency\\full_generations_raw.parquet",
+  "total_examples": 4000,
+  "total_pair_count": 40000,
+  "total_directional_evaluations": 80000,
+  "failed_evaluations": 0,
+  "model_loading_time_s": 5.347,
+  "total_inference_time_s": 172.974,
+  "avg_example_inference_time_s": 0.0432,
+  "avg_pair_inference_time_s": 0.00432,
+  "avg_directional_inference_time_s": 0.00216,
+  "mean_entailment_probability": 0.4342,
+  "mean_contradiction_probability": 0.2379,
+  "mean_neutral_probability": 0.3279,
+  "mean_fraction_entailing_pairs": 0.3953,
+  "mean_fraction_contradicting_pairs": 0.2336,
+  "mean_fraction_neutral_pairs": 0.3711,
+  "mean_nli_disagreement": 0.4019,
+  "peak_gpu_memory_mb": 516.85,
+  "per_dataset_summary": {
+    "fever": {
+      "count": 1000,
+      "mean_pairwise_entailment": 0.3406,
+      "mean_pairwise_contradiction": 0.2618,
+      "mean_pairwise_neutral": 0.3976,
+      "fraction_entailing_pairs": 0.2527,
+      "fraction_contradicting_pairs": 0.2614,
+      "fraction_neutral_pairs": 0.4859,
+      "mean_nli_disagreement": 0.4606
+    },
+    "halueval": {
+      "count": 1500,
+      "mean_pairwise_entailment": 0.6391,
+      "mean_pairwise_contradiction": 0.2035,
+      "mean_pairwise_neutral": 0.1574,
+      "fraction_entailing_pairs": 0.6379,
+      "fraction_contradicting_pairs": 0.2082,
+      "fraction_neutral_pairs": 0.1539,
+      "mean_nli_disagreement": 0.2822
+    },
+    "truthfulqa": {
+      "count": 1500,
+      "mean_pairwise_entailment": 0.2917,
+      "mean_pairwise_contradiction": 0.2565,
+      "mean_pairwise_neutral": 0.4519,
+      "fraction_entailing_pairs": 0.2477,
+      "fraction_contradicting_pairs": 0.2404,
+      "fraction_neutral_pairs": 0.5119,
+      "mean_nli_disagreement": 0.4824
+    }
+  }
+}

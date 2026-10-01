@@ -34,14 +34,16 @@ from app.inference import (
 
 
 @st.cache_resource(show_spinner="Loading detection models into memory (one-time initialization)...")
-def get_cached_models():
+def get_cached_models(model_id: str = "Qwen/Qwen3.5-0.8B"):
     """
     Load and persist models in Streamlit's resource cache across sessions and reruns.
-    Ensures Qwen3.5-0.8B, all-MiniLM-L6-v2, nli-MiniLM2-L6-H768, and trained classifiers
-    are loaded strictly once in memory on CUDA when available (or CPU as fallback).
+    Supports Qwen3.5-0.8B and Llama 3.2 1B Instruct.
     """
     target_device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    return load_inference_models(device=target_device)
+    return load_inference_models(
+        device=target_device,
+        model_id=model_id,
+    )
 
 # ==============================================================================
 # 1. Page Configuration and Header
@@ -51,8 +53,56 @@ st.set_page_config(
     page_title="Catching an LLM Lying | Real-Time Hallucination Detection",
     page_icon="🔍",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
+
+# Sidebar model selection
+with st.sidebar:
+    st.markdown("### ⚙️ Generative Model")
+    model_options = {
+        "Qwen 3.5 (0.8B)": "Qwen/Qwen3.5-0.8B",
+        "Llama 3.2 (1B Instruct)": "meta-llama/Llama-3.2-1B-Instruct",
+        "Gemma 3 (1B IT)": "google/gemma-3-1b-it",
+    }
+    selected_model_name = st.selectbox(
+        "Select Model",
+        list(model_options.keys()),
+        index=0,
+        help="Select which causal LLM produces responses and generation signals.",
+    )
+    active_model_id = model_options[selected_model_name]
+
+    st.markdown("---")
+    st.markdown("### 🧠 Active Model Status")
+    if "Llama" in selected_model_name:
+        st.markdown(
+            """
+            - **Model**: `Llama 3.2 (1B Instruct)`
+            - **Parameters**: 1.23 Billion
+            - **Detectors**: Retrained on 4,000 samples
+            - **ROC-AUC**: 0.7450 (XGB) / 0.6929 (LR)
+            - **Status**: 🟢 Ready (RTX 3050 GPU)
+            """
+        )
+    elif "Gemma" in selected_model_name:
+        st.markdown(
+            """
+            - **Model**: `Gemma 3 (1B IT)`
+            - **Parameters**: 1.0 Billion
+            - **Detectors**: Dedicated Gemma 3 Classifiers
+            - **Status**: 🟢 Ready (RTX 3050 GPU)
+            """
+        )
+    else:
+        st.markdown(
+            """
+            - **Model**: `Qwen 3.5 (0.8B)`
+            - **Parameters**: 0.8 Billion
+            - **Detectors**: Baseline on 4,000 samples
+            - **ROC-AUC**: 0.7688 (XGB) / 0.7079 (LR)
+            - **Status**: 🟢 Ready (RTX 3050 GPU)
+            """
+        )
 
 st.title("Catching an LLM Lying")
 st.subheader("Lightweight Hallucination Detection from Internal Generation Signals")
@@ -62,7 +112,7 @@ dev_name = f"🚀 Compute: {torch.cuda.get_device_name(0)}" if torch.cuda.is_ava
 badge_html = f"""
 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
   <span style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid rgba(59, 130, 246, 0.3);">
-    🟢 Model: Qwen/Qwen3.5-0.8B (Greedy)
+    🟢 Model: {selected_model_name}
   </span>
   <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid rgba(16, 185, 129, 0.3);">
     🔬 Universal Core: 19 Features
@@ -74,7 +124,7 @@ badge_html = f"""
     {dev_name}
   </span>
   <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 3px 10px; border-radius: 12px; font-size: 13px; font-weight: 500; border: 1px solid rgba(245, 158, 11, 0.3);">
-    🏛️ Academic Research Demo
+    🏛️ Multi-Model Academic Research Demo
   </span>
 </div>
 """
@@ -184,7 +234,9 @@ if analyze_clicked:
 
         with st.spinner("Generating response and analyzing hallucination signals..."):
             try:
-                cached_models = get_cached_models()
+                cached_models = get_cached_models(
+                    model_id=active_model_id,
+                )
                 result = run_live_inference(
                     prompt=clean_p,
                     context=context_text.strip() if context_text.strip() else None,
@@ -214,7 +266,7 @@ if res is not None:
     st.markdown("### 2. Primary Generation & Hallucination Risk Assessment")
 
     # Primary generated response
-    st.markdown("**Generated Response (Qwen3.5-0.8B):**")
+    st.markdown(f"**Generated Response ({selected_model_name}):**")
     st.info(f"\"{res['generated_response']}\"")
 
     # Risk Metrics Card Layout

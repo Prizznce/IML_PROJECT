@@ -1,0 +1,67 @@
+{
+  "model_id": "meta-llama/Llama-3.2-1B-Instruct",
+  "model_slug": "llama_3_2_1b_instruct",
+  "training_time_s": 7428.24,
+  "train_samples": 3200,
+  "test_samples": 800,
+  "features_count": 19,
+  "features": [
+    "min_log_prob",
+    "mean_log_prob",
+    "mean_token_prob",
+    "token_prob_std",
+    "mean_entropy",
+    "max_entropy",
+    "entropy_std",
+    "log_perplexity",
+    "log_mean_token_rank",
+    "log_max_token_rank",
+    "log_rank_std",
+    "exact_match_agreement",
+    "mean_pairwise_similarity",
+    "min_pairwise_similarity",
+    "max_pairwise_similarity",
+    "pairwise_similarity_std",
+    "mean_pairwise_entailment",
+    "mean_pairwise_contradiction",
+    "nli_disagreement"
+  ],
+  "logistic_regression": {
+    "accuracy": 0.65125,
+    "precision": 0.6430260047281324,
+    "recall": 0.68,
+    "f1": 0.660996354799514,
+    "roc_auc": 0.69294375,
+    "pr_auc": 0.6680766309494711,
+    "brier_score": 0.2211125084396466,
+    "ece": 0.03192777462012268,
+    "confusion_matrix": {
+      "tp": 272,
+      "fp": 151,
+      "tn": 249,
+      "fn": 128
+    }
+  },
+  "xgboost": {
+    "accuracy": 0.66875,
+    "precision": 0.6544622425629291,
+    "recall": 0.715,
+    "f1": 0.6833930704898447,
+    "roc_auc": 0.7449500000000001,
+    "pr_auc": 0.7491661309434776,
+    "brier_score": 0.19914178550243378,
+    "ece": 0.03919644425623118,
+    "confusion_matrix": {
+      "tp": 286,
+      "fp": 151,
+      "tn": 249,
+      "fn": 114
+    }
+  },
+  "artifacts": {
+    "signals_parquet": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\experiments\\models\\llama_3_2_1b_instruct\\supervised_signals_combined.parquet",
+    "universal_features_parquet": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\experiments\\models\\llama_3_2_1b_instruct\\combined\\universal_features.parquet",
+    "lr_model_joblib": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\models\\llama_3_2_1b_instruct\\lr_pipeline.joblib",
+    "xgb_model_joblib": "C:\\Aditya_workspace\\IML_Project\\IML_PROJECT\\models\\llama_3_2_1b_instruct\\xgb_model.joblib"
+  }
+}

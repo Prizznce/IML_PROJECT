@@ -682,6 +682,7 @@ def run_self_consistency_full(
     checkpoint_interval: int = 50,
     resume: bool = True,
     limit: Optional[int] = None,
+    token: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, Any]]:
     """
     Execute production self-consistency generation pipeline across the full dataset.
@@ -795,7 +796,7 @@ def run_self_consistency_full(
         # Load models
         from src.generation.generate_signals import load_model_and_tokenizer
         logger.info(f"Loading causal model '{model_id}' on device '{dev}'...")
-        model, tokenizer = load_model_and_tokenizer(model_id=model_id, device=dev)
+        model, tokenizer = load_model_and_tokenizer(model_id=model_id, device=dev, token=token)
 
         logger.info(f"Loading embedding model '{embed_model_id}' on device '{dev}'...")
         embed_model = load_embedding_model(model_name=embed_model_id, device=dev)
@@ -1031,14 +1032,26 @@ def main():
     parser.add_argument("--top-p", type=float, default=0.9, help="Top-p nucleus sampling.")
     parser.add_argument("--max-new-tokens", type=int, default=128, help="Max new tokens per generation.")
     parser.add_argument("--model-id", type=str, default="Qwen/Qwen3.5-0.8B", help="Model repository ID.")
+    parser.add_argument("--hf-token", type=str, default=None, help="Hugging Face access token for gated models.")
     parser.add_argument("--embed-model-id", type=str, default="sentence-transformers/all-MiniLM-L6-v2", help="SentenceTransformer model ID.")
     parser.add_argument("--device", type=str, default="cuda:0", help="CUDA device or cpu.")
-    parser.add_argument("--output-dir", type=str, default="experiments/baselines/self_consistency", help="Output directory.")
+    parser.add_argument("--output-dir", type=str, default=None, help="Output directory.")
     parser.add_argument("--checkpoint-interval", type=int, default=50, help="Checkpoint interval for full mode.")
     parser.add_argument("--resume", action="store_true", default=True, help="Resume from existing checkpoints (default: True).")
     parser.add_argument("--no-resume", action="store_true", help="Disable resume from existing checkpoints.")
 
     args = parser.parse_args()
+
+    from src.utils.model_registry import get_model_slug
+    slug = get_model_slug(args.model_id)
+
+    if args.output_dir is None:
+        if args.model_id == "Qwen/Qwen3.5-0.8B":
+            output_dir = "experiments/baselines/self_consistency"
+        else:
+            output_dir = f"experiments/models/{slug}/self_consistency"
+    else:
+        output_dir = args.output_dir
 
     if args.mode == "pilot":
         data_path = args.data or "data/processed/combined_processed.parquet"
@@ -1053,13 +1066,19 @@ def main():
             model_id=args.model_id,
             embed_model_id=args.embed_model_id,
             device=args.device,
-            output_dir=args.output_dir,
+            output_dir=output_dir,
         )
     else:
-        data_path = args.data or "experiments/baselines/supervised_signals_combined.parquet"
+        if args.data is not None:
+            data_path = args.data
+        elif args.model_id == "Qwen/Qwen3.5-0.8B":
+            data_path = "experiments/baselines/supervised_signals_combined.parquet"
+        else:
+            data_path = f"experiments/models/{slug}/supervised_signals_combined.parquet"
+
         run_self_consistency_full(
             data_path=data_path,
-            output_dir=args.output_dir,
+            output_dir=output_dir,
             model_id=args.model_id,
             embed_model_id=args.embed_model_id,
             num_generations=args.num_generations,
@@ -1071,6 +1090,7 @@ def main():
             checkpoint_interval=args.checkpoint_interval,
             resume=not args.no_resume,
             limit=args.limit,
+            token=args.hf_token,
         )
 
 

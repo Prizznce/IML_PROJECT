@@ -81,7 +81,9 @@ with st.sidebar:
             - **Parameters**: 1.23 Billion
             - **Detectors**: Retrained on 4,000 samples
             - **ROC-AUC**: 0.7450 (XGB) / 0.6929 (LR)
-            - **Status**: 🟢 Ready (RTX 3050 GPU)
+            - **PR-AUC**: 0.7492 (XGB) / 0.6681 (LR)
+            - **Accuracy**: 66.88% (XGB) / 65.12% (LR)
+            - **Status**: 🟢 Ready (GPU/CPU)
             """
         )
     elif "Gemma" in selected_model_name:
@@ -89,8 +91,11 @@ with st.sidebar:
             """
             - **Model**: `Gemma 3 (1B IT)`
             - **Parameters**: 1.0 Billion
-            - **Detectors**: Dedicated Gemma 3 Classifiers
-            - **Status**: 🟢 Ready (RTX 3050 GPU)
+            - **Detectors**: Retrained on 4,000 samples
+            - **ROC-AUC**: 0.7913 (XGB) / 0.7092 (LR)
+            - **PR-AUC**: 0.7914 (XGB) / 0.7054 (LR)
+            - **Accuracy**: 71.50% (XGB) / 64.75% (LR)
+            - **Status**: 🟢 Ready (GPU/CPU)
             """
         )
     else:
@@ -98,9 +103,11 @@ with st.sidebar:
             """
             - **Model**: `Qwen 3.5 (0.8B)`
             - **Parameters**: 0.8 Billion
-            - **Detectors**: Baseline on 4,000 samples
+            - **Detectors**: Retrained on 4,000 samples
             - **ROC-AUC**: 0.7688 (XGB) / 0.7079 (LR)
-            - **Status**: 🟢 Ready (RTX 3050 GPU)
+            - **PR-AUC**: 0.7795 (XGB) / 0.7124 (LR)
+            - **Accuracy**: 67.88% (XGB) / 62.88% (LR)
+            - **Status**: 🟢 Ready (GPU/CPU)
             """
         )
 
@@ -622,24 +629,153 @@ if res is not None:
 st.markdown("---")
 with st.expander("📊 Research Benchmark Results (Offline Holdout Evaluation)", expanded=False):
     st.write(
-        "**Offline benchmark results — 800-example holdout test set** (Phase 14 Universal Core Detector). "
-        "The current single live query is evaluated independently and is not part of this benchmark."
+        "**Authoritative empirical benchmark results** evaluated on the standardized, fixed stratified 80/20 holdout test set "
+        "($3,200$ train / $800$ test, balanced 50% faithful / 50% hallucinated across HaluEval, TruthfulQA, and FEVER). "
+        "The live query above is evaluated independently in real-time."
     )
 
-    benchmark_data = [
-        {"Model": "XGBoost (Phase 14 Universal Core)", "Accuracy": "0.6788", "F1 Score": "0.6751", "ROC-AUC": "0.7688", "PR-AUC": "0.7795", "Brier Score": "0.1891", "ECE": "0.0341"},
-        {"Model": "Logistic Regression (Phase 14 Universal Core)", "Accuracy": "0.6288", "F1 Score": "0.6356", "ROC-AUC": "0.7079", "PR-AUC": "0.7124", "Brier Score": "0.2151", "ECE": "0.0525"},
-        {"Model": "XGBoost Baseline (Phase 6 Internal-Only)", "Accuracy": "0.6700", "F1 Score": "0.6887", "ROC-AUC": "0.7411", "PR-AUC": "0.7322", "Brier Score": "0.1999", "ECE": "0.0228"},
-        {"Model": "Logistic Regression Baseline (Phase 6 Internal-Only)", "Accuracy": "0.6212", "F1 Score": "0.6363", "ROC-AUC": "0.6930", "PR-AUC": "0.6618", "Brier Score": "0.2177", "ECE": "0.0649"},
-    ]
-    st.dataframe(pd.DataFrame(benchmark_data), use_container_width=True, hide_index=True)
+    tab_models, tab_ablation, tab_generalization, tab_calibration, tab_retrieval = st.tabs([
+        "🏆 Multi-Model Benchmarks",
+        "🔬 Feature-Family Ablation",
+        "🌐 Cross-Dataset (LODO)",
+        "🎯 Calibration Analysis",
+        "📚 Retrieval Augmentation",
+    ])
 
-    st.markdown(
-        "**Phase 19 Retrieval-Augmented Variant (Offline Evaluation)**:\n"
-        "- Evaluated on N=2,500 subset (HaluEval + FEVER) with reference passages/pointers.\n"
-        "- Condition E (Universal Core + Retrieval) achieved **ROC-AUC: 0.9184**, PR-AUC: 0.9192, Accuracy: 0.8160, F1: 0.8258.\n"
-        "- *Note: This is an offline benchmark experiment on curated corpora, not a live-query accuracy claim.*"
-    )
+    with tab_models:
+        st.markdown("#### Primary Multi-Model Evaluation (Universal Core 19-Feature Detector)")
+        st.write(
+            "Identical 19-feature Universal Core Detector retrained and evaluated across three distinct causal LLM architectures "
+            "on the 800-instance holdout test partition:"
+        )
+
+        multi_model_data = [
+            {"LLM Architecture": "Google Gemma 3 (1B IT)", "Classifier": "XGBoost", "Accuracy": "71.50%", "F1 Score": "0.7220", "ROC-AUC": "0.7913", "PR-AUC": "0.7914", "Brier Score": "0.1854", "ECE": "0.0410"},
+            {"LLM Architecture": "Google Gemma 3 (1B IT)", "Classifier": "Logistic Regression", "Accuracy": "64.75%", "F1 Score": "0.6667", "ROC-AUC": "0.7092", "PR-AUC": "0.7054", "Brier Score": "0.2140", "ECE": "0.0521"},
+            {"LLM Architecture": "Qwen 3.5 (0.8B)", "Classifier": "XGBoost", "Accuracy": "67.88%", "F1 Score": "0.6751", "ROC-AUC": "0.7688", "PR-AUC": "0.7795", "Brier Score": "0.1891", "ECE": "0.0341"},
+            {"LLM Architecture": "Qwen 3.5 (0.8B)", "Classifier": "Logistic Regression", "Accuracy": "62.88%", "F1 Score": "0.6356", "ROC-AUC": "0.7079", "PR-AUC": "0.7124", "Brier Score": "0.2151", "ECE": "0.0525"},
+            {"LLM Architecture": "Qwen 3.5 (0.8B) [Baseline]", "Classifier": "XGBoost (Phase 6 Internal-Only)", "Accuracy": "67.00%", "F1 Score": "0.6887", "ROC-AUC": "0.7411", "PR-AUC": "0.7322", "Brier Score": "0.1999", "ECE": "0.0228"},
+            {"LLM Architecture": "Qwen 3.5 (0.8B) [Baseline]", "Classifier": "Logistic Regression (Phase 6 Internal-Only)", "Accuracy": "62.12%", "F1 Score": "0.6363", "ROC-AUC": "0.6930", "PR-AUC": "0.6618", "Brier Score": "0.2177", "ECE": "0.0649"},
+            {"LLM Architecture": "Meta Llama 3.2 (1B Instruct)", "Classifier": "XGBoost", "Accuracy": "66.88%", "F1 Score": "0.6834", "ROC-AUC": "0.7450", "PR-AUC": "0.7492", "Brier Score": "0.1991", "ECE": "0.0392"},
+            {"LLM Architecture": "Meta Llama 3.2 (1B Instruct)", "Classifier": "Logistic Regression", "Accuracy": "65.12%", "F1 Score": "0.6610", "ROC-AUC": "0.6929", "PR-AUC": "0.6681", "Brier Score": "0.2211", "ECE": "0.0319"},
+        ]
+        st.dataframe(pd.DataFrame(multi_model_data), use_container_width=True, hide_index=True)
+
+        st.caption(
+            f"Currently active generative model in sidebar: **{selected_model_name}**. "
+            "All models use identical 19 canonical features and split protocol."
+        )
+
+        st.markdown("##### Task Domain Subgroup Breakdown (Qwen 3.5 Universal Core, N=800)")
+        subgroup_data = [
+            {"Domain / Benchmark": "HaluEval (N=300)", "Task Type": "Dialogue, QA, Summarization (with context)", "XGB Accuracy": "86.33%", "XGB ROC-AUC": "0.9433", "LR Accuracy": "84.00%", "LR ROC-AUC": "0.9311"},
+            {"Domain / Benchmark": "TruthfulQA (N=300)", "Task Type": "Closed-book Human Misconceptions", "XGB Accuracy": "59.33%", "XGB ROC-AUC": "0.6066", "LR Accuracy": "51.33%", "LR ROC-AUC": "0.5210"},
+            {"Domain / Benchmark": "FEVER (N=200)", "Task Type": "Wikipedia Factoid Verification (no open web)", "XGB Accuracy": "53.00%", "XGB ROC-AUC": "0.5441", "LR Accuracy": "48.50%", "LR ROC-AUC": "0.4870"},
+        ]
+        st.dataframe(pd.DataFrame(subgroup_data), use_container_width=True, hide_index=True)
+
+    with tab_ablation:
+        st.markdown("#### Feature-Family Ablation Study (Phase 15 Holdout Test Split)")
+        st.write(
+            "Systematic isolation of the three primary signal families on the fixed 800-instance holdout test set:"
+        )
+
+        ablation_data = [
+            {"Configuration": "Internal Signals Only", "Features": 11, "Model": "Logistic Regression", "Accuracy": "62.12%", "F1": "0.6363", "ROC-AUC": "0.6930", "PR-AUC": "0.6618", "Brier": "0.2177", "ECE": "0.0649"},
+            {"Configuration": "Internal Signals Only", "Features": 11, "Model": "XGBoost", "Accuracy": "66.25%", "F1": "0.6793", "ROC-AUC": "0.7397", "PR-AUC": "0.7329", "Brier": "0.1993", "ECE": "0.0228"},
+            {"Configuration": "Self-Consistency Only", "Features": 5, "Model": "Logistic Regression", "Accuracy": "49.00%", "F1": "0.4545", "ROC-AUC": "0.4845", "PR-AUC": "0.4863", "Brier": "0.2515", "ECE": "0.0300"},
+            {"Configuration": "Self-Consistency Only", "Features": 5, "Model": "XGBoost", "Accuracy": "51.00%", "F1": "0.5410", "ROC-AUC": "0.4896", "PR-AUC": "0.4870", "Brier": "0.2567", "ECE": "0.0450"},
+            {"Configuration": "NLI Agreement Only", "Features": 3, "Model": "Logistic Regression", "Accuracy": "50.38%", "F1": "0.5031", "ROC-AUC": "0.5050", "PR-AUC": "0.5025", "Brier": "0.2503", "ECE": "0.0088"},
+            {"Configuration": "NLI Agreement Only", "Features": 3, "Model": "XGBoost", "Accuracy": "47.13%", "F1": "0.4885", "ROC-AUC": "0.4912", "PR-AUC": "0.5005", "Brier": "0.2543", "ECE": "0.0731"},
+            {"Configuration": "Internal + Self-Consistency", "Features": 16, "Model": "XGBoost", "Accuracy": "65.12%", "F1": "0.6610", "ROC-AUC": "0.7563", "PR-AUC": "0.7675", "Brier": "0.1918", "ECE": "0.0450"},
+            {"Configuration": "Internal + NLI Agreement", "Features": 14, "Model": "XGBoost", "Accuracy": "67.00%", "F1": "0.6615", "ROC-AUC": "0.7659", "PR-AUC": "0.7697", "Brier": "0.1909", "ECE": "0.0257"},
+            {"Configuration": "Self-Consistency + NLI", "Features": 8, "Model": "XGBoost", "Accuracy": "50.62%", "F1": "0.5153", "ROC-AUC": "0.5053", "PR-AUC": "0.5128", "Brier": "0.2541", "ECE": "0.0522"},
+            {"Configuration": "All Three / Universal Core", "Features": 19, "Model": "Logistic Regression", "Accuracy": "62.88%", "F1": "0.6356", "ROC-AUC": "0.7079", "PR-AUC": "0.7124", "Brier": "0.2151", "ECE": "0.0525"},
+            {"Configuration": "All Three / Universal Core", "Features": 19, "Model": "XGBoost", "Accuracy": "67.88%", "F1": "0.6751", "ROC-AUC": "0.7688", "PR-AUC": "0.7795", "Brier": "0.1891", "ECE": "0.0341"},
+        ]
+        st.dataframe(pd.DataFrame(ablation_data), use_container_width=True, hide_index=True)
+
+        st.markdown(
+            "**Key Findings**:\n"
+            "1. **Internal Signals Anchor Detection**: Standalone internal token log-probabilities and entropy provide the essential backbone (ROC-AUC `0.7397` for XGBoost).\n"
+            "2. **Black-Box Probes Need Grounding**: Standalone self-consistency (`0.4896`) and NLI (`0.4912`) fail to beat random guessing without internal certainty signals.\n"
+            "3. **Multi-Modal Synergistic Gain**: Fusing internal signals with behavioral consistency and NLI delivers the peak ROC-AUC (`0.7688`), raising PR-AUC by $+0.0466$."
+        )
+
+    with tab_generalization:
+        st.markdown("#### Out-of-Domain Generalization (Phase 16 Leave-One-Dataset-Out / LODO)")
+        st.write(
+            "Rigorous generalization test: Models are trained exclusively on two benchmark datasets and tested on the 100% unseen third dataset:"
+        )
+
+        lodo_data = [
+            {"Held-Out Benchmark (Test)", "Training Benchmarks", "Detector Features", "XGBoost Accuracy", "XGBoost ROC-AUC", "LR Accuracy", "LR ROC-AUC"},
+            {"FEVER (N=1,000)", "HaluEval + TruthfulQA (N=3,000)", "Universal Core (19)", "50.60%", "0.5167", "49.60%", "0.4875"},
+            {"FEVER (N=1,000)", "HaluEval + TruthfulQA (N=3,000)", "Internal Only (11)", "48.30%", "0.4903", "50.60%", "0.4868"},
+            {"TruthfulQA (N=1,500)", "HaluEval + FEVER (N=2,500)", "Universal Core (19)", "48.53%", "0.4608", "47.53%", "0.4575"},
+            {"TruthfulQA (N=1,500)", "HaluEval + FEVER (N=2,500)", "Internal Only (11)", "47.93%", "0.4539", "46.60%", "0.4439"},
+            {"HaluEval (N=1,500)", "TruthfulQA + FEVER (N=2,500)", "Universal Core (19)", "43.20%", "0.4368", "44.93%", "0.2583"},
+            {"HaluEval (N=1,500)", "TruthfulQA + FEVER (N=2,500)", "Internal Only (11)", "39.80%", "0.3599", "21.40%", "0.1601"},
+        ]
+        st.dataframe(pd.DataFrame(lodo_data), use_container_width=True, hide_index=True)
+
+        st.markdown(
+            "**Takeaways**:\n"
+            "- Substantial domain shift exists across diverse hallucination formulations (contextual QA vs factoid verification vs human misconceptions).\n"
+            "- Multi-signal integration buffers against out-of-domain degradation (improving XGBoost ROC-AUC from `0.3599` to `0.4368` on HaluEval transfer).\n"
+            "- Training across heterogeneous multi-benchmark corpora is strictly necessary for robust generalization."
+        )
+
+    with tab_calibration:
+        st.markdown("#### Probability Calibration Analysis (Phase 17 Nested Split)")
+        st.write(
+            "Evaluated via leak-free 3-way nested partition ($2,560$ train / $640$ calibration / $800$ holdout test):"
+        )
+
+        cal_data = [
+            {"Model", "Calibration Method", "Accuracy", "F1 Score", "ROC-AUC", "PR-AUC", "Brier Score", "ECE (Calibration Error)", "MCE"},
+            {"XGBoost", "Uncalibrated", "64.88%", "0.6492", "0.7638", "0.7787", "0.1900", "0.0712", "0.1888"},
+            {"XGBoost", "Sigmoid (Platt Scaling)", "65.50%", "0.6452", "0.7638", "0.7787", "0.1935", "0.0825", "0.1210"},
+            {"XGBoost", "Isotonic Regression", "66.75%", "0.6472", "0.7641", "0.7557", "0.1890", "0.0244", "0.1256"},
+            {"Logistic Regression", "Uncalibrated", "63.38%", "0.6387", "0.7069", "0.7096", "0.2155", "0.0444", "0.1248"},
+            {"Logistic Regression", "Sigmoid (Platt Scaling)", "63.00%", "0.6373", "0.7069", "0.7096", "0.2165", "0.0547", "0.1114"},
+            {"Logistic Regression", "Isotonic Regression", "62.25%", "0.6505", "0.6971", "0.6751", "0.2151", "0.0341", "0.2473"},
+        ]
+        st.dataframe(pd.DataFrame(cal_data), use_container_width=True, hide_index=True)
+
+        st.markdown(
+            "**Key Findings**:\n"
+            "- **Isotonic Regression Minimizes ECE**: Cuts Expected Calibration Error (ECE) for XGBoost from `0.0712` down to **`0.0244`** (a **65.7% reduction**).\n"
+            "- **Rank Invariance**: Platt scaling preserves exact rank ordering, maintaining identical ROC-AUC and PR-AUC.\n"
+            "- Calibrated probabilities provide trustworthy hallucination confidence scores suitable for decision-critical human review."
+        )
+
+    with tab_retrieval:
+        st.markdown("#### Phase 19 Retrieval-Augmented Standalone Experiment")
+        st.write(
+            "Evaluated strictly on the $N=2,500$ population where reference evidence passages exist (HaluEval: 1,500, FEVER: 1,000) "
+            "using a dedicated 500-instance holdout split ($2,000$ train / $500$ test, balanced 250/250):"
+        )
+
+        retrieval_data = [
+            {"Experimental Condition", "Features", "Model", "Accuracy", "F1 Score", "ROC-AUC", "PR-AUC", "Brier Score", "ECE"},
+            {"Condition A (Internal-Only)", 11, "Logistic Regression", "74.60%", "0.7581", "0.8463", "0.8486", "0.1597", "0.0494"},
+            {"Condition A (Internal-Only)", 11, "XGBoost", "78.80%", "0.8000", "0.8978", "0.8982", "0.1264", "0.0323"},
+            {"Condition B (Universal Core)", 19, "Logistic Regression", "75.80%", "0.7660", "0.8582", "0.8657", "0.1538", "0.0738"},
+            {"Condition B (Universal Core)", 19, "XGBoost", "78.60%", "0.7864", "0.9011", "0.9035", "0.1246", "0.0482"},
+            {"Condition C (Retrieval-Only)", 6, "Logistic Regression", "65.00%", "0.6824", "0.6990", "0.6543", "0.2187", "0.0350"},
+            {"Condition C (Retrieval-Only)", 6, "XGBoost", "68.00%", "0.7193", "0.7491", "0.7293", "0.2053", "0.0523"},
+            {"Condition D (Internal + Retrieval)", 17, "Logistic Regression", "76.60%", "0.7754", "0.8637", "0.8675", "0.1505", "0.0380"},
+            {"Condition D (Internal + Retrieval)", 17, "XGBoost", "80.60%", "0.8159", "0.9184", "0.9214", "0.1180", "0.0593"},
+            {"Condition E (Universal Core + Retrieval)", 25, "Logistic Regression", "76.20%", "0.7680", "0.8706", "0.8823", "0.1459", "0.0606"},
+            {"Condition E (Universal Core + Retrieval)", 25, "XGBoost", "81.20%", "0.8178", "0.9169", "0.9201", "0.1185", "0.0518"},
+        ]
+        st.dataframe(pd.DataFrame(retrieval_data), use_container_width=True, hide_index=True)
+
+        st.caption(
+            "Note: TruthfulQA (N=1,500) was excluded because its reference context consists of external web URLs rather than local text passages. "
+            "When evidence passages are available, adding retrieval agreement elevates ROC-AUC past 0.918."
+        )
 
 # ==============================================================================
 # 6. Technical Details & Pipeline Architecture
@@ -647,44 +783,122 @@ with st.expander("📊 Research Benchmark Results (Offline Holdout Evaluation)",
 
 with st.expander("⚙️ How the Detector Works (System Pipeline)", expanded=False):
     st.markdown("""
+### Multi-Model End-to-End System Architecture
+
 ```
-User Question
-      │
-      ▼
-Qwen3.5-0.8B (Primary Deterministic Generation)
-      │
-      ▼
-Generated Response
-      │
-      ├────────────────────────┬────────────────────────┐
-      ▼                        ▼                        ▼
-11 Internal Signals      k=5 Stochastic Probes    NLI Cross-Encoder
-(Logits, Probs, Entropy, (all-MiniLM-L6-v2,       (nli-MiniLM2-L6-H768,
- Token Rank Dispersion)   Pairwise Similarity)     20 Directional Passes)
-      │                        │                        │
-      └────────────────────────┼────────────────────────┘
-                               │
-                               ▼
-                19 Canonical Universal Features
-                               │
-                               ▼
-                 XGBoost & Logistic Regression
-                               │
-                               ▼
-                   Hallucination Risk Score
-                               │
-            ┌──────────────────┴──────────────────┐
-            ▼                                     ▼
-Token Confidence Heatmap               Tree SHAP Explainability
-(P(y_t), H_t per token)                ("Why was it flagged?")
+                       User Question + Optional Context
+                                      │
+                                      ▼
+             ┌──────────────────────────────────────────────────┐
+             │       Multi-Model Causal Generative Engine       │
+             │  (Qwen 3.5 0.8B / Llama 3.2 1B / Gemma 3 1B IT)  │
+             │       Greedy Decoding (T=0, bfloat16/float16)    │
+             └────────────────────────┬─────────────────────────┘
+                                      │
+                                      ▼
+                        Primary Generated Response
+                                      │
+         ┌────────────────────────────┼────────────────────────────┐
+         ▼                            ▼                            ▼
+┌──────────────────┐        ┌──────────────────┐         ┌──────────────────┐
+│  Stage 3 & 4:    │        │  Stage 5, 6 & 7: │         │  Stage 8 & 9:    │
+│  11 Internal     │        │  5 Consistency   │         │  3 NLI Agreement │
+│  Generation      │        │  Behavioral      │         │  Cross-Encoder   │
+│  Signals         │        │  Probes (k=5)    │         │  Passes          │
+│                  │        │                  │         │                  │
+│ • min/mean log-P │        │ • k=5 stochastic │         │ • nli-MiniLM2-L6 │
+│ • mean prob, std │        │   generations    │         │ • 20 directional │
+│ • Shannon entropy│        │ • all-MiniLM-L6  │         │   passes (k(k-1))│
+│ • log perplexity │        │ • pairwise cos-  │         │ • entailment,    │
+│ • rank dispersion│        │   similarity     │         │   contradiction, │
+│   (mean/max/std) │        │ • exact match    │         │   disagreement   │
+└────────┬─────────┘        └────────┬─────────┘         └────────┬─────────┘
+         │                           │                            │
+         └───────────────────────────┼────────────────────────────┘
+                                     │
+                                     ▼
+                   ┌───────────────────────────────────┐
+                   │            Stage 10:              │
+                   │  19 Canonical Universal Features  │
+                   │    (Strict Length Isolation)      │
+                   └─────────────────┬─────────────────┘
+                                     │
+                                     ▼
+                   ┌───────────────────────────────────┐
+                   │          Stage 11 & 12:           │
+                   │  Supervised Risk Classification   │
+                   │ • Tuned XGBoost (Primary Non-Lin) │
+                   │ • Calibrated Logistic Regression  │
+                   └─────────────────┬─────────────────┘
+                                     │
+                                     ▼
+                   ┌───────────────────────────────────┐
+                   │    Hallucination Risk Score       │
+                   │   [0.0 - 1.0 Posterior Risk]      │
+                   └─────────────────┬─────────────────┘
+                                     │
+         ┌───────────────────────────┼───────────────────────────┐
+         ▼                           ▼                           ▼
+┌──────────────────┐        ┌──────────────────┐        ┌──────────────────┐
+│   Stage 13:      │        │   Stage 14:      │        │   Stage 15:      │
+│  TreeSHAP Feature│        │  Evidence        │        │  Token Heatmap & │
+│  Attributions    │        │  Groundedness    │        │  Latency Profile │
+│  ("Why flagged?")│        │  Margin (Opt.)   │        │  (P(y_t), H_t)   │
+└──────────────────┘        └──────────────────┘        └──────────────────┘
 ```
 
-#### Core Experimental Configurations:
-- **Base Generative LM**: `Qwen/Qwen3.5-0.8B` (unquantized bfloat16, greedy decoding).
-- **Self-Consistency**: $k = 5$ stochastic candidate responses ($T = 0.7, \\text{top\\_}p = 0.9, \\text{max\\_tokens} = 128$).
-- **Sentence Embedding Model**: `sentence-transformers/all-MiniLM-L6-v2`.
-- **NLI Cross-Encoder**: `cross-encoder/nli-MiniLM2-L6-H768`.
-- **Primary Supervised Classifier**: `XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8, gamma=0.1)`.
-- **Linear Baseline Classifier**: `StandardScaler + LogisticRegression(C=1.0, solver='lbfgs', max_iter=1000)`.
-- **Feature Isolation Policy**: Sequence length (`num_tokens`), prompt text, and dataset metadata are strictly excluded from feature space.
+#### The 15 Staged Pipeline Execution Steps
+Every live inference run in this application executes 15 distinct, profiled pipeline stages in `app/inference.py`:
+
+| Stage | Name | Description |
+| :---: | :--- | :--- |
+| **1** | **Model Loading & Cache Resolution** | Loads or resolves the selected causal LM, tokenizer, embedding model, NLI cross-encoder, and trained classifiers from memory cache. |
+| **2** | **Primary Response Generation** | Deterministic generation ($T=0$, greedy decoding) using model-specific prompt templates and thinking-token suppression where applicable. |
+| **3** | **Token & Logit Extraction** | Single forward pass computing per-token output logits, vocab softmax distribution, and loss tensor. |
+| **4** | **Internal Signal Computation** | Calculates 11 white-box generation uncertainty metrics (log-probs, predictive entropy, perplexity, and token rank dispersion). |
+| **5** | **Self-Consistency Sampling** | Generates $k=5$ stochastic responses ($T=0.7, \\text{top\\_}p=0.9, \\text{max\\_tokens}=128$) to probe the model's semantic stability. |
+| **6** | **Embedding Model Verification** | Confirms `sentence-transformers/all-MiniLM-L6-v2` dense embedding model availability. |
+| **7** | **Consistency Similarity Computation** | Encodes all candidate responses into dense vectors and computes the full pairwise cosine similarity matrix and exact-match score. |
+| **8** | **NLI Model Verification** | Confirms `cross-encoder/nli-MiniLM2-L6-H768` cross-encoder availability and output label mappings. |
+| **9** | **Pairwise Bidirectional NLI Inference** | Executes $k(k-1) = 20$ directional hypothesis-premise inference passes across the 10 response pairs. |
+| **10** | **Universal Feature Vector Assembly** | Compiles the canonical 19-dimensional feature vector, strictly verifying that sequence length confounders are excluded. |
+| **11** | **XGBoost Prediction** | Computes the primary non-linear hallucination risk probability using the fitted gradient-boosted decision trees. |
+| **12** | **Logistic Regression Prediction** | Computes the linear baseline risk probability using the standardized Logistic Regression pipeline. |
+| **13** | **Explainability & Attribution** | Calculates TreeSHAP log-odds feature contributions to explain why the classifiers flagged or cleared the response. |
+| **14** | **Evidence Groundedness Analysis** | *(Optional)* Chunks reference context and computes top-1 cosine similarity, evidence margin, and claim agreement. |
+| **15** | **Final UI Result Assembly** | Formats per-token probability and entropy tooltips, determines categorical risk tier, and tabulates millisecond stage latencies. |
+
+#### The 19 Canonical Universal Features
+The 19 features are partitioned into three orthogonal signal families:
+
+1. **Internal Generation Dynamics (11 features)**:
+   - `min_log_prob`: Minimum log-probability across all generated tokens (worst-case token confidence).
+   - `mean_log_prob`: Length-normalized average log-probability $\\frac{1}{T}\\sum \\ln P(y_t)$.
+   - `mean_token_prob`: Average token probability $\\frac{1}{T}\\sum P(y_t)$.
+   - `token_prob_std`: Standard deviation of token probabilities across the sequence.
+   - `mean_entropy`: Average Shannon entropy $\\frac{1}{T}\\sum H(P_t)$ measuring vocabulary distribution flatness.
+   - `max_entropy`: Peak token entropy $\\max_t H(P_t)$ identifying localized hallucination pivot points.
+   - `entropy_std`: Volatility/dispersion of predictive entropy across the generation.
+   - `log_perplexity`: Logarithm of perplexity $\\ln(\\text{PPL})$.
+   - `log_mean_token_rank`: Log of average rank of sampled tokens in the unconstrained vocabulary distribution.
+   - `log_max_token_rank`: Log of maximum rank of any sampled token (captures tail-distribution sampling).
+   - `log_rank_std`: Dispersion of token ranks across the sequence.
+
+2. **Behavioral Self-Consistency (5 features, $k=5$)**:
+   - `exact_match_agreement`: Fraction of stochastic generations that exactly match the primary response.
+   - `mean_pairwise_similarity`: Mean cosine similarity across all 10 candidate response embedding pairs (`all-MiniLM-L6-v2`).
+   - `min_pairwise_similarity`: Minimum pairwise similarity (lowest semantic consensus between any two candidates).
+   - `max_pairwise_similarity`: Maximum pairwise similarity.
+   - `pairwise_similarity_std`: Variance of semantic consensus across stochastic generations.
+
+3. **Natural Language Inference Agreement (3 features, 20 directional passes)**:
+   - `mean_pairwise_entailment`: Average entailment probability assigned by `nli-MiniLM2-L6-H768` across all pairs.
+   - `mean_pairwise_contradiction`: Average contradiction probability across candidate pairs.
+   - `nli_disagreement`: Mean symmetric disagreement rate $1 - \\text{Entailment} + \\text{Contradiction}$.
+
+#### Strict Anti-Confounder Safeguards (Feature Isolation Policy)
+- **Sequence Length Isolation**: `num_tokens` is strictly excluded from all training and inference feature sets. As proven in the Phase 7 ablation study, raw token count creates an artificial length shortcut where longer responses are trivially flagged, degrading scientific validity.
+- **Metadata Exclusion**: Prompt text, dataset origins, raw IDs, and benchmark labels are completely withheld from the classifier.
+- **Hardware Acceleration**: Models run in bfloat16/float16 with PyTorch CUDA tensor execution on RTX 3050 GPU, with automatic CPU fallback.
     """)
+

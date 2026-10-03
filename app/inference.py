@@ -292,10 +292,11 @@ def generate_primary_response(
     context: Optional[str] = None,
     device: Optional[str] = None,
     max_new_tokens: int = 128,
+    temperature: float = 0.0,
     system_instruction: str = "Answer the question directly, factually, and concisely. Do not provide preamble or internal thinking.",
 ) -> Tuple[str, str]:
     """
-    Generate the primary evaluated response deterministically using greedy decoding.
+    Generate the primary evaluated response deterministically (greedy) or with sampling temperature.
 
     Parameters:
         model: Loaded CausalLM.
@@ -304,6 +305,7 @@ def generate_primary_response(
         context: Optional background text.
         device: Execution device (optional; defaults to model device).
         max_new_tokens: Maximum tokens to generate.
+        temperature: Sampling temperature (0.0 for greedy decoding).
         system_instruction: Factual instruction prompt.
 
     Returns:
@@ -332,12 +334,17 @@ def generate_primary_response(
     attention_mask = enc.attention_mask.to(target_dev) if hasattr(enc, "attention_mask") and enc.attention_mask is not None else None
     input_len = input_ids.shape[1]
 
+    is_sampling = bool(temperature > 0.0)
     gen_kwargs = {
         "input_ids": input_ids,
-        "do_sample": False,
-        "max_new_tokens": max_new_tokens,
+        "do_sample": is_sampling,
+        "max_new_tokens": int(max_new_tokens),
         "pad_token_id": tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
     }
+    if is_sampling:
+        gen_kwargs["temperature"] = float(temperature)
+        gen_kwargs["top_p"] = 0.95
+
     if attention_mask is not None:
         gen_kwargs["attention_mask"] = attention_mask
 
@@ -960,6 +967,8 @@ def run_live_inference(
     lr_pipeline: Optional[Any] = None,
     xgb_model: Optional[Any] = None,
     is_evidence_mode: Optional[bool] = None,
+    max_new_tokens: int = 128,
+    temperature: float = 0.0,
 ) -> Dict[str, Any]:
     """
     Execute full end-to-end hallucination risk estimation for a single prompt.
@@ -1039,6 +1048,8 @@ def run_live_inference(
         prompt=clean_prompt,
         context=clean_context,
         device=actual_device,
+        max_new_tokens=max_new_tokens,
+        temperature=temperature,
     )
     t_stages["2. response generation"] = (time.perf_counter() - t0_s2) * 1000.0
 

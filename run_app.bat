@@ -1,5 +1,5 @@
 @echo off
-title Veritas AI - Enterprise LLM Observability & Hallucination Defense
+title Veritas AI - Enterprise LLM Observability and Hallucination Defense
 
 echo Launching Veritas Neural Observability Platform (.venv CUDA runtime)...
 

@@ -49,12 +49,12 @@ def render_sidebar():
             )
             col_load, col_clear = st.columns([1.3, 1])
             with col_load:
-                if st.button("Load Query", key="btn_load_hist_compact", use_container_width=True):
+                if st.button("Load Query", key="btn_load_hist_compact", width="stretch"):
                     st.session_state["user_prompt"] = history_items[sel_hist_idx].get("full_prompt", history_items[sel_hist_idx]["prompt"])
                     st.session_state["user_context"] = history_items[sel_hist_idx].get("full_context", "")
                     st.rerun()
             with col_clear:
-                if st.button("Clear", key="btn_clear_hist_compact", use_container_width=True):
+                if st.button("Clear", key="btn_clear_hist_compact", width="stretch"):
                     st.session_state["history"] = []
                     st.rerun()
         else:

@@ -59,27 +59,27 @@ def render_input_controls() -> Tuple[bool, str, str, bool]:
     p_col1, p_col2, p_col3, p_col4, p_col5 = st.columns(5)
 
     with p_col1:
-        if st.button("Moon Landing\n[FACTUAL BASELINE]", use_container_width=True):
+        if st.button("Moon Landing\n[FACTUAL BASELINE]", width="stretch"):
             st.session_state["user_prompt"] = "Who was the first person to walk on the Moon?"
             st.session_state["user_context"] = ""
 
     with p_col2:
-        if st.button("Paris Capital\n[FACTOID QUERY]", use_container_width=True):
+        if st.button("Paris Capital\n[FACTOID QUERY]", width="stretch"):
             st.session_state["user_prompt"] = "What is the capital of France?"
             st.session_state["user_context"] = ""
 
     with p_col3:
-        if st.button("Mars Human\n[ADVERSARIAL TRAP]", use_container_width=True):
+        if st.button("Mars Human\n[ADVERSARIAL TRAP]", width="stretch"):
             st.session_state["user_prompt"] = "Who was the first human to walk on Mars?"
             st.session_state["user_context"] = ""
 
     with p_col4:
-        if st.button("CRISPR-Cas9\n[GROUNDED RETRIEVAL]", use_container_width=True):
+        if st.button("CRISPR-Cas9\n[GROUNDED RETRIEVAL]", width="stretch"):
             st.session_state["user_prompt"] = "How does Cas9 endonuclease induce targeted double-strand breaks in DNA?"
             st.session_state["user_context"] = "CRISPR-Cas9 is a bacterial adaptive immune system adapted for genome editing. The Cas9 protein complexes with a single guide RNA (sgRNA) containing a 20-nucleotide target sequence adjacent to a protospacer adjacent motif (PAM) like 5'-NGG. Upon target hybridization, the HNH and RuvC nuclease domains cleave complementary and non-complementary DNA strands respectively, introducing double-strand breaks (DSBs)."
 
     with p_col5:
-        if st.button("Reset Workspace\n[CLEAR INPUT]", use_container_width=True):
+        if st.button("Reset Workspace\n[CLEAR INPUT]", width="stretch"):
             st.session_state["user_prompt"] = ""
             st.session_state["user_context"] = ""
             st.session_state["inference_result"] = None
@@ -105,13 +105,13 @@ def render_input_controls() -> Tuple[bool, str, str, bool]:
     col_run, col_pref, col_export = st.columns([2.2, 1.8, 1.4], gap="small")
 
     with col_run:
-        analyze_clicked = st.button("Run Verification Pipeline ↵", type="primary", use_container_width=True)
+        analyze_clicked = st.button("Run Verification Pipeline ↵", type="primary", width="stretch")
 
     with col_pref:
         cur_tokens = int(st.session_state.get("pref_max_tokens", 128))
         cur_temp = float(st.session_state.get("pref_temperature", 0.0))
         label_str = f"Engine Settings ({cur_tokens} tok, T={cur_temp:.1f}) ▾"
-        with st.popover(label_str, use_container_width=True):
+        with st.popover(label_str, width="stretch"):
             st.markdown(
                 '<div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.04em;">GENERATION HYPERPARAMETERS</div>',
                 unsafe_allow_html=True,

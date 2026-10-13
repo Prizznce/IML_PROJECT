@@ -198,7 +198,7 @@ def configure_infrastructure_dialog(cuda_available: bool, gpu_display: str, cpu_
     st.markdown("<hr style='margin: 16px 0 12px 0;'>", unsafe_allow_html=True)
     col_save, col_close = st.columns([1, 1])
     with col_save:
-        if st.button("Apply & Update Runtime ↵", type="primary", use_container_width=True):
+        if st.button("Apply & Update Runtime ↵", type="primary", width="stretch"):
             st.session_state["selected_model_name"] = new_model
             if cuda_available and "dialog_hw_select" in st.session_state:
                 st.session_state["hardware_choice"] = st.session_state["dialog_hw_select"]
@@ -206,5 +206,5 @@ def configure_infrastructure_dialog(cuda_available: bool, gpu_display: str, cpu_
             st.session_state["threshold_high"] = new_t_high
             st.rerun()
     with col_close:
-        if st.button("Close", use_container_width=True):
+        if st.button("Close", width="stretch"):
             st.rerun()

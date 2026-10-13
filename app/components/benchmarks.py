@@ -75,7 +75,7 @@ def render_benchmark_proof():
                 {"LLM Architecture": "Meta Llama 3.2 (1B Instruct)", "Classifier": "XGBoost", "Accuracy": "66.88%", "F1 Score": "0.6834", "ROC-AUC": "0.7450", "PR-AUC": "0.7492", "Brier Score": "0.1991", "ECE": "0.0392"},
                 {"LLM Architecture": "Meta Llama 3.2 (1B Instruct)", "Classifier": "Logistic Regression", "Accuracy": "65.12%", "F1 Score": "0.6610", "ROC-AUC": "0.6929", "PR-AUC": "0.6681", "Brier Score": "0.2211", "ECE": "0.0319"},
             ]
-            st.dataframe(pd.DataFrame(multi_model_data), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(multi_model_data), width="stretch", hide_index=True)
     
             st.markdown("<div style='font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 14px;'>TASK DOMAIN BREAKDOWN (Qwen 3.5 Universal Core, N=800):</div>", unsafe_allow_html=True)
             subgroup_data = [
@@ -83,7 +83,7 @@ def render_benchmark_proof():
                 {"Domain / Benchmark": "TruthfulQA (N=300)", "Task Formulation": "Closed-book Human Misconceptions", "XGB Accuracy": "59.33%", "XGB ROC-AUC": "0.6066", "LR Accuracy": "51.33%", "LR ROC-AUC": "0.5210"},
                 {"Domain / Benchmark": "FEVER (N=200)", "Task Formulation": "Wikipedia Factoid Verification", "XGB Accuracy": "53.00%", "XGB ROC-AUC": "0.5441", "LR Accuracy": "48.50%", "LR ROC-AUC": "0.4870"},
             ]
-            st.dataframe(pd.DataFrame(subgroup_data), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(subgroup_data), width="stretch", hide_index=True)
     
         with tab_ablation:
             st.markdown(
@@ -108,7 +108,7 @@ def render_benchmark_proof():
                 {"Configuration": "All Three / Universal Core", "Features": 19, "Model": "Logistic Regression", "Accuracy": "62.88%", "F1": "0.6356", "ROC-AUC": "0.7079", "PR-AUC": "0.7124", "Brier": "0.2151", "ECE": "0.0525"},
                 {"Configuration": "All Three / Universal Core", "Features": 19, "Model": "XGBoost", "Accuracy": "67.88%", "F1": "0.6751", "ROC-AUC": "0.7688", "PR-AUC": "0.7795", "Brier": "0.1891", "ECE": "0.0341"},
             ]
-            st.dataframe(pd.DataFrame(ablation_data), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(ablation_data), width="stretch", hide_index=True)
     
         with tab_generalization:
             st.markdown(
@@ -128,7 +128,7 @@ def render_benchmark_proof():
                 {"Held-Out Benchmark (Test)": "HaluEval (N=1,500)", "Training Benchmarks": "TruthfulQA + FEVER (N=2,500)", "Features": "Universal Core (19)", "XGB Accuracy": "43.20%", "XGB ROC-AUC": "0.4368", "LR Accuracy": "44.93%", "LR ROC-AUC": "0.2583"},
                 {"Held-Out Benchmark (Test)": "HaluEval (N=1,500)", "Training Benchmarks": "TruthfulQA + FEVER (N=2,500)", "Features": "Internal Only (11)", "XGB Accuracy": "39.80%", "XGB ROC-AUC": "0.3599", "LR Accuracy": "21.40%", "LR ROC-AUC": "0.1601"},
             ]
-            st.dataframe(pd.DataFrame(lodo_data), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(lodo_data), width="stretch", hide_index=True)
     
         with tab_calibration:
             st.markdown(
@@ -148,7 +148,7 @@ def render_benchmark_proof():
                 {"Model": "Logistic Regression", "Calibration Method": "Sigmoid (Platt Scaling)", "Accuracy": "63.00%", "F1 Score": "0.6373", "ROC-AUC": "0.7069", "PR-AUC": "0.7096", "Brier Score": "0.2165", "ECE": "0.0547", "MCE": "0.1114"},
                 {"Model": "Logistic Regression", "Calibration Method": "Isotonic Regression", "Accuracy": "62.25%", "F1 Score": "0.6505", "ROC-AUC": "0.6971", "PR-AUC": "0.6751", "Brier Score": "0.2151", "ECE": "0.0341", "MCE": "0.2473"},
             ]
-            st.dataframe(pd.DataFrame(cal_data), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(cal_data), width="stretch", hide_index=True)
     
         with tab_retrieval:
             st.markdown(
@@ -172,7 +172,7 @@ def render_benchmark_proof():
                 {"Condition": "Condition E (Universal Core + Retrieval)", "Features": 25, "Model": "Logistic Regression", "Accuracy": "76.20%", "F1": "0.7680", "ROC-AUC": "0.8706", "PR-AUC": "0.8823", "Brier": "0.1459", "ECE": "0.0606"},
                 {"Condition": "Condition E (Universal Core + Retrieval)", "Features": 25, "Model": "XGBoost", "Accuracy": "81.20%", "F1": "0.8178", "ROC-AUC": "0.9169", "PR-AUC": "0.9201", "Brier": "0.1185", "ECE": "0.0518"},
             ]
-            st.dataframe(pd.DataFrame(retrieval_data), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(retrieval_data), width="stretch", hide_index=True)
     
     
     # ==============================================================================

@@ -152,7 +152,7 @@ def render_infrastructure_strip(
 
     with infra_col2:
         st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-        if st.button("Configure Engine & Hardware", use_container_width=True, help="Open modal popup to switch model, select GPU/CPU, and adjust decision risk cutoffs"):
+        if st.button("Configure Engine & Hardware", width="stretch", help="Open modal popup to switch model, select GPU/CPU, and adjust decision risk cutoffs"):
             configure_dialog_fn()
 
     st.markdown("<div style='margin-bottom: 22px;'></div>", unsafe_allow_html=True)

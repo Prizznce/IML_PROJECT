@@ -267,7 +267,7 @@ def render_dashboard(
                     "Rank": t["rank"],
                     "Confidence Band": t["band"],
                 })
-            st.dataframe(pd.DataFrame(t_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(t_rows), width="stretch", hide_index=True)
 
     # ==========================================================================
     # 8. Feature Contributions / Tree SHAP Attribution
@@ -424,7 +424,7 @@ def render_dashboard(
             {"Signal": "log_max_token_rank", "Value": f"{int_sig['log_max_token_rank']:.4f}", "Interpretation": "log(1 + max token rank)"},
             {"Signal": "log_rank_std", "Value": f"{int_sig['log_rank_std']:.4f}", "Interpretation": "log(1 + token rank std)"},
         ]
-        st.dataframe(pd.DataFrame(internal_table_data), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(internal_table_data), width="stretch", hide_index=True)
 
     with tab_sc:
         st.markdown(
@@ -441,7 +441,7 @@ def render_dashboard(
             {"Signal": "max_pairwise_similarity", "Value": f"{sc_sig.get('max_pairwise_similarity', 0.0):.4f}", "Interpretation": "Maximum pairwise cosine similarity"},
             {"Signal": "pairwise_similarity_std", "Value": f"{sc_sig.get('pairwise_similarity_std', 0.0):.4f}", "Interpretation": "Standard deviation of pairwise cosine similarities"},
         ]
-        st.dataframe(pd.DataFrame(sc_table_data), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(sc_table_data), width="stretch", hide_index=True)
 
         st.markdown("<div style='font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 14px; margin-bottom: 6px;'>SAMPLED CANDIDATE RESPONSES (k=5 STOCHASTIC PROBES):</div>", unsafe_allow_html=True)
         for i, resp in enumerate(res.get("consistency_responses", []), 1):
@@ -469,7 +469,7 @@ def render_dashboard(
             {"Signal": "mean_pairwise_contradiction", "Value": f"{nli_sig.get('mean_pairwise_contradiction', 0.0):.4f}", "Interpretation": "Average cross-encoder contradiction probability across candidate pairs"},
             {"Signal": "nli_disagreement", "Value": f"{nli_sig.get('nli_disagreement', 0.0):.4f}", "Interpretation": "Composite NLI disagreement [contradiction + 0.5 * (1 - entailment)]"},
         ]
-        st.dataframe(pd.DataFrame(nli_table_data), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(nli_table_data), width="stretch", hide_index=True)
 
     with tab_vec:
         st.markdown(
@@ -486,7 +486,7 @@ def render_dashboard(
                 "Feature Canonical Name": feat,
                 "Standardized Value": f"{f_vec[feat]:.6f}",
             })
-        st.dataframe(pd.DataFrame(vector_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(vector_rows), width="stretch", hide_index=True)
 
     # ==========================================================================
     # 11. Pipeline Profiling & Latency Breakdown (Railway execution waterfall)
@@ -534,7 +534,7 @@ def render_dashboard(
                 "Latency (ms)": f"{s_ms:.2f}",
                 "Share (%)": f"{pct:.1f}%",
             })
-        st.dataframe(pd.DataFrame(timing_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(timing_rows), width="stretch", hide_index=True)
 
     # ==========================================================================
     # 12. Export & Audit Log Tools (New Feature!)
@@ -567,9 +567,10 @@ def render_dashboard(
     export_fmt = st.session_state.get("pref_export_format", "JSON (AST & Logits)")
 
     with export_col1:
+        user_prompt_val = st.session_state.get("user_prompt", "")
         if "CSV" in export_fmt:
             export_df = pd.DataFrame([{
-                "prompt": st.session_state["user_prompt"],
+                "prompt": user_prompt_val,
                 "generated_response": res["generated_response"],
                 "xgb_probability": xgb_prob,
                 "lr_probability": lr_prob,
@@ -583,12 +584,12 @@ def render_dashboard(
                 data=csv_data,
                 file_name=f"hallucination_features_{int(total_elapsed)}.csv",
                 mime="text/csv",
-                use_container_width=True,
+                width="stretch",
             )
         elif "Parquet" in export_fmt:
             import io
             export_df = pd.DataFrame([{
-                "prompt": st.session_state["user_prompt"],
+                "prompt": user_prompt_val,
                 "generated_response": res["generated_response"],
                 "xgb_probability": xgb_prob,
                 "lr_probability": lr_prob,
@@ -603,7 +604,7 @@ def render_dashboard(
                 data=pq_buf.getvalue(),
                 file_name=f"hallucination_telemetry_{int(total_elapsed)}.parquet",
                 mime="application/octet-stream",
-                use_container_width=True,
+                width="stretch",
             )
         else:
             st.download_button(
@@ -611,7 +612,7 @@ def render_dashboard(
                 data=audit_json,
                 file_name=f"hallucination_audit_{int(total_elapsed)}.json",
                 mime="application/json",
-                use_container_width=True,
+                width="stretch",
             )
 
     with export_col2:
@@ -621,7 +622,7 @@ def render_dashboard(
         - **Verdict**: {current_tier}
         - **XGBoost Risk**: {xgb_pct:.1f}%
         - **Logistic Regression Risk**: {lr_pct:.1f}%
-        - **Prompt**: "{st.session_state['user_prompt']}"
+        - **Prompt**: "{user_prompt_val}"
         - **Generation**: "{res['generated_response']}"
         - **Total Pipeline Latency**: {total_elapsed:.1f} ms
         """).strip()

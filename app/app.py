@@ -87,7 +87,10 @@ gpu_display = hardware["gpu_display"]
 cpu_name = hardware["cpu_name"]
 cpu_display = hardware["cpu_display"]
 
-if cuda_available and st.session_state.get("hardware_choice") != "Host CPU (Fallback)":
+hw_choice = str(st.session_state.get("hardware_choice", "auto"))
+is_cpu_override = hw_choice.startswith("Host CPU") or "Host CPU" in hw_choice
+
+if cuda_available and not is_cpu_override:
     selected_device = "cuda:0"
     dev_short_label = f"CUDA:0 ({gpu_name})"
     dev_color = "#34D399"
@@ -119,13 +122,7 @@ render_header(
     gpu_name=gpu_name,
     cpu_name=cpu_name,
     cpu_display=cpu_display,
-)
-
-render_infrastructure_strip(
-    selected_model_name=selected_model_name,
     active_specs=active_specs,
-    dev_color=dev_color,
-    dev_short_label=dev_short_label,
     threshold_low=threshold_low,
     threshold_high=threshold_high,
     configure_dialog_fn=lambda: configure_infrastructure_dialog(
@@ -215,7 +212,7 @@ render_dashboard(
 )
 
 # ==============================================================================
-# 8. Empirical Model Validation & Multi-Task Benchmark Proof
+# 8. Empirical Model Validation Results (Holdout Audit)
 # ==============================================================================
 
 render_benchmark_proof()

@@ -540,4 +540,163 @@ def test_device_placement_consistency_regression():
     assert "log_perplexity" in features
 
 
+def test_hardware_choice_resolution_and_state_contract():
+    """
+    Verifies that dynamic hardware choice strings from configure dialog
+    (including CPU model name and core counts) correctly resolve to 'cpu' device.
+    """
+    dynamic_cpu_string = "Host CPU: 12th Gen Intel(R) Core(TM) i5-12450H (12 vCPUs) (Fallback)"
+    dynamic_gpu_string = "GPU: NVIDIA GeForce RTX 3050 Laptop GPU (4.0 GB) (CUDA:0)"
+
+    def resolve_device(hardware_choice: str, cuda_available: bool = True) -> str:
+        hw_choice = str(hardware_choice)
+        is_cpu_override = hw_choice.startswith("Host CPU") or "Host CPU" in hw_choice
+        if cuda_available and not is_cpu_override:
+            return "cuda:0"
+        return "cpu"
+
+    # CPU selections must always resolve to cpu
+    assert resolve_device(dynamic_cpu_string, cuda_available=True) == "cpu"
+    assert resolve_device("Host CPU (Fallback)", cuda_available=True) == "cpu"
+    assert resolve_device("Host CPU: Apple M1", cuda_available=True) == "cpu"
+
+    # GPU / auto selections resolve to cuda:0 when cuda available
+    assert resolve_device(dynamic_gpu_string, cuda_available=True) == "cuda:0"
+    assert resolve_device("auto", cuda_available=True) == "cuda:0"
+    assert resolve_device("GPU", cuda_available=True) == "cuda:0"
+
+    # When cuda is not available, always cpu
+    assert resolve_device(dynamic_gpu_string, cuda_available=False) == "cpu"
+    assert resolve_device("auto", cuda_available=False) == "cpu"
+
+    # Dialog radio index resolution contract
+    def get_dialog_radio_index(hardware_choice: str) -> int:
+        hw_state = str(hardware_choice)
+        return 1 if (hw_state.startswith("Host CPU") or "Host CPU" in hw_state) else 0
+
+    assert get_dialog_radio_index("auto") == 0  # GPU default
+    assert get_dialog_radio_index(dynamic_gpu_string) == 0
+    assert get_dialog_radio_index(dynamic_cpu_string) == 1
+    assert get_dialog_radio_index("Host CPU (Fallback)") == 1
+
+
+def test_engine_tuning_parameters_propagated():
+    """Verify that max_new_tokens and temperature from Engine Tuning are propagated to generation subroutines."""
+    internal, sc, nli = _get_synthetic_feature_components()
+
+    mock_causal = MagicMock()
+    mock_tokenizer = MagicMock()
+    mock_embedding = MagicMock()
+    mock_nli = MagicMock()
+    mock_lr = MagicMock()
+    mock_lr.predict_proba.return_value = np.array([[0.80, 0.20]])
+    mock_xgb = MagicMock()
+    mock_xgb.predict_proba.return_value = np.array([[0.85, 0.15]])
+
+    with patch("app.inference.generate_primary_response", return_value=("Paris.", "Prompt: Paris")) as mock_gen, \
+         patch("app.inference.extract_internal_signals") as mock_extract, \
+         patch("app.inference.run_self_consistency_probe", return_value=(["Paris"] * 5, sc)) as mock_sc, \
+         patch("app.inference.run_nli_probe", return_value=nli):
+
+        from src.signals.token_signals import SequenceSignals
+        mock_signals = SequenceSignals(
+            num_tokens=3,
+            mean_token_prob=0.9,
+            min_token_prob=0.8,
+            mean_log_prob=-0.1,
+            min_log_prob=-0.2,
+            mean_entropy=0.3,
+            max_entropy=0.5,
+            entropy_std=0.1,
+            token_prob_std=0.05,
+            perplexity=1.105,
+            tokens=[],
+        )
+        mock_extract.return_value = (internal, mock_signals)
+
+        run_live_inference(
+            prompt="What is the capital of France?",
+            causal_model=mock_causal,
+            tokenizer=mock_tokenizer,
+            embedding_model=mock_embedding,
+            nli_model=mock_nli,
+            nli_label_indices={"contradiction": 0, "entailment": 1, "neutral": 2},
+            lr_pipeline=mock_lr,
+            xgb_model=mock_xgb,
+            max_new_tokens=64,
+            temperature=0.8,
+        )
+
+        # Verify generate_primary_response received the tuned parameters
+        mock_gen.assert_called_once()
+        _, gen_kwargs = mock_gen.call_args
+        assert gen_kwargs["max_new_tokens"] == 64
+        assert gen_kwargs["temperature"] == 0.8
+
+        # Verify run_self_consistency_probe received the tuned max_new_tokens
+        mock_sc.assert_called_once()
+        _, sc_kwargs = mock_sc.call_args
+        assert sc_kwargs["max_new_tokens"] == 64
+
+
+def test_perplexity_mathematical_definition_and_bounds():
+    """Verify perplexity computation follows exp(-mean_log_prob) and adheres to information-theoretic bounds."""
+    import torch
+    from src.signals.token_signals import compute_token_signals_from_logits
+
+    # 1. Uniform distribution across V=4 tokens: probability = 1/4 = 0.25
+    # mean_log_prob = log(0.25) = -1.38629...
+    # perplexity = exp(-mean_log_prob) = exp(1.38629...) = 4.0 exactly
+    logits_uniform = torch.zeros((2, 4), dtype=torch.float32)
+    sig_uniform = compute_token_signals_from_logits(logits_uniform, [0, 1])
+    assert abs(sig_uniform.perplexity - 4.0) < 1e-4
+
+    # 2. Perfect deterministic prediction: probability = 1.0
+    # mean_log_prob = 0.0 -> perplexity = exp(0.0) = 1.0 exactly
+    logits_det = torch.tensor([[50.0, -50.0], [50.0, -50.0]], dtype=torch.float32)
+    sig_det = compute_token_signals_from_logits(logits_det, [0, 0])
+    assert abs(sig_det.perplexity - 1.0) < 1e-4
+
+    # 3. Monotonicity: higher entropy / lower log_prob strictly yields higher perplexity
+    logits_med = torch.tensor([[2.0, 1.0], [2.0, 1.0]], dtype=torch.float32)
+    sig_med = compute_token_signals_from_logits(logits_med, [0, 0])
+    assert sig_med.perplexity > 1.0
+    assert sig_med.perplexity < sig_uniform.perplexity
+
+
+def test_light_mode_styles_validity():
+    """Verify that light mode and dark mode CSS declarations have balanced brackets and valid tokens."""
+    from app.styles import THEME_VARS_LIGHT, THEME_VARS_DARK, CUSTOM_CSS
+
+    # Check balanced curly braces
+    for sheet_name, sheet_content in [
+        ("THEME_VARS_LIGHT", THEME_VARS_LIGHT),
+        ("THEME_VARS_DARK", THEME_VARS_DARK),
+        ("CUSTOM_CSS", CUSTOM_CSS),
+    ]:
+        open_braces = sheet_content.count("{")
+        close_braces = sheet_content.count("}")
+        assert open_braces == close_braces, f"Brace mismatch in {sheet_name}: {open_braces} open vs {close_braces} close"
+
+    # Verify key tokens exist in THEME_VARS_LIGHT
+    required_tokens = [
+        "--bg-canvas",
+        "--bg-surface",
+        "--text-primary",
+        "--text-secondary",
+        "--emerald-text",
+        "--amber-text",
+        "--rose-text",
+        "--cyan-text",
+        "--terminal-bg",
+        "--terminal-text",
+        "--badge-primary-text",
+    ]
+    for tok in required_tokens:
+        assert tok in THEME_VARS_LIGHT, f"Missing token {tok} in THEME_VARS_LIGHT"
+        assert tok in THEME_VARS_DARK, f"Missing token {tok} in THEME_VARS_DARK"
+
+
+
+
 

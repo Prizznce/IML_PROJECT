@@ -50,8 +50,13 @@ def render_sidebar():
             col_load, col_clear = st.columns([1.3, 1])
             with col_load:
                 if st.button("Load Query", key="btn_load_hist_compact", width="stretch"):
-                    st.session_state["user_prompt"] = history_items[sel_hist_idx].get("full_prompt", history_items[sel_hist_idx]["prompt"])
-                    st.session_state["user_context"] = history_items[sel_hist_idx].get("full_context", "")
+                    p_val = history_items[sel_hist_idx].get("full_prompt", history_items[sel_hist_idx]["prompt"])
+                    c_val = history_items[sel_hist_idx].get("full_context", "")
+                    st.session_state["user_prompt"] = p_val
+                    st.session_state["main_prompt_input_field"] = p_val
+                    st.session_state["user_context"] = c_val
+                    st.session_state["main_context_input_field"] = c_val
+                    st.session_state["inference_result"] = None
                     st.rerun()
             with col_clear:
                 if st.button("Clear", key="btn_clear_hist_compact", width="stretch"):

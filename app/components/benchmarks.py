@@ -11,9 +11,9 @@ def render_benchmark_proof():
     Render certified holdout evaluation matrices, multi-model benchmarks,
     ECE calibration curves, ablation studies, and production specifications.
     """
-    st.markdown("<hr style='margin: 32px 0 20px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin: 24px 0 24px 0;'>", unsafe_allow_html=True)
     
-    with st.expander("Empirical Model Validation & Benchmark Proof (Independent 4,000-Sample Audit)", expanded=False):
+    with st.expander("Validation Results (4,000-Sample Holdout Audit)", expanded=False):
         st.markdown(
             """
             <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
@@ -23,7 +23,7 @@ def render_benchmark_proof():
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 18px;">
                 <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 7px; padding: 10px 14px;">
-                    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--brand-indigo-light); font-weight: 600;">CROSS-ARCHITECTURE PROOF</div>
+                    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--brand-indigo-light); font-weight: 600;">CROSS-ARCHITECTURE VALIDATION</div>
                     <div style="font-size: 19px; font-weight: 700; color: var(--text-primary); margin: 2px 0;">0.7913 ROC-AUC</div>
                     <div style="font-size: 11.5px; color: var(--text-muted);">Gemma 3 / Qwen 3.5 / Llama 3.2 robust generalizability</div>
                 </div>
@@ -88,7 +88,7 @@ def render_benchmark_proof():
         with tab_ablation:
             st.markdown(
                 """
-                <div style="font-size: 12.5px; color: var(--brand-indigo-light); background: rgba(94, 106, 210, 0.1); border: 1px solid rgba(94, 106, 210, 0.3);
+                <div style="font-size: 12.5px; color: var(--brand-primary-light); background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.28);
                             border-radius: 6px; padding: 8px 12px; margin-bottom: 12px;">
                     ● <strong>Empirical Validation Finding:</strong> Single-signal heuristics fail in production. Self-consistency alone achieves only 48.96% ROC-AUC (coin flip), and NLI alone achieves 49.12% ROC-AUC. Fusing all three feature tiers into the 19-dimensional Universal Core achieves 0.7688 ROC-AUC (+2.91 pts over baseline), proving multimodal telemetry is mathematically mandatory.
                 </div>
@@ -179,7 +179,7 @@ def render_benchmark_proof():
     # 14. Production Verification Pipeline Specification
     # ==============================================================================
     
-    with st.expander("Production Verification Pipeline: 15-Stage Neural Architecture & Safeguards", expanded=False):
+    with st.expander("Verification Pipeline & Architecture (15 Stages)", expanded=False):
         st.markdown("""
     ### Enterprise Neural Verification Architecture
     

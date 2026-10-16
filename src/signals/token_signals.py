@@ -274,6 +274,16 @@ def extract_raw_sequence_signals(
     # Tokenize prompt and response
     # Prompt is encoded with default special tokens (e.g. BOS if applicable)
     prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
+    # Deduplicate leading BOS if tokenizer or chat template already inserted one (e.g. Llama 3.2 Instruct)
+    bos_id = getattr(tokenizer, "bos_token_id", None)
+    if (
+        bos_id is not None
+        and len(prompt_ids) >= 2
+        and prompt_ids[0] == bos_id
+        and prompt_ids[1] == bos_id
+    ):
+        prompt_ids = prompt_ids[1:]
+
     # Response is encoded without re-adding BOS
     response_ids = tokenizer.encode(response, add_special_tokens=False)
 

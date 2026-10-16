@@ -426,6 +426,16 @@ def generate_stochastic_responses(
     enc = tokenizer(model_input, return_tensors="pt")
     input_ids = enc.input_ids.to(target_dev)
     attention_mask = enc.attention_mask.to(target_dev) if hasattr(enc, "attention_mask") and enc.attention_mask is not None else None
+    bos_id = getattr(tokenizer, "bos_token_id", None)
+    if (
+        bos_id is not None
+        and input_ids.shape[1] >= 2
+        and input_ids[0, 0] == bos_id
+        and input_ids[0, 1] == bos_id
+    ):
+        input_ids = input_ids[:, 1:]
+        if attention_mask is not None:
+            attention_mask = attention_mask[:, 1:]
     input_len = input_ids.shape[1]
 
     gen_kwargs = {

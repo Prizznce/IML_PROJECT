@@ -376,6 +376,14 @@ def run_pilot_generation(
         # Tokenize prompt input
         enc = tokenizer(model_input, return_tensors="pt")
         input_ids = enc.input_ids.to(device)
+        bos_id = getattr(tokenizer, "bos_token_id", None)
+        if (
+            bos_id is not None
+            and input_ids.shape[1] >= 2
+            and input_ids[0, 0] == bos_id
+            and input_ids[0, 1] == bos_id
+        ):
+            input_ids = input_ids[:, 1:]
         input_len = input_ids.shape[1]
 
         # Deterministic generation

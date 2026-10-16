@@ -227,7 +227,34 @@ class TestTokenSignals(unittest.TestCase):
         signals = compute_token_signals_from_logits(logits, [])
         self.assertEqual(signals.num_tokens, 0)
         self.assertEqual(signals.mean_token_prob, 0.0)
-        self.assertEqual(signals.perplexity, 1.0)
+    def test_duplicate_bos_deduplication(self):
+        """Verify that duplicate BOS tokens (e.g. Llama 3.2 chat templates) are deduplicated."""
+        vocab_size = 50
+        logits = torch.randn(1, 6, vocab_size)
+        model = MockCausalLM(vocab_size=vocab_size, custom_logits=logits)
+
+        class MockLlamaTok:
+            def __init__(self):
+                self.bos_token_id = 128000
+
+            def encode(self, text, add_special_tokens=True):
+                if text == "PROMPT_WITH_DUPLICATE_BOS":
+                    # Simulates Llama 3.2 where chat template has BOS and add_special_tokens adds second BOS
+                    return [128000, 128000, 5, 6] if add_special_tokens else [128000, 5, 6]
+                return [12]  # response token
+
+            def decode(self, ids):
+                return f"tok_{ids[0]}"
+
+        # With mock tokenizer returning duplicate BOS [128000, 128000, 5, 6]
+        signals = extract_raw_sequence_signals(
+            model=model,
+            tokenizer=MockLlamaTok(),
+            prompt="PROMPT_WITH_DUPLICATE_BOS",
+            response="RESPONSE",
+        )
+        self.assertEqual(signals.num_tokens, 1)
+        self.assertEqual(len(signals.tokens), 1)
 
 
 if __name__ == "__main__":

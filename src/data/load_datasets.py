@@ -345,9 +345,24 @@ def load_and_process_fever(
     raw_jsonl_path = Path(raw_dir) / "fever_shared_task_dev.jsonl"
 
     if not raw_jsonl_path.exists():
-        logger.info("Downloading FEVER dev set from %s...", url)
-        urllib.request.urlretrieve(url, raw_jsonl_path)
-        logger.info("Cached raw FEVER dev set to %s", raw_jsonl_path)
+        try:
+            logger.info("Downloading FEVER dev set from %s...", url)
+            urllib.request.urlretrieve(url, raw_jsonl_path)
+            logger.info("Cached raw FEVER dev set to %s", raw_jsonl_path)
+        except Exception as e:
+            if out_path.exists():
+                logger.warning(
+                    "Network unavailable or error downloading FEVER dev set (%s). "
+                    "Gracefully falling back to existing processed cache at '%s'.",
+                    e,
+                    out_path,
+                )
+                cached_df = pd.read_parquet(out_path)
+                validate_canonical_dataframe(cached_df)
+                return cached_df
+            raise ConnectionError(
+                f"Failed to download FEVER dev set from {url} and no cached processed file exists at {out_path}: {e}"
+            ) from e
 
     records: List[Dict[str, Any]] = []
     with open(raw_jsonl_path, "r", encoding="utf-8") as f:

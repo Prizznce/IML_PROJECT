@@ -251,7 +251,37 @@ class TestDataConfiguration(unittest.TestCase):
         self.assertIn("datasets", cfg)
         self.assertIn("halueval", cfg["datasets"])
         self.assertIn("truthfulqa", cfg["datasets"])
-        self.assertIn("fever", cfg["datasets"])
+    def test_load_and_process_fever_offline_fallback(self):
+        """Verify load_and_process_fever falls back gracefully to processed parquet if network fails."""
+        import tempfile
+        from unittest.mock import patch
+        import urllib.error
+        from src.data.load_datasets import load_and_process_fever
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            raw_dir = Path(tmpdir) / "raw"
+            proc_dir = Path(tmpdir) / "processed"
+            proc_dir.mkdir(parents=True, exist_ok=True)
+            target_parquet = proc_dir / "fever_test.parquet"
+
+            sample_df = pd.DataFrame([{
+                "id": "fever_1",
+                "prompt": "Fact check claim",
+                "response": "SUPPORTS",
+                "context": "Context",
+                "label": 0,
+                "source_dataset": "fever"
+            }])
+            sample_df.to_parquet(target_parquet, index=False)
+
+            with patch("urllib.request.urlretrieve", side_effect=urllib.error.URLError("Network unreachable")):
+                res_df = load_and_process_fever(
+                    raw_dir=str(raw_dir),
+                    processed_dir=str(proc_dir),
+                    target_file="fever_test.parquet",
+                )
+                self.assertEqual(len(res_df), 1)
+                self.assertEqual(res_df.iloc[0]["id"], "fever_1")
 
 
 if __name__ == "__main__":

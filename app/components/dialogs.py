@@ -92,7 +92,8 @@ def configure_infrastructure_dialog(cuda_available: bool, gpu_display: str, cpu_
         st.markdown('<div class="section-kicker">ACCELERATOR BACKEND</div>', unsafe_allow_html=True)
         if cuda_available:
             hw_options = [f"GPU: {gpu_display} (CUDA:0)", f"Host CPU: {cpu_display} (Fallback)"]
-            cur_hw_choice = 0 if "GPU" in st.session_state.get("hardware_choice", "GPU") else 1
+            hw_state = str(st.session_state.get("hardware_choice", "GPU"))
+            cur_hw_choice = 1 if (hw_state.startswith("Host CPU") or "Host CPU" in hw_state) else 0
             new_hw = st.radio(
                 "Hardware Acceleration",
                 options=hw_options,
@@ -105,6 +106,9 @@ def configure_infrastructure_dialog(cuda_available: bool, gpu_display: str, cpu_
                 <div style="font-size: 12px; color: var(--emerald-text); background: var(--emerald-bg);
                             border: 1px solid var(--emerald-border); border-radius: 6px; padding: 10px 12px; margin-top: 12px;">
                     ● <strong>GPU Accelerated:</strong> {gpu_display} (CUDA:0) ready for low-latency batch tensor ops.
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
+                    ℹ <em>Kernel Architecture:</em> PyTorch native execution active (linear attention & causal 1D conv reference kernels verified on Windows MSVC).
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -161,16 +165,16 @@ def configure_infrastructure_dialog(cuda_available: bool, gpu_display: str, cpu_
         st.markdown(
             f"""
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 14px; font-size: 11.5px;">
-                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; padding: 10px; text-align: center;">
-                    <div style="color: #34D399; font-weight: 700; margin-bottom: 3px;">FAITHFUL</div>
+                <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 6px; padding: 10px; text-align: center;">
+                    <div style="color: var(--emerald-text); font-weight: 700; margin-bottom: 3px;">FAITHFUL</div>
                     <div style="color: var(--text-secondary); font-family: var(--font-mono);">&lt; {new_t_low}%</div>
                 </div>
-                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 10px; text-align: center;">
-                    <div style="color: #FBBF24; font-weight: 700; margin-bottom: 3px;">INDETERMINATE</div>
+                <div style="background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 6px; padding: 10px; text-align: center;">
+                    <div style="color: var(--amber-text); font-weight: 700; margin-bottom: 3px;">INDETERMINATE</div>
                     <div style="color: var(--text-secondary); font-family: var(--font-mono);">{new_t_low}% – {new_t_high}%</div>
                 </div>
-                <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 6px; padding: 10px; text-align: center;">
-                    <div style="color: #FB7185; font-weight: 700; margin-bottom: 3px;">HIGH RISK</div>
+                <div style="background: var(--rose-bg); border: 1px solid var(--rose-border); border-radius: 6px; padding: 10px; text-align: center;">
+                    <div style="color: var(--rose-text); font-weight: 700; margin-bottom: 3px;">HIGH RISK</div>
                     <div style="color: var(--text-secondary); font-family: var(--font-mono);">&ge; {new_t_high}%</div>
                 </div>
             </div>

@@ -332,6 +332,16 @@ def generate_primary_response(
     enc = tokenizer(model_input, return_tensors="pt")
     input_ids = enc.input_ids.to(target_dev)
     attention_mask = enc.attention_mask.to(target_dev) if hasattr(enc, "attention_mask") and enc.attention_mask is not None else None
+    bos_id = getattr(tokenizer, "bos_token_id", None)
+    if (
+        bos_id is not None
+        and input_ids.shape[1] >= 2
+        and input_ids[0, 0] == bos_id
+        and input_ids[0, 1] == bos_id
+    ):
+        input_ids = input_ids[:, 1:]
+        if attention_mask is not None:
+            attention_mask = attention_mask[:, 1:]
     input_len = input_ids.shape[1]
 
     is_sampling = bool(temperature > 0.0)
@@ -1077,6 +1087,7 @@ def run_live_inference(
         prompt=clean_prompt,
         context=clean_context,
         device=actual_device,
+        max_new_tokens=max_new_tokens,
     )
     t_sc_total = (time.perf_counter() - t0_s5_7) * 1000.0
     sc_gen_ms = sc_features.pop("_sc_generation_ms", None)

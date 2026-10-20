@@ -1,61 +1,7 @@
 
 import streamlit as st
 
-THEME_VARS_LIGHT = """
-    --bg-canvas: #F8FAFC;
-    --bg-surface: #FFFFFF;
-    --bg-surface-elevated: #F1F5F9;
-    --bg-surface-hover: #E2E8F0;
-    --bg-surface-active: #CBD5E1;
-    --border-subtle: rgba(15, 23, 42, 0.08);
-    --border-medium: rgba(15, 23, 42, 0.16);
-    --border-strong: rgba(15, 23, 42, 0.28);
-    --brand-primary: #2563EB;
-    --brand-primary-light: #1D4ED8;
-    --brand-primary-glow: rgba(37, 99, 235, 0.15);
-    --brand-indigo: var(--brand-primary);
-    --brand-indigo-light: #1D4ED8;
-    --brand-indigo-glow: var(--brand-primary-glow);
-    --emerald-text: #059669;
-    --emerald-bg: rgba(16, 185, 129, 0.12);
-    --emerald-border: rgba(16, 185, 129, 0.35);
-    --emerald-glow: rgba(16, 185, 129, 0.2);
-    --amber-text: #D97706;
-    --amber-bg: rgba(245, 158, 11, 0.12);
-    --amber-border: rgba(245, 158, 11, 0.35);
-    --rose-text: #E11D48;
-    --rose-bg: rgba(244, 63, 94, 0.12);
-    --rose-border: rgba(244, 63, 94, 0.35);
-    --cyan-text: #0284C7;
-    --cyan-bg: rgba(56, 189, 248, 0.12);
-    --cyan-border: rgba(56, 189, 248, 0.35);
-    --text-primary: #0F172A;
-    --text-secondary: #334155;
-    --text-muted: #64748B;
-    --text-dim: #94A3B8;
-    --sidebar-bg: #FFFFFF;
-    --sidebar-border: rgba(15, 23, 42, 0.1);
-    --title-gradient: linear-gradient(135deg, #0F172A 20%, #1D4ED8 100%);
-    --header-color: #0F172A;
-    --card-bg: #FFFFFF;
-    --badge-zinc-bg: rgba(15, 23, 42, 0.06);
-    --badge-zinc-color: #334155;
-    --select-bg: #FFFFFF;
-    --select-text: #0F172A;
-    --select-border: rgba(15, 23, 42, 0.18);
-    --terminal-bg: #FFFFFF;
-    --terminal-topbar: #F1F5F9;
-    --terminal-text: #0F172A;
-    --terminal-title: #475569;
-    --track-bg: rgba(15, 23, 42, 0.08);
-    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
-    --card-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.09);
-    --badge-primary-text: #1D4ED8;
-    --badge-primary-bg: rgba(37, 99, 235, 0.10);
-    --badge-primary-border: rgba(37, 99, 235, 0.28);
-"""
-
-THEME_VARS_DARK = """
+THEME_VARS = """
     --bg-canvas: #07080B;
     --bg-surface: #0E1017;
     --bg-surface-elevated: #151823;
@@ -108,6 +54,9 @@ THEME_VARS_DARK = """
     --badge-primary-bg: rgba(59, 130, 246, 0.12);
     --badge-primary-border: rgba(59, 130, 246, 0.30);
 """
+
+THEME_VARS_DARK = THEME_VARS
+
 
 CUSTOM_CSS = """
 <style>
@@ -580,77 +529,7 @@ div:has(> div[data-testid="stHtml"]:empty) {
     min-height: 8px !important;
 }
 
-/* Sidebar Theme Selector (Compact Single-Row Toggle Button - Minimum Space) */
-[data-testid="stSidebar"] div[data-testid="stToggle"],
-[data-testid="stSidebar"] div[data-testid="stCheckbox"]:has(input[role="switch"]),
-[data-testid="stSidebar"] div[class*="st-key-theme_toggle"] {
-    margin: 2px 0 6px 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-}
 
-[data-testid="stSidebar"] div[data-testid="stToggle"] label,
-[data-testid="stSidebar"] div[data-testid="stCheckbox"]:has(input[role="switch"]) label,
-[data-testid="stSidebar"] div[class*="st-key-theme_toggle"] label {
-    display: flex !important;
-    flex-direction: row-reverse !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    min-height: 38px !important;
-    height: 38px !important;
-    padding: 0 12px !important;
-    background: var(--bg-surface-elevated) !important;
-    border: 1px solid var(--border-subtle) !important;
-    border-radius: 6px !important;
-    cursor: pointer !important;
-    box-sizing: border-box !important;
-    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-[data-testid="stSidebar"] div[data-testid="stToggle"] label:hover,
-[data-testid="stSidebar"] div[data-testid="stCheckbox"]:has(input[role="switch"]) label:hover,
-[data-testid="stSidebar"] div[class*="st-key-theme_toggle"] label:hover {
-    background: var(--bg-surface-hover) !important;
-    border-color: var(--border-medium) !important;
-    transform: translateX(1px) !important;
-}
-
-[data-testid="stSidebar"] div[data-testid="stToggle"] label [data-testid="stMarkdownContainer"] p,
-[data-testid="stSidebar"] div[data-testid="stCheckbox"]:has(input[role="switch"]) label [data-testid="stMarkdownContainer"] p,
-[data-testid="stSidebar"] div[class*="st-key-theme_toggle"] label [data-testid="stMarkdownContainer"] p {
-    font-size: 13.5px !important;
-    font-weight: 500 !important;
-    color: var(--text-primary) !important;
-    margin: 0 !important;
-    letter-spacing: -0.01em !important;
-}
-
-/* Fallback stRadio if used */
-[data-testid="stSidebar"] div[data-testid="stRadio"] {
-    margin-bottom: 4px !important;
-}
-
-[data-testid="stSidebar"] div[data-testid="stRadio"] > div[role="radiogroup"] {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 3px !important;
-    background: var(--bg-surface-elevated) !important;
-    border: 1px solid var(--border-subtle) !important;
-    border-radius: 6px !important;
-    padding: 2px !important;
-}
-
-[data-testid="stSidebar"] div[data-testid="stRadio"] label {
-    flex: 1 1 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 4px 6px !important;
-    border-radius: 4px !important;
-    cursor: pointer !important;
-    margin: 0 !important;
-}
 
 .sidebar-profile-section {
     margin-top: auto !important;
@@ -2987,9 +2866,8 @@ pre {
 </style>
 """
 
-def apply_custom_styles(theme_choice: str = "Dark Mode"):
+def apply_custom_styles(*args, **kwargs):
     """
-    Inject dynamic CSS variables and unified Linear/Railway stylesheet.
+    Inject dark mode theme variables and unified Linear/Railway stylesheet.
     """
-    theme_vars = THEME_VARS_LIGHT if theme_choice == "Light Mode" else THEME_VARS_DARK
-    st.markdown(f"<style>:root {{\n{theme_vars}\n}}</style>\n" + CUSTOM_CSS, unsafe_allow_html=True)
+    st.markdown(f"<style>:root {{\n{THEME_VARS}\n}}</style>\n" + CUSTOM_CSS, unsafe_allow_html=True)

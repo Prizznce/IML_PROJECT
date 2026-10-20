@@ -25,9 +25,8 @@ NAV_ITEMS: List[Tuple[str, str, str]] = [
 
 def render_sidebar():
     """
-    Render reconstructed 6-item navigation sidebar with Appearance Theme switcher.
-    Adheres strictly to the required items, clean typography, consistent icons,
-    developer telemetry chip, and bottom-anchored profile navigation.
+    Render reconstructed 6-item navigation sidebar with clean typography,
+    consistent icons, and bottom-anchored profile navigation.
     """
     if "active_nav" not in st.session_state:
         st.session_state["active_nav"] = "Detector"
@@ -110,29 +109,7 @@ def render_sidebar():
             unsafe_allow_html=True,
         )
 
-        # Appearance: Minimal Single-Row Theme Toggle
-        st.markdown(
-            '<div class="sidebar-section-label" style="margin-top: 4px; margin-bottom: 3px;">APPEARANCE</div>',
-            unsafe_allow_html=True,
-        )
 
-        cur_theme = st.session_state.get("theme_choice", "Dark Mode")
-        target_theme = "Light Mode" if cur_theme == "Dark Mode" else "Dark Mode"
-        toggle_key = f"theme_toggle_{'light' if cur_theme == 'Dark Mode' else 'dark'}"
-
-        if toggle_key in st.session_state and st.session_state[toggle_key]:
-            del st.session_state[toggle_key]
-
-        def _on_theme_toggled():
-            st.session_state["theme_choice"] = target_theme
-
-        st.toggle(
-            target_theme,
-            value=False,
-            key=toggle_key,
-            on_change=_on_theme_toggled,
-            help=f"Switch appearance to {target_theme}",
-        )
 
         # Profile / Operator Section
         st.markdown(

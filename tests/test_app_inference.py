@@ -664,13 +664,13 @@ def test_perplexity_mathematical_definition_and_bounds():
     assert sig_med.perplexity < sig_uniform.perplexity
 
 
-def test_light_mode_styles_validity():
-    """Verify that light mode and dark mode CSS declarations have balanced brackets and valid tokens."""
-    from app.styles import THEME_VARS_LIGHT, THEME_VARS_DARK, CUSTOM_CSS
+def test_dark_mode_styles_validity():
+    """Verify that dark mode CSS declarations have balanced brackets and valid tokens."""
+    from app.styles import THEME_VARS, THEME_VARS_DARK, CUSTOM_CSS
 
     # Check balanced curly braces
     for sheet_name, sheet_content in [
-        ("THEME_VARS_LIGHT", THEME_VARS_LIGHT),
+        ("THEME_VARS", THEME_VARS),
         ("THEME_VARS_DARK", THEME_VARS_DARK),
         ("CUSTOM_CSS", CUSTOM_CSS),
     ]:
@@ -678,7 +678,7 @@ def test_light_mode_styles_validity():
         close_braces = sheet_content.count("}")
         assert open_braces == close_braces, f"Brace mismatch in {sheet_name}: {open_braces} open vs {close_braces} close"
 
-    # Verify key tokens exist in THEME_VARS_LIGHT
+    # Verify key tokens exist in THEME_VARS
     required_tokens = [
         "--bg-canvas",
         "--bg-surface",
@@ -693,7 +693,7 @@ def test_light_mode_styles_validity():
         "--badge-primary-text",
     ]
     for tok in required_tokens:
-        assert tok in THEME_VARS_LIGHT, f"Missing token {tok} in THEME_VARS_LIGHT"
+        assert tok in THEME_VARS, f"Missing token {tok} in THEME_VARS"
         assert tok in THEME_VARS_DARK, f"Missing token {tok} in THEME_VARS_DARK"
 
 

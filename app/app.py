@@ -43,11 +43,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-
-if "theme_choice" not in st.session_state:
-    st.session_state["theme_choice"] = "Dark Mode"
-
-apply_custom_styles(st.session_state.get("theme_choice", "Dark Mode"))
+apply_custom_styles()
 
 # ==============================================================================
 # 2. Session State & Infrastructure Runtime Resolution
@@ -91,7 +87,7 @@ threshold_high = st.session_state["threshold_high"]
 active_specs = get_model_specs(selected_model_name)
 
 # ==============================================================================
-# 3. Sidebar (Identity, Audit History, Theme Toggle)
+# 3. Sidebar (Identity, Navigation, Profile)
 # ==============================================================================
 
 render_sidebar()

@@ -2,25 +2,50 @@
 Empirical Model Validation & Multi-Task Benchmark Proof Components.
 """
 
+from contextlib import nullcontext
 import pandas as pd
 import streamlit as st
 
 
-def render_benchmark_proof():
+def render_validation_results(expanded: bool = True, as_expander: bool = False):
     """
     Render certified holdout evaluation matrices, multi-model benchmarks,
-    ECE calibration curves, ablation studies, and production specifications.
+    ECE calibration curves, ablation studies, and retrieval grounding synergy.
     """
-    st.markdown("<hr style='margin: 24px 0 24px 0;'>", unsafe_allow_html=True)
-    
-    with st.expander("Validation Results (4,000-Sample Holdout Audit)", expanded=False):
+    if as_expander:
+        st.markdown("<hr style='margin: 16px 0 20px 0;'>", unsafe_allow_html=True)
+        container = st.expander("Validation Results (4,000-Sample Holdout Audit)", expanded=expanded)
+    else:
+        container = nullcontext()
+
+    with container:
+        if not as_expander:
+            st.markdown(
+                """
+                <div class="about-tab-header">
+                    <h3 class="about-tab-title">Validation Results (4,000-Sample Holdout Audit)</h3>
+                    <p class="about-tab-desc">
+                        To ensure production-grade reliability and eliminate spurious heuristics, this detector has been rigorously validated
+                        across multiple frontier open-weight LLMs, comprehensive ablation matrices, leave-one-domain-out stress tests,
+                        and strict probability calibration protocols on a standardized, stratified holdout test set (balanced 50% faithful / 50% hallucinated across HaluEval, TruthfulQA, and FEVER).
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                """
+                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
+                    To ensure production-grade reliability and eliminate spurious heuristics, this detector has been rigorously validated
+                    across multiple frontier open-weight LLMs, comprehensive ablation matrices, leave-one-domain-out stress tests,
+                    and strict probability calibration protocols on a standardized, stratified holdout test set (balanced 50% faithful / 50% hallucinated across HaluEval, TruthfulQA, and FEVER).
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
         st.markdown(
             """
-            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
-                To ensure production-grade reliability and eliminate spurious heuristics, this detector has been rigorously validated
-                across multiple frontier open-weight LLMs, comprehensive ablation matrices, leave-one-domain-out stress tests,
-                and strict probability calibration protocols on a standardized, stratified holdout test set (balanced 50% faithful / 50% hallucinated across HaluEval, TruthfulQA, and FEVER).
-            </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 18px;">
                 <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 7px; padding: 10px 14px;">
                     <div style="font-family: var(--font-mono); font-size: 11px; color: var(--brand-indigo-light); font-weight: 600;">CROSS-ARCHITECTURE VALIDATION</div>
@@ -173,18 +198,39 @@ def render_benchmark_proof():
                 {"Condition": "Condition E (Universal Core + Retrieval)", "Features": 25, "Model": "XGBoost", "Accuracy": "81.20%", "F1": "0.8178", "ROC-AUC": "0.9169", "PR-AUC": "0.9201", "Brier": "0.1185", "ECE": "0.0518"},
             ]
             st.dataframe(pd.DataFrame(retrieval_data), width="stretch", hide_index=True)
-    
-    
-    # ==============================================================================
-    # 14. Production Verification Pipeline Specification
-    # ==============================================================================
-    
-    with st.expander("Verification Pipeline & Architecture (15 Stages)", expanded=False):
-        st.markdown("""
+
+
+def render_verification_pipeline(expanded: bool = True, as_expander: bool = False):
+    """
+    Render the 15-stage neural verification pipeline specification,
+    architecture diagram, execution steps, and anti-confounder policy.
+    """
+    if as_expander:
+        container = st.expander("Verification Pipeline & Architecture (15 Stages)", expanded=expanded)
+    else:
+        container = nullcontext()
+
+    with container:
+        if not as_expander:
+            st.markdown(
+                """
+                <div class="about-tab-header">
+                    <h3 class="about-tab-title">15-Stage Neural Verification Architecture</h3>
+                    <p class="about-tab-desc">
+                        Every inference query undergoes 15 orchestrated inspection stages, extracting log-probability curvature, predictive Shannon entropy, token rank dispersion, stochastic self-consistency divergence (k=5), and bi-directional cross-encoder NLI contradiction passes — all executed in sub-second to low-second latency with strict anti-shortcut feature isolation.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown("""
     ### Enterprise Neural Verification Architecture
     
     Every inference query undergoes 15 orchestrated inspection stages, extracting log-probability curvature, predictive Shannon entropy, token rank dispersion, stochastic self-consistency divergence (k=5), and bi-directional cross-encoder NLI contradiction passes — all executed in sub-second to low-second latency with strict anti-shortcut feature isolation.
-    
+            """)
+
+        st.markdown("""
     ```
                            User Question + Optional Context
                                           │
@@ -271,3 +317,12 @@ def render_benchmark_proof():
     - **Context & Prompt Leakage Prevention**: Prompt text, dataset origins, raw IDs, and benchmark labels are completely withheld from the classifier.
     - **Hardware Optimization**: High-throughput execution in bfloat16/float16 precision with PyTorch CUDA tensor acceleration on GPU with automatic CPU fallback.
         """)
+
+
+def render_benchmark_proof(expanded: bool = True):
+    """
+    Render certified holdout evaluation matrices and validation results.
+    Focused exclusively on validation results (4,000-sample holdout audit).
+    """
+    render_validation_results(expanded=expanded, as_expander=True)
+

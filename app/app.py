@@ -27,7 +27,11 @@ from app.components.sidebar import render_sidebar
 from app.components.header import render_header, render_infrastructure_strip
 from app.components.controls import render_input_controls
 from app.components.dashboard import render_dashboard
-from app.components.benchmarks import render_benchmark_proof
+from app.components.about import render_about_view
+from app.components.history import render_history_view
+from app.components.benchmarkmode import render_benchmark_mode
+from app.components.system_health import render_system_health_view
+from app.session import init_session, record_detector_activity
 
 # ==============================================================================
 # 1. Page Configuration & Custom Design System
@@ -37,7 +41,7 @@ st.set_page_config(
     page_title="VERITAS · Neural Hallucination Observability Platform",
     page_icon="◈",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 if "theme_choice" not in st.session_state:
@@ -57,27 +61,8 @@ if "threshold_high" not in st.session_state:
     st.session_state["threshold_high"] = 65
 if "hardware_choice" not in st.session_state:
     st.session_state["hardware_choice"] = "auto"
-if "history" not in st.session_state:
-    st.session_state["history"] = [
-        {
-            "prompt": "Who was the first person to walk on the Moon?",
-            "full_prompt": "Who was the first person to walk on the Moon?",
-            "full_context": "",
-            "model": "Qwen 3.5 (0.8B)",
-            "risk_pct": 8.4,
-            "tier": "Faithful",
-            "time": "10:14 AM",
-        },
-        {
-            "prompt": "Who was the first human to walk on Mars?",
-            "full_prompt": "Who was the first human to walk on Mars?",
-            "full_context": "",
-            "model": "Qwen 3.5 (0.8B)",
-            "risk_pct": 79.2,
-            "tier": "High Risk",
-            "time": "10:22 AM",
-        },
-    ]
+# Session lifecycle: unique session ID and empty history initialization
+init_session()
 
 # Hardware resolution
 hardware = get_hardware_info()
@@ -112,107 +97,143 @@ active_specs = get_model_specs(selected_model_name)
 render_sidebar()
 
 # ==============================================================================
-# 4. Main Canvas: Header & Infrastructure Quick Strip
+# 4. View Router & Navigation Dispatch
 # ==============================================================================
 
-render_header(
-    selected_model_name=selected_model_name,
-    cuda_available=cuda_available,
-    selected_device=selected_device,
-    gpu_name=gpu_name,
-    cpu_name=cpu_name,
-    cpu_display=cpu_display,
-    active_specs=active_specs,
-    threshold_low=threshold_low,
-    threshold_high=threshold_high,
-    configure_dialog_fn=lambda: configure_infrastructure_dialog(
+if "active_nav" not in st.session_state:
+    st.session_state["active_nav"] = "Detector"
+
+active_nav = st.session_state["active_nav"]
+
+# ------------------------------------------------------------------------------
+# 1. DETECTOR (Primary Hallucination Observability & Defense Experience)
+# ------------------------------------------------------------------------------
+if active_nav == "Detector":
+    render_header(
+        selected_model_name=selected_model_name,
         cuda_available=cuda_available,
-        gpu_display=gpu_display,
+        selected_device=selected_device,
+        gpu_name=gpu_name,
+        cpu_name=cpu_name,
         cpu_display=cpu_display,
-    ),
-)
+        active_specs=active_specs,
+        threshold_low=threshold_low,
+        threshold_high=threshold_high,
+        configure_dialog_fn=lambda: configure_infrastructure_dialog(
+            cuda_available=cuda_available,
+            gpu_display=gpu_display,
+            cpu_display=cpu_display,
+        ),
+    )
 
-# ==============================================================================
-# 5. Interactive Input & Action Bar (Run Button + Engine Popover + Export Format)
-# ==============================================================================
+    analyze_clicked, prompt_text, context_text, is_evidence_mode = render_input_controls()
 
-analyze_clicked, prompt_text, context_text, is_evidence_mode = render_input_controls()
+    if analyze_clicked:
+        clean_p = prompt_text.strip()
+        if not clean_p:
+            st.warning("Please provide a prompt or select a sample preset before executing.")
+        else:
+            st.session_state["user_prompt"] = clean_p
+            st.session_state["user_context"] = context_text.strip()
 
-# ==============================================================================
-# 6. Live Pipeline Execution
-# ==============================================================================
-
-if analyze_clicked:
-    clean_p = prompt_text.strip()
-    if not clean_p:
-        st.warning("Please provide a prompt or select a sample preset before executing.")
-    else:
-        st.session_state["user_prompt"] = clean_p
-        st.session_state["user_context"] = context_text.strip()
-
-        with st.spinner("Executing 15-stage neural inference & consistency pipeline..."):
-            try:
-                cached_models = get_cached_models(model_id=active_model_id, target_device=selected_device)
-                result = run_live_inference(
-                    prompt=clean_p,
-                    context=context_text.strip() if context_text.strip() else None,
-                    device=selected_device,
-                    causal_model=cached_models["causal_model"],
-                    tokenizer=cached_models["tokenizer"],
-                    embedding_model=cached_models["embedding_model"],
-                    nli_model=cached_models["nli_model"],
-                    nli_label_indices=cached_models["nli_label_indices"],
-                    lr_pipeline=cached_models["lr_pipeline"],
-                    xgb_model=cached_models["xgb_model"],
-                    is_evidence_mode=is_evidence_mode,
-                    max_new_tokens=int(st.session_state.get("pref_max_tokens", 128)),
-                    temperature=float(st.session_state.get("pref_temperature", 0.0)),
-                )
-                st.session_state["inference_result"] = result
-
-                # Log to session audit history for sidebar tracking
+            with st.spinner("Executing 15-stage neural inference & consistency pipeline..."):
                 try:
-                    xgb_val = float(result.get("predicted_risk_xgb", result.get("xgb_hallucination_probability", 0.0)) or 0.0)
-                    pct_val = round(xgb_val * 100.0, 1)
-                    tier_label = (
-                        "Faithful"
-                        if pct_val < float(threshold_low)
-                        else ("High Risk" if pct_val >= float(threshold_high) else "Indeterminate")
+                    cached_models = get_cached_models(model_id=active_model_id, target_device=selected_device)
+                    result = run_live_inference(
+                        prompt=clean_p,
+                        context=context_text.strip() if context_text.strip() else None,
+                        device=selected_device,
+                        causal_model=cached_models["causal_model"],
+                        tokenizer=cached_models["tokenizer"],
+                        embedding_model=cached_models["embedding_model"],
+                        nli_model=cached_models["nli_model"],
+                        nli_label_indices=cached_models["nli_label_indices"],
+                        lr_pipeline=cached_models["lr_pipeline"],
+                        xgb_model=cached_models["xgb_model"],
+                        is_evidence_mode=is_evidence_mode,
+                        max_new_tokens=int(st.session_state.get("pref_max_tokens", 128)),
+                        temperature=float(st.session_state.get("pref_temperature", 0.0)),
                     )
-                    new_hist = {
-                        "prompt": clean_p[:45] + ("..." if len(clean_p) > 45 else ""),
-                        "full_prompt": clean_p,
-                        "full_context": context_text.strip() if context_text else "",
-                        "model": selected_model_name,
-                        "risk_pct": pct_val,
-                        "tier": tier_label,
-                        "time": datetime.datetime.now().strftime("%I:%M %p"),
-                    }
-                    if "history" not in st.session_state:
-                        st.session_state["history"] = []
-                    st.session_state["history"].insert(0, new_hist)
-                    st.session_state["history"] = st.session_state["history"][:20]
-                except Exception:
-                    pass
-            except Exception as exc:
-                st.error(f"Inference execution failed: {str(exc)}")
-                st.session_state["inference_result"] = None
+                    st.session_state["inference_result"] = result
 
-# ==============================================================================
-# 7. Telemetry HUD & Results Dashboard
-# ==============================================================================
+                    # Record detector activity into session audit history
+                    try:
+                        record_detector_activity(
+                            prompt=clean_p,
+                            result=result,
+                            context=context_text.strip() if context_text else None,
+                            model_name=selected_model_name,
+                            threshold_low=float(threshold_low),
+                            threshold_high=float(threshold_high),
+                            is_evidence_mode=is_evidence_mode,
+                        )
+                    except Exception as err:
+                        st.warning(f"Session history recording warning: {str(err)}")
+                except Exception as exc:
+                    st.error(f"Inference execution failed: {str(exc)}")
+                    st.session_state["inference_result"] = None
 
-render_dashboard(
-    res=st.session_state.get("inference_result"),
-    selected_model_name=selected_model_name,
-    active_model_id=active_model_id,
-    threshold_low=threshold_low,
-    threshold_high=threshold_high,
-    is_evidence_mode=is_evidence_mode,
-)
+    render_dashboard(
+        res=st.session_state.get("inference_result"),
+        selected_model_name=selected_model_name,
+        active_model_id=active_model_id,
+        threshold_low=threshold_low,
+        threshold_high=threshold_high,
+        is_evidence_mode=is_evidence_mode,
+    )
 
-# ==============================================================================
-# 8. Empirical Model Validation Results (Holdout Audit)
-# ==============================================================================
+# ------------------------------------------------------------------------------
+# 2. BENCHMARK MODE (Multi-Model Simultaneous Evaluation & Comparison)
+# ------------------------------------------------------------------------------
+elif active_nav == "Benchmark Mode":
+    render_benchmark_mode(
+        cuda_available=cuda_available,
+        selected_device=selected_device,
+        gpu_name=gpu_name,
+        cpu_name=cpu_name,
+        cpu_display=cpu_display,
+        threshold_low=threshold_low,
+        threshold_high=threshold_high,
+    )
 
-render_benchmark_proof()
+# ------------------------------------------------------------------------------
+# 3. SYSTEM HEALTH (Neural Runtime, Multi-Model Registry & Epistemic Telemetry)
+# ------------------------------------------------------------------------------
+elif active_nav == "System Health":
+    render_system_health_view(
+        selected_model_name=selected_model_name,
+        active_model_id=active_model_id,
+        threshold_low=threshold_low,
+        threshold_high=threshold_high,
+    )
+
+# ------------------------------------------------------------------------------
+# 4. HISTORY (Complete Session Detection Audit & Observability Dossier)
+# ------------------------------------------------------------------------------
+elif active_nav == "History":
+    render_history_view()
+
+# ------------------------------------------------------------------------------
+# 5. ABOUT (Comprehensive Platform & Empirical Validation Dossier)
+# ------------------------------------------------------------------------------
+elif active_nav == "About":
+    render_about_view()
+
+# ------------------------------------------------------------------------------
+# 7. PROFILE (Unimplemented Backend: Clean minimal structure, empty internal content)
+# ------------------------------------------------------------------------------
+elif active_nav == "Profile":
+    st.markdown(
+        """
+        <div class="linear-header">
+            <div class="linear-title-row">
+                <div>
+                    <h1 class="linear-title">Profile</h1>
+                </div>
+            </div>
+        </div>
+        <div class="empty-view-container"></div>
+        """,
+        unsafe_allow_html=True,
+    )
+

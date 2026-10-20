@@ -15,6 +15,7 @@ import pandas as pd
 import streamlit as st
 
 from app.inference import UNIVERSAL_CORE_FEATURES
+from app.session import calculate_confidence_score
 
 
 def render_idle_overview():
@@ -132,28 +133,42 @@ def render_dashboard(
     # 2. Risk Metrics & Dynamic HUD
     xgb_prob = float(res.get("predicted_risk_xgb", res.get("xgb_hallucination_probability", 0.0)) or 0.0)
     lr_prob = float(res.get("predicted_risk_lr", res.get("lr_hallucination_probability", 0.0)) or 0.0)
+    combined_prob = float(
+        res.get(
+            "predicted_risk_combined",
+            res.get("combined_hallucination_probability", (xgb_prob + lr_prob) / 2.0),
+        ) or 0.0
+    )
     xgb_pct = xgb_prob * 100.0
     lr_pct = lr_prob * 100.0
+    combined_pct = combined_prob * 100.0
+    conf_pct = calculate_confidence_score(combined_prob)
 
     low_cut = float(threshold_low)
     high_cut = float(threshold_high)
 
-    if xgb_pct < low_cut:
+    if combined_pct < low_cut:
         current_tier = "Low Risk (Faithful)"
         accent_color = "var(--emerald-text)"
         tier_bg = "var(--emerald-bg)"
         tier_border = "var(--emerald-border)"
         tier_badge = "live-badge-emerald"
         verdict_title = "FAITHFUL / LOW RISK"
-        verdict_desc = f"Posterior risk is safely below {low_cut:.0f}%. Internal log-probabilities and consistency probes demonstrate high stability."
-    elif xgb_pct >= high_cut:
+        verdict_desc = (
+            f"Combined posterior risk ({combined_pct:.1f}%) is safely below {low_cut:.0f}%. "
+            f"Dual decision core and consistency probes demonstrate high factual stability."
+        )
+    elif combined_pct >= high_cut:
         current_tier = "High Hallucination Risk"
         accent_color = "var(--rose-text)"
         tier_bg = "var(--rose-bg)"
         tier_border = "var(--rose-border)"
         tier_badge = "live-badge-rose"
         verdict_title = "ELEVATED RISK OF HALLUCINATION"
-        verdict_desc = f"Posterior risk exceeds {high_cut:.0f}%. Internal token rank entropy or NLI cross-encoder detected significant uncertainty or contradiction."
+        verdict_desc = (
+            f"Combined posterior risk ({combined_pct:.1f}%) exceeds {high_cut:.0f}%. "
+            f"Dual decision core, internal token entropy, or cross-encoder probes detected significant uncertainty."
+        )
     else:
         current_tier = "Moderate Risk (Uncertain)"
         accent_color = "var(--amber-text)"
@@ -161,7 +176,10 @@ def render_dashboard(
         tier_border = "var(--amber-border)"
         tier_badge = "live-badge-amber"
         verdict_title = "BORDERLINE UNCERTAINTY"
-        verdict_desc = f"Risk falls in the intermediate band ({low_cut:.0f}%–{high_cut:.0f}%). Stochastic probes show partial semantic divergence."
+        verdict_desc = (
+            f"Combined posterior risk ({combined_pct:.1f}%) falls in the intermediate band ({low_cut:.0f}%–{high_cut:.0f}%). "
+            f"Stochastic probes show partial semantic divergence."
+        )
 
     delta_diff = lr_pct - xgb_pct
     delta_str = f"{delta_diff:+.1f}% vs XGB"
@@ -181,63 +199,129 @@ def render_dashboard(
     timing_data = res.get("stage_latencies_ms", res.get("timing_ms", {}))
     total_elapsed = res.get("total_latency_ms", sum(timing_data.values()) if timing_data else 0.0)
 
-    # 3. Core Telemetry HUD Cards
-    m_col1, m_col2, m_col3, m_col4 = st.columns([1.0, 1.0, 1.6, 1.0])
+    # 3. Core Telemetry HUD (Tier 1: Combined Decision Core | Tier 2: Model & Logit Signals)
+    # Tier 1: Primary Decision Verdict & Combined Posterior Risk
+    h_col1, h_col2 = st.columns([1.1, 1.4], gap="medium")
 
-    with m_col1:
-        st.metric(
-            label="XGBoost Risk Score",
-            value=f"{xgb_pct:.1f}%",
-            help="Primary non-linear gradient-boosted tree ensemble risk score (Phase 14 Universal Core).",
-        )
-
-    with m_col2:
-        st.metric(
-            label="Logistic Regression Baseline",
-            value=f"{lr_pct:.1f}%",
-            delta=delta_str,
-            delta_color="off",
-            help="Standardized linear decision baseline probability comparison vs XGBoost (Phase 14 Universal Core).",
-        )
-
-    with m_col3:
+    with h_col1:
         st.markdown(
             f"""
-            <div style="background: {tier_bg}; border: 1px solid {tier_border}; border-radius: 8px; padding: 12px 14px; min-height: 104px; display: flex; flex-direction: column; justify-content: space-between;">
-                <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
-                    DECISION VERDICT
+            <div class="hud-card" style="border-left: 3.5px solid {accent_color}; min-height: 110px;">
+                <div class="hud-label-row">
+                    <span class="hud-label">COMBINED POSTERIOR RISK</span>
+                    <span class="live-badge {tier_badge}" style="font-size: 10px; padding: 1.5px 7px;">DUAL CORE</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {accent_color}; box-shadow: 0 0 10px {accent_color}; flex-shrink: 0;"></span>
-                    <span style="font-size: 17px; font-weight: 700; color: {accent_color}; letter-spacing: -0.015em; line-height: 1.25;">
-                        {current_tier}
+                <div class="hud-value-row" style="margin: 4px 0;">
+                    <span class="hud-value" style="font-size: 32px; color: {accent_color};">{combined_pct:.1f}%</span>
+                    <span class="live-badge live-badge-primary" style="font-size: 11px; padding: 2px 8px; margin-left: 6px;">
+                        {conf_pct:.1f}% CONFIDENCE
                     </span>
                 </div>
-                <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); line-height: 1.35;">
-                    {verdict_title} (Band: &lt;{low_cut:.0f}% / &ge;{high_cut:.0f}%)
+                <div class="hud-desc" style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                    <span>Calibrated Ensemble (XGBoost + LR)</span>
+                    <span>{temp_str}</span>
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    with m_col4:
-        st.metric(
-            label="Predictive Uncertainty",
-            value=f"{mean_ent:.3f} nats",
-            delta=f"Perplexity: {raw_ppl:.2f}",
-            delta_color="off",
-            help="Mean predictive Shannon entropy across sequence tokens and sequence perplexity (exp of negative log-likelihood, >= 1.0).",
+    with h_col2:
+        st.markdown(
+            f"""
+            <div class="hud-card" style="background: {tier_bg}; border: 1px solid {tier_border}; border-left: 4px solid {accent_color}; min-height: 110px;">
+                <div class="hud-label-row">
+                    <span class="hud-label" style="color: var(--text-muted);">DECISION VERDICT</span>
+                    <span class="live-badge {tier_badge}" style="font-size: 10px; padding: 1.5px 7px;">{verdict_title}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {accent_color}; box-shadow: 0 0 10px {accent_color}; flex-shrink: 0;"></span>
+                    <span style="font-size: 20px; font-weight: 700; color: {accent_color}; letter-spacing: -0.015em;">
+                        {current_tier}
+                    </span>
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); line-height: 1.35;">
+                    Active Band: &lt;{low_cut:.0f}% (Faithful) · {low_cut:.0f}%–{high_cut:.0f}% (Uncertain) · &ge;{high_cut:.0f}% (High Risk)
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
-    # 4. Decision Rationale Callout
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
+    # Tier 2: Component Model & Predictive Uncertainty Telemetry (3 Wide Columns)
+    s_col1, s_col2, s_col3 = st.columns(3, gap="medium")
+
+    with s_col1:
+        st.markdown(
+            f"""
+            <div class="hud-card" style="min-height: 98px;">
+                <div class="hud-label-row">
+                    <span class="hud-label">XGBOOST RISK SCORE</span>
+                    <span class="hud-tag">TREE SHAP</span>
+                </div>
+                <div class="hud-value-row">
+                    <span class="hud-value">{xgb_pct:.1f}%</span>
+                </div>
+                <div class="hud-desc" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">
+                    Phase 14 Universal Core (19 Features)
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with s_col2:
+        st.markdown(
+            f"""
+            <div class="hud-card" style="min-height: 98px;">
+                <div class="hud-label-row">
+                    <span class="hud-label">LOGISTIC REGRESSION</span>
+                    <span class="hud-tag">BASELINE</span>
+                </div>
+                <div class="hud-value-row">
+                    <span class="hud-value">{lr_pct:.1f}%</span>
+                    <span class="hud-delta" style="color: var(--text-secondary); margin-left: 6px;">{delta_str}</span>
+                </div>
+                <div class="hud-desc" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">
+                    Standardized Linear Baseline vs XGBoost
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with s_col3:
+        st.markdown(
+            f"""
+            <div class="hud-card" style="min-height: 98px;">
+                <div class="hud-label-row">
+                    <span class="hud-label">PREDICTIVE UNCERTAINTY</span>
+                    <span class="hud-tag">LOGITS</span>
+                </div>
+                <div class="hud-value-row">
+                    <span class="hud-value">{mean_ent:.3f} <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">nats</span></span>
+                </div>
+                <div class="hud-desc" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">
+                    Perplexity: <strong>{raw_ppl:.2f}</strong> (exp of NLL)
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    # 4. Decision Rationale Callout Strip
     st.markdown(
         f"""
         <div style="background: {tier_bg}; border: 1px solid {tier_border}; border-left: 4px solid {accent_color};
                     border-radius: 6px; padding: 10px 14px; margin: 10px 0 18px 0; font-size: 12.5px; line-height: 1.5;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
                 <strong style="color: {accent_color}; font-size: 13px;">{verdict_title}</strong>
-                <span class="live-badge {tier_badge}" style="font-size: 10px; padding: 1px 6px;">{xgb_pct:.1f}% POSTERIOR RISK</span>
+                <span class="live-badge {tier_badge}" style="font-size: 10px; padding: 1.5px 7px;">{combined_pct:.1f}% COMBINED POSTERIOR RISK</span>
+                <span class="live-badge live-badge-zinc" style="font-size: 10px; padding: 1.5px 7px;">XGB: {xgb_pct:.1f}%</span>
+                <span class="live-badge live-badge-zinc" style="font-size: 10px; padding: 1.5px 7px;">LR: {lr_pct:.1f}%</span>
+                <span class="live-badge live-badge-primary" style="font-size: 10px; padding: 1.5px 7px;">CONFIDENCE: {conf_pct:.1f}%</span>
                 <span style="font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); margin-left: auto;">PIPELINE: {total_elapsed/1000.0:.2f}s (15 STAGES)</span>
             </div>
             <div style="color: var(--text-secondary);">
@@ -247,6 +331,7 @@ def render_dashboard(
         """,
         unsafe_allow_html=True,
     )
+
 
     # ==========================================================================
     # 5. Deep-Dive Diagnostic Telemetry Tabs (Organized & Intuitive)
@@ -634,6 +719,9 @@ def render_dashboard(
             "context": st.session_state.get("user_context", ""),
             "generated_response": res["generated_response"],
             "risk_verdict": {
+                "combined_probability": combined_prob,
+                "combined_risk_pct": combined_pct,
+                "confidence_score": conf_pct,
                 "xgb_probability": xgb_prob,
                 "lr_probability": lr_prob,
                 "tier": current_tier,
@@ -653,6 +741,9 @@ def render_dashboard(
                 export_df = pd.DataFrame([{
                     "prompt": user_prompt_val,
                     "generated_response": res["generated_response"],
+                    "combined_probability": combined_prob,
+                    "combined_risk_pct": combined_pct,
+                    "confidence_score": conf_pct,
                     "xgb_probability": xgb_prob,
                     "lr_probability": lr_prob,
                     "risk_tier": current_tier,
@@ -671,6 +762,9 @@ def render_dashboard(
                 export_df = pd.DataFrame([{
                     "prompt": user_prompt_val,
                     "generated_response": res["generated_response"],
+                    "combined_probability": combined_prob,
+                    "combined_risk_pct": combined_pct,
+                    "confidence_score": conf_pct,
                     "xgb_probability": xgb_prob,
                     "lr_probability": lr_prob,
                     "risk_tier": current_tier,
@@ -700,6 +794,8 @@ def render_dashboard(
             ### Hallucination Observability & Risk Report
             - **Model**: `{active_model_id}`
             - **Verdict**: {current_tier}
+            - **Combined Risk**: {combined_pct:.1f}%
+            - **Calibrated Confidence**: {conf_pct:.1f}%
             - **XGBoost Risk**: {xgb_pct:.1f}%
             - **Logistic Regression Risk**: {lr_pct:.1f}%
             - **Prompt**: "{user_prompt_val}"

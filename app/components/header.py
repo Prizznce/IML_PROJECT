@@ -37,17 +37,14 @@ def render_header(
         if not re.search(r'\(\s*\d+(\.\d+)?[BMK]?\s*\)', selected_model_name, re.IGNORECASE):
             engine_display = f"{selected_model_name} ({p_count})"
 
-    # Header Top Bar & Title
+    # Header Top Bar & Title (Compact, space-efficient hierarchy)
     st.markdown(
         f"""
         <div class="linear-header">
-            <div class="linear-breadcrumbs">
-                <span>VERITAS</span> / <span>NEURAL OBSERVABILITY</span> / <span class="active">HALLUCINATION-DEFENSE v2.4</span>
-            </div>
             <div class="linear-title-row">
                 <div>
-                    <h1 class="linear-title">Neural Hallucination Observability</h1>
-                    <p class="linear-subtitle" style="margin-top: 4px; margin-bottom: 0;">
+                    <h1 class="linear-title">Hallucination Detector</h1>
+                    <p class="linear-subtitle">
                         White-box generation dynamics, stochastic self-consistency probing, and cross-encoder agreement without length shortcut bias.
                     </p>
                 </div>
@@ -57,40 +54,44 @@ def render_header(
         unsafe_allow_html=True,
     )
 
-    # Consolidated Infrastructure & Telemetry Status Strip (Semantically Grouped)
-    st_col1, st_col2 = st.columns([4.2, 1.2], gap="small")
+    # Simplified Engine & Runtime Section: Live Status Chips (Row 1) & Config Details (Row 2)
+    st_col1, st_col2 = st.columns([4.4, 0.95], gap="small", vertical_alignment="center")
 
     with st_col1:
         st.markdown(
             f"""
-            <div class="status-bar-container" style="margin-bottom: 14px;">
-                <div class="status-group">
-                    <span class="status-group-label">ENGINE &amp; RUNTIME:</span>
-                    <span class="live-badge live-badge-emerald">
-                        <span class="pulse-dot"></span>
-                        {engine_display}
-                    </span>
-                    <span class="live-badge {dev_badge_class}">
-                        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:{dev_dot_color}; margin-right:2px;"></span>
-                        {dev_label}
-                    </span>
+            <div class="telemetry-panel">
+                <!-- Primary Row: Live Engine & Hardware Runtime -->
+                <div class="telemetry-runtime-row">
+                    <div class="telemetry-runtime-chips">
+                        <span class="telemetry-kicker">LIVE RUNTIME</span>
+                        <span class="live-badge live-badge-emerald" title="Active causal model engine">
+                            <span class="pulse-dot"></span>
+                            {engine_display}
+                        </span>
+                        <span class="live-badge {dev_badge_class}" title="Compute execution hardware">
+                            <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:{dev_dot_color}; margin-right:2px;"></span>
+                            {dev_label}
+                        </span>
+                        <span class="live-badge live-badge-emerald live-badge-status-pill">
+                            READY
+                        </span>
+                    </div>
                 </div>
-                <div class="status-divider"></div>
-                <div class="status-group">
-                    <span class="status-group-label">CONFIG:</span>
-                    <span class="live-badge live-badge-primary">
-                        19-FEATURE CORE
-                    </span>
-                    <span class="live-badge live-badge-primary">
-                        &lt;{threshold_low}% / &ge;{threshold_high}%
-                    </span>
-                </div>
-                <div class="status-divider"></div>
-                <div class="status-group">
-                    <span class="status-group-label">CALIBRATION:</span>
-                    <span class="live-badge live-badge-zinc">
-                        N=4,000 HOLDOUT
-                    </span>
+                <!-- Secondary Row: Static Configuration & Calibration Values -->
+                <div class="telemetry-config-row">
+                    <div class="telemetry-config-chips">
+                        <span class="telemetry-kicker-secondary">SYSTEM CONFIG</span>
+                        <span class="config-chip" title="Feature extraction taxonomy dimension">
+                            TAXONOMY: 19-FEATURE CORE
+                        </span>
+                        <span class="config-chip" title="Active decision thresholds">
+                            RISK THRESHOLDS: &lt;{threshold_low}% / &ge;{threshold_high}%
+                        </span>
+                        <span class="config-chip" title="Holdout calibration benchmark size">
+                            CALIBRATION: N=4,000 HOLDOUT
+                        </span>
+                    </div>
                 </div>
             </div>
             """,
@@ -99,7 +100,7 @@ def render_header(
 
     with st_col2:
         if configure_dialog_fn:
-            if st.button("Configure Engine", width="stretch", help="Switch model, compute device, or adjust risk thresholds"):
+            if st.button("Configure", key="btn_cfg_engine", icon=":material/tune:", help="Switch model, compute device, or adjust risk thresholds", use_container_width=True):
                 configure_dialog_fn()
 
     if not cuda_available:

@@ -284,7 +284,10 @@ def record_benchmark_activity(
     best_model_name = model_summaries[0]["model_name"] if model_summaries else "N/A"
     best_model_risk = model_summaries[0]["combined_risk_pct"] if model_summaries else 0.0
 
-    if any(m["tier"] == "High Risk" for m in model_summaries):
+    if not model_summaries:
+        overall_tier = "Failed"
+        overall_tier_color = "rose"
+    elif any(m["tier"] == "High Risk" for m in model_summaries):
         overall_tier = "High Risk"
         overall_tier_color = "rose"
     elif all(m["tier"] == "Faithful" for m in model_summaries):

@@ -98,7 +98,6 @@ def render_input_controls() -> Tuple[bool, str, str, bool]:
 
     prompt_text = st.text_area(
         "Input Prompt / Query",
-        value=st.session_state["main_prompt_input_field"],
         placeholder="Enter a prompt, factual question, or trap (e.g. Who was the first person to walk on the Moon?)...",
         height=85,
         label_visibility="collapsed",
@@ -139,7 +138,6 @@ def render_input_controls() -> Tuple[bool, str, str, bool]:
         )
         context_text = st.text_area(
             "Optional Reference Context",
-            value=st.session_state["main_context_input_field"],
             placeholder="Supporting evidence, background passage, or reference document for groundedness evaluation...",
             height=85,
             label_visibility="collapsed",

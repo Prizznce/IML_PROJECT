@@ -421,11 +421,13 @@ def render_system_health_view(
             if ppl > 50.0:
                 perplexity_spikes += 1
             # Check internal signals if benchmark or detailed
-            bench = r.get("benchmark_results", {})
-            for b_data in bench.values():
-                sig = b_data.get("internal_signals", {})
-                if float(sig.get("mean_entropy", 1.0) or 1.0) < 0.15:
-                    entropy_collapses += 1
+            bench = r.get("benchmark_results") or {}
+            if isinstance(bench, dict):
+                for b_data in bench.values():
+                    if isinstance(b_data, dict):
+                        sig = b_data.get("internal_signals") or {}
+                        if isinstance(sig, dict) and float(sig.get("mean_entropy", 1.0) or 1.0) < 0.15:
+                            entropy_collapses += 1
 
         degen_status = "STABLE (0 Collapses)" if entropy_collapses == 0 else f"WARN ({entropy_collapses} Collapses)"
         degen_class = "text-emerald" if entropy_collapses == 0 else "text-amber"

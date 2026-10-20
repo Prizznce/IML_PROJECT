@@ -848,7 +848,7 @@ def compute_reference_evidence_agreement(
             chunks.append(c)
 
     if embedding_model is None:
-        actual_device = device if torch.cuda.is_available() and "cuda" in device else "cpu"
+        actual_device = device if (device is not None and torch.cuda.is_available() and "cuda" in device) else ("cuda:0" if torch.cuda.is_available() else "cpu")
         embedding_model = load_embedding_model(device=actual_device)
 
     # Encode query, response, and chunks

@@ -290,6 +290,9 @@ def extract_raw_sequence_signals(
     p_len = len(prompt_ids)
     r_len = len(response_ids)
 
+    if p_len == 0:
+        raise ValueError("Prompt must contain at least one token for causal conditioning.")
+
     if r_len == 0:
         return SequenceSignals(
             num_tokens=0,

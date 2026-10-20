@@ -279,3 +279,60 @@ def test_render_sidebar_renders_clean_navigation():
     # Ensure extra preview box is not present in sidebar
     assert "sidebar-history-scroll-box" not in all_content
     assert "sidebar-history-empty" not in all_content
+
+
+def test_record_benchmark_activity_all_failed_tier():
+    """Verify that a benchmark where all models encountered errors is marked as Failed, not Faithful."""
+    from app.session import record_benchmark_activity
+
+    init_session()
+    failed_benchmarks = {
+        "Qwen 3.5 (0.8B)": {"error": "CUDA out of memory"},
+        "Llama 3.2 (1B Instruct)": {"error": "Gated repo 403 Forbidden"},
+    }
+    rec = record_benchmark_activity(
+        prompt="Test Prompt",
+        benchmark_results=failed_benchmarks,
+    )
+    assert rec["tier"] == "Failed", f"Expected 'Failed' for all-error benchmark, got {rec['tier']}"
+    assert rec["tier_color"] == "rose"
+    assert rec["best_model"] == "N/A"
+
+
+def test_history_load_detector_synchronizes_input_fields():
+    """Verify loading a history card into Detector synchronizes all input field session keys."""
+    from app.components.history import _render_history_record_card
+
+    init_session()
+    # Populate existing fields with old text
+    st.session_state["main_prompt_input_field"] = "OLD_PROMPT"
+    st.session_state["main_context_input_field"] = "OLD_CONTEXT"
+
+    rec = record_detector_activity(
+        prompt="NEW_LOADED_PROMPT",
+        context="NEW_LOADED_CONTEXT",
+        result={"predicted_risk_xgb": 0.25, "total_latency_ms": 100.0, "internal_signals": {"num_tokens": 10}},
+    )
+
+    # Simulate clicking "Load Query into Detector"
+    def mock_button(label, **kwargs):
+        if label == "Load Query into Detector":
+            return True
+        return False
+
+    with patch("streamlit.markdown"), \
+         patch("streamlit.container"), \
+         patch("streamlit.expander"), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]), \
+         patch("streamlit.code"), \
+         patch("streamlit.caption"), \
+         patch("streamlit.button", side_effect=mock_button), \
+         patch("streamlit.rerun"):
+        _render_history_record_card(rec, 0)
+
+    assert st.session_state["user_prompt"] == "NEW_LOADED_PROMPT"
+    assert st.session_state["main_prompt_input_field"] == "NEW_LOADED_PROMPT"
+    assert st.session_state["user_context"] == "NEW_LOADED_CONTEXT"
+    assert st.session_state["main_context_input_field"] == "NEW_LOADED_CONTEXT"
+    assert st.session_state["active_nav"] == "Detector"
+

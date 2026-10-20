@@ -224,3 +224,18 @@ class TestEndToEndErrorAnalysisPipeline:
             file_path = out_dir / fname
             assert file_path.exists(), f"Missing expected output: {fname}"
             assert file_path.stat().st_size > 0, f"Empty file: {fname}"
+
+    def test_compute_model_disagreement_empty_dataframe(self):
+        """Verify compute_model_disagreement gracefully handles empty DataFrame without ZeroDivisionError."""
+        from src.evaluation.error_analysis import compute_model_disagreement
+
+        empty_df = pd.DataFrame(columns=[
+            "id", "source_dataset", "label",
+            "lr_prediction", "lr_probability",
+            "xgb_prediction", "xgb_probability",
+        ])
+        summary, diff_df = compute_model_disagreement(empty_df)
+        assert summary["total_samples"] == 0
+        assert summary["both_correct_rate"] == 0.0
+        assert summary["disagreement_rate"] == 0.0
+        assert len(diff_df) == 0

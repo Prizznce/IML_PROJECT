@@ -238,6 +238,24 @@ class TestFeatureExtractionWithMocks(unittest.TestCase):
         self.assertEqual(features["top1_evidence_similarity"], 0.0)
         self.assertEqual(features["retrieval_agreement"], 0.0)
 
+    def test_compute_reference_evidence_agreement_none_device(self):
+        """Verify compute_reference_evidence_agreement accepts device=None without raising TypeError."""
+        from app.inference import compute_reference_evidence_agreement
+
+        class MockEmbedder:
+            def encode(self, texts, **kwargs):
+                return np.ones((len(texts), 4), dtype=np.float32)
+
+        res = compute_reference_evidence_agreement(
+            query_text="What is CRISPR?",
+            response_text="CRISPR is a gene editing tool.",
+            context_text="CRISPR is an adaptive immune mechanism in bacteria.",
+            embedding_model=MockEmbedder(),
+            device=None,
+        )
+        self.assertTrue(res["has_reference_context"])
+        self.assertIn("retrieval_agreement", res)
+
 
 if __name__ == "__main__":
     unittest.main()

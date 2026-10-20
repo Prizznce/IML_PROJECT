@@ -244,7 +244,6 @@ def render_benchmark_mode(
 
     prompt_text = st.text_area(
         "Benchmark Input Prompt / Question",
-        value=st.session_state["bm_prompt_input_field"],
         placeholder="Enter a prompt or question to benchmark across all selected models (e.g. Who was the first person to walk on the Moon?)...",
         height=85,
         label_visibility="collapsed",
@@ -281,7 +280,6 @@ def render_benchmark_mode(
         )
         context_text = st.text_area(
             "Optional Reference Context",
-            value=st.session_state["bm_context_input_field"],
             placeholder="Supporting evidence, background passage, or reference document for multi-model groundedness comparison...",
             height=85,
             label_visibility="collapsed",
@@ -532,13 +530,22 @@ def _render_bm_comparison_dashboard(
     5. Unified Comparative Audit Export
     """
     valid_results = {k: v for k, v in bm_results.items() if "error" not in v}
+    failed_results = {k: v.get("error", "Unknown error") for k, v in bm_results.items() if "error" in v}
+
     if not valid_results:
         st.error("All benchmark executions encountered errors. Please check console logs or hardware allocation.")
+        if failed_results:
+            for m_name, err in failed_results.items():
+                st.warning(f"**{m_name}** failed: {err}")
         return
 
     st.markdown("<hr style='margin: 24px 0 16px 0;'>", unsafe_allow_html=True)
     st.markdown('<div class="section-kicker">BENCHMARK OBSERVABILITY DOSSIER</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Multi-Model Comparative Analysis & Leaderboard</div>', unsafe_allow_html=True)
+
+    if failed_results:
+        for m_name, err in failed_results.items():
+            st.warning(f"**Benchmark Evaluation Note:** `{m_name}` failed during inference ({err}) and was excluded from comparative rankings.")
 
     low_cut = float(threshold_low)
     high_cut = float(threshold_high)

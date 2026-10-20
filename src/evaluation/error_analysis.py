@@ -520,39 +520,40 @@ def compute_model_disagreement(
 
     summary: dict[str, Any] = {
         "total_samples": total,
-        "agreement_count": int(np.sum(agree_mask)),
-        "agreement_rate": float(np.mean(agree_mask)),
-        "disagreement_count": int(np.sum(disagree_mask)),
-        "disagreement_rate": float(np.mean(disagree_mask)),
+        "agreement_count": int(np.sum(agree_mask)) if total > 0 else 0,
+        "agreement_rate": float(np.mean(agree_mask)) if total > 0 else 0.0,
+        "disagreement_count": int(np.sum(disagree_mask)) if total > 0 else 0,
+        "disagreement_rate": float(np.mean(disagree_mask)) if total > 0 else 0.0,
         "both_correct_count": both_correct,
-        "both_correct_rate": float(both_correct / total),
+        "both_correct_rate": float(both_correct / total) if total > 0 else 0.0,
         "both_wrong_count": both_wrong,
-        "both_wrong_rate": float(both_wrong / total),
+        "both_wrong_rate": float(both_wrong / total) if total > 0 else 0.0,
         "lr_correct_xgb_wrong_count": lr_corr_xgb_wrong,
-        "lr_correct_xgb_wrong_rate": float(lr_corr_xgb_wrong / total),
+        "lr_correct_xgb_wrong_rate": float(lr_corr_xgb_wrong / total) if total > 0 else 0.0,
         "lr_wrong_xgb_correct_count": lr_wrong_xgb_corr,
-        "lr_wrong_xgb_correct_rate": float(lr_wrong_xgb_corr / total),
+        "lr_wrong_xgb_correct_rate": float(lr_wrong_xgb_corr / total) if total > 0 else 0.0,
     }
 
     diff_df = df.copy()
     diff_df["prob_diff"] = np.abs(lr_prob - xgb_prob)
 
+    target_cols = [
+        "id",
+        "source_dataset",
+        "label",
+        lr_prob_col,
+        xgb_prob_col,
+        "prob_diff",
+        lr_pred_col,
+        xgb_pred_col,
+        "prompt",
+        "response",
+    ]
+    present_cols = [col for col in target_cols if col in diff_df.columns]
+
     top_disagreements = (
         diff_df.sort_values(by="prob_diff", ascending=False)
-        .head(top_n)[
-            [
-                "id",
-                "source_dataset",
-                "label",
-                lr_prob_col,
-                xgb_prob_col,
-                "prob_diff",
-                lr_pred_col,
-                xgb_pred_col,
-                "prompt",
-                "response",
-            ]
-        ]
+        .head(top_n)[present_cols]
         .rename(
             columns={
                 lr_prob_col: "lr_probability",

@@ -1,13 +1,12 @@
 """
-Sidebar Component: 7-Item Navigation System & Developer Telemetry.
-The sidebar strictly contains exactly these seven items in this exact order:
+Sidebar Component: 6-Item Navigation System & Developer Telemetry.
+The sidebar strictly contains exactly these six items in this exact order:
 1. Detector
 2. Benchmark Mode
 3. System Health
 4. History
-5. Settings
-6. About
-7. Profile (at the very bottom, visually separated)
+5. About
+6. Profile (at the very bottom, visually separated)
 """
 
 from typing import List, Tuple

@@ -538,7 +538,9 @@ def _render_history_record_card(rec: Dict[str, Any], idx: int):
                     use_container_width=True,
                 ):
                     st.session_state["user_prompt"] = prompt_text
+                    st.session_state["main_prompt_input_field"] = prompt_text
                     st.session_state["user_context"] = context_text
+                    st.session_state["main_context_input_field"] = context_text
                     st.session_state["active_nav"] = "Detector"
                     st.rerun()
 

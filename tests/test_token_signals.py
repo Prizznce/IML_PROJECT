@@ -256,6 +256,21 @@ class TestTokenSignals(unittest.TestCase):
         self.assertEqual(signals.num_tokens, 1)
         self.assertEqual(len(signals.tokens), 1)
 
+    def test_empty_prompt_raises_value_error(self):
+        """Verify that an empty prompt with no tokens raises ValueError."""
+        class MockEmptyTok:
+            def encode(self, text, add_special_tokens=True):
+                return [] if "EMPTY" in text else [10]
+
+        model = MockCausalLM(vocab_size=50)
+        with self.assertRaises(ValueError):
+            extract_raw_sequence_signals(
+                model=model,
+                tokenizer=MockEmptyTok(),
+                prompt="EMPTY_PROMPT",
+                response="RESPONSE",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -29,7 +29,7 @@ from app.components.controls import render_input_controls
 from app.components.dashboard import render_dashboard
 from app.components.about import render_about_view
 from app.components.history import render_history_view
-from app.components.benchmarkmode import render_benchmark_mode
+from app.components.benchmark_mode import render_benchmark_mode
 from app.components.system_health import render_system_health_view
 from app.session import init_session, record_detector_activity
 

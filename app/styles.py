@@ -2429,6 +2429,96 @@ pre {
     font-weight: 500;
 }
 
+/* --- History Minimal Mode Styling --- */
+.history-minimal-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 6px;
+    transition: all 0.2s ease;
+    border-left: 3px solid var(--brand-primary);
+}
+
+.history-minimal-card:hover {
+    border-color: var(--border-medium);
+    border-left-color: var(--brand-primary-light);
+    box-shadow: var(--card-shadow-hover);
+    background: var(--bg-surface-elevated);
+}
+
+.history-minimal-card.bm-mode {
+    border-left: 3px solid #8B5CF6;
+}
+
+.history-minimal-card.bm-mode:hover {
+    border-left-color: #A78BFA;
+}
+
+.history-minimal-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.history-minimal-row:last-child {
+    margin-bottom: 0;
+}
+
+.history-minimal-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    min-width: 72px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.history-minimal-badge-q {
+    color: var(--brand-primary-light);
+    border-color: var(--badge-primary-border);
+    background: var(--badge-primary-bg);
+}
+
+.history-minimal-badge-m {
+    color: var(--cyan-text);
+    border-color: var(--cyan-border);
+    background: var(--cyan-bg);
+}
+
+.history-minimal-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.history-minimal-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.history-minimal-model-val {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
 /* Empty State Container */
 .history-empty-container {
     background: var(--bg-surface);

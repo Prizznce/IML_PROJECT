@@ -97,6 +97,7 @@ def render_history_view():
         return
 
     # 3. Action & Filter Bar
+    # 3. Action & Filter Bar
     col_search, col_filter, col_sort = st.columns([2.5, 1.5, 1.5])
     with col_search:
         search_query = st.text_input(
@@ -235,7 +236,99 @@ def render_history_view():
         _render_history_record_card(rec, idx)
 
 
-def _render_benchmark_history_card(rec: Dict[str, Any], idx: int):
+def _render_history_record_card(rec: Dict[str, Any], idx: int):
+    """
+    Render a minimalist history record showing strictly the Question and Model,
+    with a View Details toggle button that opens the full card details inline for that specific record.
+    """
+    is_bm = rec.get("is_benchmark") or rec.get("record_type") == "benchmark"
+    rec_id = rec.get("id", f"REC-{idx+1:03d}")
+
+    input_data = rec.get("input", {})
+    prompt_text = rec.get("full_prompt", input_data.get("prompt", rec.get("prompt", "")))
+
+    if is_bm:
+        models = rec.get("models", [])
+        best_model = rec.get("best_model", "N/A")
+        best_risk = float(rec.get("best_model_risk", 0.0))
+        model_name = f"Benchmark Suite ({len(models)} Models) • Best: {best_model} ({best_risk:.1f}%)"
+        tier = "Benchmark"
+        tier_badge_class = "live-badge-primary"
+    else:
+        model_name = rec.get("model", "Qwen 3.5 (0.8B)")
+        tier = rec.get("tier", "Indeterminate")
+        risk_pct = float(rec.get("risk_pct", 0.0))
+        tier_badge_class = (
+            "badge-faithful" if tier == "Faithful"
+            else ("badge-high-risk" if tier == "High Risk" else "badge-indeterminate")
+        )
+
+    safe_prompt = html.escape(str(prompt_text))
+    safe_model = html.escape(str(model_name))
+    safe_rec_id = html.escape(str(rec_id))
+    safe_tier = html.escape(str(tier))
+
+    detail_state_key = f"hist_show_detail_{rec_id}"
+    is_open = bool(st.session_state.get(detail_state_key, False))
+
+    col_card_body, col_card_action = st.columns([5.5, 1.5], vertical_alignment="center")
+
+    with col_card_body:
+        st.markdown(
+            f"""
+            <div class="history-minimal-card {'bm-mode' if is_bm else ''}">
+                <div class="history-minimal-row">
+                    <span class="history-minimal-badge history-minimal-badge-q">QUESTION</span>
+                    <span class="history-minimal-text">{safe_prompt}</span>
+                </div>
+                <div class="history-minimal-row" style="margin-top: 8px;">
+                    <span class="history-minimal-badge history-minimal-badge-m">MODEL</span>
+                    <span class="history-minimal-model-val">{safe_model}</span>
+                    <span class="history-tier-badge {tier_badge_class}" style="font-size: 10px; padding: 2px 7px; margin-left: 6px;">{safe_tier.upper()}</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with col_card_action:
+        btn_label = "Hide Details" if is_open else "View Details"
+        btn_icon = ":material/expand_less:" if is_open else ":material/expand_more:"
+        if st.button(
+            btn_label,
+            key=f"btn_toggle_detail_{rec_id}_{idx}",
+            icon=btn_icon,
+            type="primary" if is_open else "secondary",
+            use_container_width=True,
+            help="Open or close complete telemetry, neural signals, and full responses inline",
+        ):
+            st.session_state[detail_state_key] = not is_open
+            st.rerun()
+
+    # If toggled open, render the full card details inline for this specific record
+    if is_open:
+        with st.container():
+            st.markdown(
+                """
+                <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); border-radius: 8px; padding: 14px 16px; margin: 4px 0 10px 0;">
+                """,
+                unsafe_allow_html=True,
+            )
+            _render_full_card_content(rec, idx, key_prefix=f"inline_{rec_id}_{idx}")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+
+
+def _render_full_card_content(rec: Dict[str, Any], idx: int, key_prefix: str = "full"):
+    """Render the complete view card content for either a single detection or benchmark record."""
+    if rec.get("is_benchmark") or rec.get("record_type") == "benchmark":
+        _render_full_benchmark_card(rec, idx, key_prefix=key_prefix)
+    else:
+        _render_full_detection_card(rec, idx, key_prefix=key_prefix)
+
+
+def _render_full_benchmark_card(rec: Dict[str, Any], idx: int, key_prefix: str = "bm"):
     """Render a unified multi-model benchmark evaluation history card."""
     rec_id = rec.get("id", f"BM-{idx+1:03d}")
     time_str = rec.get("timestamp", rec.get("time", "N/A"))
@@ -285,7 +378,7 @@ def _render_benchmark_history_card(rec: Dict[str, Any], idx: int):
     models_row_html = "".join(model_chips_html)
 
     card_html = (
-        f'<div class="history-record-card" style="border-left: 4px solid var(--brand-primary); background: var(--bg-surface);">'
+        f'<div class="history-record-card" style="border-left: 4px solid var(--brand-primary); background: var(--bg-surface); margin-bottom: 12px;">'
         f'<div class="history-record-header">'
         f'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
         f'<span class="history-record-id">{safe_rec_id}</span>'
@@ -309,102 +402,96 @@ def _render_benchmark_history_card(rec: Dict[str, Any], idx: int):
         f'</div>'
     )
 
-    with st.container():
-        st.markdown(card_html, unsafe_allow_html=True)
+    st.markdown(card_html, unsafe_allow_html=True)
 
-        with st.expander(f"Inspect Full Benchmark Dossier ({len(model_summaries)} Models Evaluated)", expanded=False):
-            st.markdown(f"**Shared Query Prompt:**")
-            st.code(prompt_text, language="markdown")
-            if context_text:
-                st.markdown(f"**Reference Context Passage:**")
-                st.code(context_text, language="markdown")
+    st.markdown(f"**Shared Query Prompt:**")
+    st.code(prompt_text, language="markdown")
+    if context_text:
+        st.markdown(f"**Reference Context Passage:**")
+        st.code(context_text, language="markdown")
 
-            st.markdown(f"**Side-by-Side Model Answers & Neural Telemetry:**")
-            m_tab_names = [m.get("model_name", f"Model {i+1}") for i, m in enumerate(model_summaries)]
-            if m_tab_names:
-                m_tabs = st.tabs(m_tab_names)
-                for m_idx, m_info in enumerate(model_summaries):
-                    with m_tabs[m_idx]:
-                        m_resp = m_info.get("generated_response", "")
-                        col_m_text, col_m_diag = st.columns([1.3, 1.0])
-                        with col_m_text:
-                            st.markdown(f"**Generated Answer ({m_info.get('model_name')}):**")
-                            if m_resp:
-                                st.code(m_resp, language="markdown")
-                            else:
-                                st.caption("No response text recorded.")
-                        with col_m_diag:
-                            st.markdown(f"**Neural Observability Metrics:**")
-                            st.markdown(
-                                f"""
-                                - **Decision Verdict:** `{m_info.get('tier')}`
-                                - **Combined Risk:** `{m_info.get('combined_risk_pct'):.1f}%`
-                                - **XGBoost Risk:** `{m_info.get('xgb_risk_pct'):.1f}%`
-                                - **Logistic Reg Risk:** `{m_info.get('lr_risk_pct'):.1f}%`
-                                - **Confidence Score:** `{m_info.get('confidence_pct'):.1f}%`
-                                - **Mean Entropy:** `{m_info.get('mean_entropy', 0.0):.3f} nats`
-                                - **Perplexity:** `{m_info.get('perplexity', 1.0):.2f}`
-                                - **Tokens:** `{m_info.get('num_tokens', 0)}`
-                                - **Latency:** `{m_info.get('latency_ms', 0.0):.1f} ms`
-                                """
-                            )
+    st.markdown(f"**Side-by-Side Model Answers & Neural Telemetry:**")
+    m_tab_names = [m.get("model_name", f"Model {i+1}") for i, m in enumerate(model_summaries)]
+    if m_tab_names:
+        m_tabs = st.tabs(m_tab_names)
+        for m_idx, m_info in enumerate(model_summaries):
+            with m_tabs[m_idx]:
+                m_resp = m_info.get("generated_response", "")
+                col_m_text, col_m_diag = st.columns([1.3, 1.0])
+                with col_m_text:
+                    st.markdown(f"**Generated Answer ({m_info.get('model_name')}):**")
+                    if m_resp:
+                        st.code(m_resp, language="markdown")
+                    else:
+                        st.caption("No response text recorded.")
+                with col_m_diag:
+                    st.markdown(f"**Neural Observability Metrics:**")
+                    st.markdown(
+                        f"""
+                        - **Decision Verdict:** `{m_info.get('tier')}`
+                        - **Combined Risk:** `{m_info.get('combined_risk_pct'):.1f}%`
+                        - **XGBoost Risk:** `{m_info.get('xgb_risk_pct'):.1f}%`
+                        - **Logistic Reg Risk:** `{m_info.get('lr_risk_pct'):.1f}%`
+                        - **Confidence Score:** `{m_info.get('confidence_pct'):.1f}%`
+                        - **Mean Entropy:** `{m_info.get('mean_entropy', 0.0):.3f} nats`
+                        - **Perplexity:** `{m_info.get('perplexity', 1.0):.2f}`
+                        - **Tokens:** `{m_info.get('num_tokens', 0)}`
+                        - **Latency:** `{m_info.get('latency_ms', 0.0):.1f} ms`
+                        """
+                    )
 
-            st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-            col_b1, col_b2, col_b3 = st.columns([1.5, 1.5, 1.0])
+    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+    col_b1, col_b2, col_b3 = st.columns([1.5, 1.5, 1.0])
 
-            with col_b1:
-                if st.button(
-                    "Load into Benchmark Mode",
-                    key=f"btn_load_bm_{rec_id}",
-                    icon=":material/leaderboard:",
-                    use_container_width=True,
-                    help="Load this benchmark query and results back into Benchmark Mode",
-                ):
-                    st.session_state["bm_user_prompt"] = prompt_text
-                    st.session_state["bm_prompt_input_field"] = prompt_text
-                    st.session_state["bm_user_context"] = context_text
-                    st.session_state["bm_context_input_field"] = context_text
-                    st.session_state["bm_results"] = rec.get("benchmark_results")
-                    st.session_state["bm_prompt_ran"] = prompt_text
-                    st.session_state["bm_context_ran"] = context_text
-                    st.session_state["active_nav"] = "Benchmark Mode"
-                    st.rerun()
+    with col_b1:
+        if st.button(
+            "Load into Benchmark Mode",
+            key=f"{key_prefix}_load_bm_{rec_id}",
+            icon=":material/leaderboard:",
+            use_container_width=True,
+            help="Load this benchmark query and results back into Benchmark Mode",
+        ):
+            st.session_state["bm_user_prompt"] = prompt_text
+            st.session_state["bm_prompt_input_field"] = prompt_text
+            st.session_state["bm_user_context"] = context_text
+            st.session_state["bm_context_input_field"] = context_text
+            st.session_state["bm_results"] = rec.get("benchmark_results")
+            st.session_state["bm_prompt_ran"] = prompt_text
+            st.session_state["bm_context_ran"] = context_text
+            st.session_state["active_nav"] = "Benchmark Mode"
+            st.rerun()
 
-            with col_b2:
-                if st.button(
-                    "Load Query into Detector",
-                    key=f"btn_load_det_{rec_id}",
-                    icon=":material/radar:",
-                    use_container_width=True,
-                    help="Load this prompt into single-engine Detector",
-                ):
-                    st.session_state["user_prompt"] = prompt_text
-                    st.session_state["main_prompt_input_field"] = prompt_text
-                    st.session_state["user_context"] = context_text
-                    st.session_state["main_context_input_field"] = context_text
-                    st.session_state["active_nav"] = "Detector"
-                    st.rerun()
+    with col_b2:
+        if st.button(
+            "Load Query into Detector",
+            key=f"{key_prefix}_load_det_{rec_id}",
+            icon=":material/radar:",
+            use_container_width=True,
+            help="Load this prompt into single-engine Detector",
+        ):
+            st.session_state["user_prompt"] = prompt_text
+            st.session_state["main_prompt_input_field"] = prompt_text
+            st.session_state["user_context"] = context_text
+            st.session_state["main_context_input_field"] = context_text
+            st.session_state["active_nav"] = "Detector"
+            st.rerun()
 
-            with col_b3:
-                if st.button(
-                    "Delete Record",
-                    key=f"btn_del_bm_{rec_id}",
-                    icon=":material/delete:",
-                    use_container_width=True,
-                ):
-                    delete_history_record(rec_id)
-                    st.toast(f"Benchmark record {rec_id} deleted", icon="🗑️")
-                    st.rerun()
+    with col_b3:
+        if st.button(
+            "Delete Record",
+            key=f"{key_prefix}_del_bm_{rec_id}",
+            icon=":material/delete:",
+            use_container_width=True,
+        ):
+            delete_history_record(rec_id)
+            st.toast(f"Benchmark record {rec_id} deleted", icon="🗑️")
+            st.rerun()
 
-        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
 
-def _render_history_record_card(rec: Dict[str, Any], idx: int):
-    """Render a single high-fidelity detection or benchmark audit card."""
-    if rec.get("is_benchmark") or rec.get("record_type") == "benchmark":
-        _render_benchmark_history_card(rec, idx)
-        return
-
+def _render_full_detection_card(rec: Dict[str, Any], idx: int, key_prefix: str = "det"):
+    """Render a single high-fidelity detection audit card with all score bars and diagnostics."""
     rec_id = rec.get("id", f"REC-{idx+1:03d}")
     tier = rec.get("tier", "Indeterminate")
     risk_pct = float(rec.get("risk_pct", 0.0))
@@ -445,7 +532,7 @@ def _render_history_record_card(rec: Dict[str, Any], idx: int):
     risk_color_cls = f"risk-fill-{tier.lower().replace(' ', '-')}"
 
     card_html = (
-        f'<div class="history-record-card">'
+        f'<div class="history-record-card" style="margin-bottom: 12px;">'
         f'<div class="history-record-header">'
         f'<div style="display:flex;align-items:center;gap:8px;">'
         f'<span class="history-record-id">{safe_rec_id}</span>'
@@ -488,74 +575,68 @@ def _render_history_record_card(rec: Dict[str, Any], idx: int):
         f'</div>'
         f'</div>'
         f'</div>'
-        f'<div class="history-prompt-preview">'
-        f'<div class="history-prompt-label">USER INPUT QUERY:</div>'
-        f'<div class="history-prompt-content">{safe_prompt}</div>'
-        f'</div>'
         f'</div>'
     )
 
-    with st.container():
-        st.markdown(card_html, unsafe_allow_html=True)
+    st.markdown(card_html, unsafe_allow_html=True)
 
-        with st.expander("Inspect Full Detection Telemetry & Responses", expanded=False):
-            col_in, col_out = st.columns(2)
-            with col_in:
-                st.markdown("**User Query Prompt:**")
-                st.code(prompt_text, language="markdown")
-                if context_text:
-                    st.markdown("**Reference Context Passage:**")
-                    st.code(context_text, language="markdown")
-                else:
-                    st.caption("No reference context provided (Open-ended query mode).")
+    col_in, col_out = st.columns(2)
+    with col_in:
+        st.markdown("**User Query Prompt:**")
+        st.code(prompt_text, language="markdown")
+        if context_text:
+            st.markdown("**Reference Context Passage:**")
+            st.code(context_text, language="markdown")
+        else:
+            st.caption("No reference context provided (Open-ended query mode).")
 
-            with col_out:
-                st.markdown("**Generated Model Response:**")
-                if gen_text:
-                    st.code(gen_text, language="markdown")
-                else:
-                    st.caption("No response string recorded.")
+    with col_out:
+        st.markdown("**Generated Model Response:**")
+        if gen_text:
+            st.code(gen_text, language="markdown")
+        else:
+            st.caption("No response string recorded.")
 
-                st.markdown("**Neural Signal Diagnostics:**")
-                st.markdown(
-                    f"""
-                    - **Combined Risk:** `{combined_risk_pct}%`
-                    - **XGBoost Risk:** `{xgb_risk_pct}%`
-                    - **Logistic Regression Risk:** `{lr_risk_pct}%`
-                    - **Confidence Score:** `{conf_score}%`
-                    - **Perplexity:** `{perplexity:.2f}`
-                    - **Latency:** `{latency:.1f} ms`
-                    - **Output Tokens:** `{tokens}`
-                    """
-                )
+        st.markdown("**Neural Signal Diagnostics:**")
+        st.markdown(
+            f"""
+            - **Combined Risk:** `{combined_risk_pct}%`
+            - **XGBoost Risk:** `{xgb_risk_pct}%`
+            - **Logistic Regression Risk:** `{lr_risk_pct}%`
+            - **Confidence Score:** `{conf_score}%`
+            - **Perplexity:** `{perplexity:.2f}`
+            - **Latency:** `{latency:.1f} ms`
+            - **Output Tokens:** `{tokens}`
+            """
+        )
 
-            col_btn_load, col_btn_del = st.columns([1.5, 1])
-            with col_btn_load:
-                if st.button(
-                    "Load Query into Detector",
-                    key=f"btn_load_{rec_id}",
-                    icon=":material/upload:",
-                    use_container_width=True,
-                ):
-                    st.session_state["user_prompt"] = prompt_text
-                    st.session_state["main_prompt_input_field"] = prompt_text
-                    st.session_state["user_context"] = context_text
-                    st.session_state["main_context_input_field"] = context_text
-                    st.session_state["active_nav"] = "Detector"
-                    st.rerun()
+    col_btn_load, col_btn_del = st.columns([1.5, 1])
+    with col_btn_load:
+        if st.button(
+            "Load Query into Detector",
+            key=f"{key_prefix}_load_{rec_id}",
+            icon=":material/upload:",
+            use_container_width=True,
+        ):
+            st.session_state["user_prompt"] = prompt_text
+            st.session_state["main_prompt_input_field"] = prompt_text
+            st.session_state["user_context"] = context_text
+            st.session_state["main_context_input_field"] = context_text
+            st.session_state["active_nav"] = "Detector"
+            st.rerun()
 
-            with col_btn_del:
-                if st.button(
-                    "Delete Record",
-                    key=f"btn_del_{rec_id}",
-                    icon=":material/delete:",
-                    use_container_width=True,
-                ):
-                    delete_history_record(rec_id)
-                    st.toast(f"Record {rec_id} deleted", icon="🗑️")
-                    st.rerun()
+    with col_btn_del:
+        if st.button(
+            "Delete Record",
+            key=f"{key_prefix}_del_{rec_id}",
+            icon=":material/delete:",
+            use_container_width=True,
+        ):
+            delete_history_record(rec_id)
+            st.toast(f"Record {rec_id} deleted", icon="🗑️")
+            st.rerun()
 
-        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
 
 def _render_empty_session_state(session_id: str):

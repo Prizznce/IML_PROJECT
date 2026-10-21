@@ -1,3 +1,3 @@
 """
-UI Components Package for Veritas Observability Platform.
+UI Components Package for VeritasLM Observability Platform.
 """

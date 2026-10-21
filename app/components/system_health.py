@@ -1,5 +1,5 @@
 """
-System Health & Neural Pipeline Telemetry Component for VERITAS.
+System Health & Neural Pipeline Telemetry Component for VeritasLM.
 
 Implements detection-focused observability:
 1. Neural Execution Runtime & PyTorch Tensor Health (Detection-based, zero personal device stats)

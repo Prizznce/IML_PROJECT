@@ -274,7 +274,7 @@ def test_render_sidebar_renders_clean_navigation():
         render_sidebar()
 
     all_content = " ".join(rendered_markdown)
-    assert "VERITAS" in all_content
+    assert "VeritasLM" in all_content or "VERITAS" in all_content
     assert "NAVIGATION" in all_content
     # Ensure extra preview box is not present in sidebar
     assert "sidebar-history-scroll-box" not in all_content

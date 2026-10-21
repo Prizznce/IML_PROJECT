@@ -460,7 +460,7 @@ def _render_bm_idle_view():
         """
         <div class="ready-overview-card">
             <div style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
-                Benchmark Mode extends the Veritas detection engine to evaluate multiple LLM architectures side-by-side.
+                Benchmark Mode extends the VeritasLM detection engine to evaluate multiple LLM architectures side-by-side.
                 By feeding identical queries across models and intercepting forward-pass logits, stochastic consistency,
                 and cross-encoder agreements, you can directly compare factual reliability, calibration boundaries, and hallucination propensity.
             </div>

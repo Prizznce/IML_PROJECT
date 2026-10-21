@@ -31,7 +31,7 @@ def render_idle_overview():
         """
         <div class="ready-overview-card">
             <div style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;">
-                Veritas intercepts generative LLM outputs and subjects each response to a 15-stage neural verification pipeline.
+                VeritasLM intercepts generative LLM outputs and subjects each response to a 15-stage neural verification pipeline.
                 Three complementary defense channels compute a unified 19-dimensional signal vector calibrated against 4,000 multi-domain benchmarks.
             </div>
             <div class="pillar-grid">

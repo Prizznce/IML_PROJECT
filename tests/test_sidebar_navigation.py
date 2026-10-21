@@ -140,7 +140,7 @@ def test_custom_styles_includes_navigation_logo_toggle():
     css = " ".join(rendered_styles)
     assert "stExpandSidebarButton" in css
     assert "stSidebarCollapseButton" in css
-    assert "◈" in css
-    assert "VERITAS" in css
+    assert "data:image/png;base64," in css
+    assert "VeritasLM" in css
 
 

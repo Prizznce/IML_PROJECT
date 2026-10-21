@@ -37,9 +37,9 @@ def render_sidebar():
         st.markdown(
             """
             <div class="sidebar-brand-header" id="sidebarBrandHeader" title="Click logo to toggle navigation bar">
-                <div class="sidebar-brand-logo">◈</div>
+                <div class="sidebar-brand-logo"></div>
                 <div class="sidebar-brand-text">
-                    <div class="sidebar-brand-title">VERITAS</div>
+                    <div class="sidebar-brand-title">VeritasLM</div>
                     <div class="sidebar-brand-subtitle">HALLUCINATION DEFENSE</div>
                 </div>
                 <div class="sidebar-status-pill">
@@ -73,9 +73,9 @@ def render_sidebar():
                             }
                         }
                         setupBrandToggle();
-                        if (!window._veritasSidebarObserver) {
-                            window._veritasSidebarObserver = new MutationObserver(setupBrandToggle);
-                            window._veritasSidebarObserver.observe(document.body, { childList: true, subtree: true });
+                        if (!window._veritaslmSidebarObserver) {
+                            window._veritaslmSidebarObserver = new MutationObserver(setupBrandToggle);
+                            window._veritaslmSidebarObserver.observe(document.body, { childList: true, subtree: true });
                         }
                     } catch (e) {}
                 })();
@@ -145,7 +145,7 @@ def render_sidebar():
         st.markdown(
             """
             <div class="sidebar-version-badge">
-                VERITAS · v2.4.0 Applied ML
+                VeritasLM · v2.4.0 Applied ML
             </div>
             """,
             unsafe_allow_html=True,

@@ -1,5 +1,5 @@
 """
-Session & Audit History Management for VERITAS.
+Session & Audit History Management for VeritasLM.
 
 Handles:
 1. Session lifecycle: unique session ID generation, start timestamps, empty history initialization.

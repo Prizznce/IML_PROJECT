@@ -1,5 +1,5 @@
-
 import streamlit as st
+from app.assets import VERITASLM_LOGO_DATA_URI
 
 THEME_VARS = """
     --bg-canvas: #07080B;
@@ -171,11 +171,12 @@ div[data-testid="stSidebarUserContent"]::-webkit-scrollbar {
 }
 
 .sidebar-brand-header:hover .sidebar-brand-logo {
-    transform: scale(1.08) rotate(-4deg);
-    box-shadow: 0 4px 14px var(--brand-primary-glow);
+    transform: scale(1.06);
+    box-shadow: none !important;
+    filter: none !important;
 }
 
-/* Shared Project Logo Emblem Metrics (Optical Precision) */
+/* Shared Project Logo Emblem Metrics (Optical Precision & Transparent Screen Match) */
 .sidebar-brand-logo,
 [data-testid="stExpandSidebarButton"]::before,
 button[data-testid="stExpandSidebarButton"]::before,
@@ -190,28 +191,28 @@ button[data-testid="stExpandSidebarButton"]::before,
     min-height: 32px !important;
     max-width: 32px !important;
     max-height: 32px !important;
-    border-radius: 7px !important;
-    background: linear-gradient(135deg, var(--brand-primary) 0%, #1D4ED8 100%) !important;
-    color: #FFFFFF !important;
-    font-family: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    line-height: 1 !important;
-    text-align: center !important;
-    box-shadow: 0 2px 8px var(--brand-primary-glow) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: url("__VERITASLM_LOGO_DATA_URI__") !important;
+    background-size: contain !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    border: none !important;
+    box-shadow: none !important;
+    filter: none !important;
     box-sizing: border-box !important;
     padding: 0 !important;
     margin: 0 !important;
     letter-spacing: 0 !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ==============================================================================
-   VERITAS Navigation Bar Toggle: Project Logo Replacement System
-   - Initial (collapsed): ONLY the logo ◈ appears at top-left (14px, 16px), NO name.
+   VeritasLM Navigation Bar Toggle: Project Logo Replacement System
+   - Initial (collapsed): ONLY the logo emblem appears at top-left (14px, 16px), NO name.
    - Click to expand: Logo stays at the EXACT SAME POSITION (14px, 16px),
-     and to the RIGHT of it, the name "VERITAS" & status appears.
+     and to the RIGHT of it, the name "VeritasLM" & status appears.
    - Click to collapse: Sidebar closes, name disappears, logo stays in same place.
    ============================================================================== */
 
@@ -259,7 +260,9 @@ button[data-testid="stExpandSidebarButton"],
     margin: 0 !important;
     border: none !important;
     background: transparent !important;
-    border-radius: 7px !important;
+    background-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     cursor: pointer !important;
     z-index: 99999 !important;
     display: flex !important;
@@ -277,15 +280,20 @@ button[data-testid="stExpandSidebarButton"],
 button[data-testid="stExpandSidebarButton"]:hover,
 [data-testid="stSidebarCollapsedControl"] button:hover,
 [data-testid="collapsedControl"] button:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
     transform: scale(1.08) !important;
 }
 
-/* Emblem character definition for collapsed button */
+/* Emblem definition for collapsed button */
 [data-testid="stExpandSidebarButton"]::before,
 button[data-testid="stExpandSidebarButton"]::before,
 [data-testid="stSidebarCollapsedControl"] button::before,
 [data-testid="collapsedControl"] button::before {
-    content: "◈" !important;
+    content: "" !important;
 }
 
 /* NO name with logo initially (when collapsed) */
@@ -2203,7 +2211,7 @@ pre {
 }
 
 /* ==============================================================================
-   VERITAS History Component & Observability Audit Dossier Styles
+   VeritasLM History Component & Observability Audit Dossier Styles
    ============================================================================== */
 
 /* History Page Components */
@@ -2960,4 +2968,5 @@ def apply_custom_styles(*args, **kwargs):
     """
     Inject dark mode theme variables and unified Linear/Railway stylesheet.
     """
-    st.markdown(f"<style>:root {{\n{THEME_VARS}\n}}</style>\n" + CUSTOM_CSS, unsafe_allow_html=True)
+    rendered_css = CUSTOM_CSS.replace("__VERITASLM_LOGO_DATA_URI__", VERITASLM_LOGO_DATA_URI)
+    st.markdown(f"<style>:root {{\n{THEME_VARS}\n}}</style>\n" + rendered_css, unsafe_allow_html=True)

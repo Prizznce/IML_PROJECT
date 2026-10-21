@@ -1,7 +1,7 @@
 @echo off
-title Veritas AI - Enterprise LLM Observability and Hallucination Defense
+title VeritasLM - Enterprise LLM Observability and Hallucination Defense
 
-echo Launching Veritas Neural Observability Platform (.venv CUDA runtime)...
+echo Launching VeritasLM Neural Observability Platform (.venv CUDA runtime)...
 
 .\.venv\Scripts\streamlit.exe run app\app.py
 if errorlevel 1 (

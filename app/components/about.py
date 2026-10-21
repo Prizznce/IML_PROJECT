@@ -27,7 +27,7 @@ def render_about_view():
         <div class="linear-header">
             <div class="linear-title-row">
                 <div>
-                    <h1 class="linear-title">About VERITAS</h1>
+                    <h1 class="linear-title">About VeritasLM</h1>
                     <p class="linear-subtitle" style="margin-top: 4px; margin-bottom: 0;">
                         White-box epistemic uncertainty estimation, multi-signal hallucination triangulation, and real-time neural defense.
                     </p>
@@ -51,7 +51,7 @@ def render_about_view():
             <p class="about-hero-lead">
                 Most commercial hallucination mitigations treat the Large Language Model as an opaque black box—relying on
                 expensive multi-agent consensus debates, recursive self-prompting loops, or high-latency search retrievals.
-                <strong>VERITAS</strong> introduces the <strong>Universal Core Detector</strong>: an ultra-lightweight,
+                <strong>VeritasLM</strong> introduces the <strong>Universal Core Detector</strong>: an ultra-lightweight,
                 interpretable supervised classifier that evaluates hallucination risk in real-time from the model's own
                 internal token logits, Shannon entropy, token rank dispersion, and cross-encoder consensus.
             </p>
@@ -320,9 +320,9 @@ def render_about_view():
             <div class="about-citation-box" style="margin-top: 18px;">
                 <div class="about-category-badge brand-purple">ACADEMIC CITATION</div>
                 <pre class="about-bibtex">
-@software{veritas_hallucination_defense_2026,
+@software{veritaslm_hallucination_defense_2026,
   author = {Aditya et al.},
-  title = {VERITAS: Catching an LLM Lying from Internal Generation Signals},
+  title = {VeritasLM: Catching an LLM Lying from Internal Generation Signals},
   year = {2026},
   publisher = {GitHub},
   journal = {Applied Machine Learning Research Repository},

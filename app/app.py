@@ -1,5 +1,5 @@
 """
-VERITAS: Real-Time Neural Hallucination Observability & Defense Platform.
+VeritasLM: Real-Time Neural Hallucination Observability & Defense Platform.
 Linear & Railway inspired developer UX architecture.
 """
 
@@ -14,6 +14,7 @@ if _repo_root not in sys.path:
 
 import streamlit as st
 
+from app.assets import ICON_PNG_PATH
 from app.styles import apply_custom_styles
 from app.config import (
     MODEL_OPTIONS,
@@ -38,8 +39,8 @@ from app.session import init_session, record_detector_activity
 # ==============================================================================
 
 st.set_page_config(
-    page_title="VERITAS · Neural Hallucination Observability Platform",
-    page_icon="◈",
+    page_title="VeritasLM · Neural Hallucination Observability Platform",
+    page_icon=str(ICON_PNG_PATH) if ICON_PNG_PATH.exists() else "◈",
     layout="wide",
     initial_sidebar_state="collapsed",
 )

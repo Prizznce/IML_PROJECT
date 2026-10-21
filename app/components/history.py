@@ -132,7 +132,7 @@ def render_history_view():
             st.download_button(
                 "Export JSON",
                 data=json_data,
-                file_name=f"veritas_audit_{session_id}.json",
+                file_name=f"veritaslm_audit_{session_id}.json",
                 mime="application/json",
                 icon=":material/download:",
                 use_container_width=True,
@@ -143,7 +143,7 @@ def render_history_view():
             st.download_button(
                 "Export CSV",
                 data=csv_data,
-                file_name=f"veritas_audit_{session_id}.csv",
+                file_name=f"veritaslm_audit_{session_id}.csv",
                 mime="text/csv",
                 icon=":material/table_view:",
                 use_container_width=True,
@@ -644,7 +644,6 @@ def _render_empty_session_state(session_id: str):
     st.markdown(
         f"""
         <div class="history-empty-container">
-            <div class="history-empty-icon">◈</div>
             <h3 class="history-empty-title">Session {session_id} Initialized</h3>
             <p class="history-empty-desc">
                 No hallucination detection activity has been recorded in this session yet.<br>
@@ -672,3 +671,7 @@ def _render_empty_session_state(session_id: str):
         ):
             st.session_state["active_nav"] = "Detector"
             st.rerun()
+
+
+# Backward compatibility alias for test suites and older callers
+_render_history_record_card = _render_full_detection_card

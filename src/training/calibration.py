@@ -9,6 +9,7 @@ Provides rigorous calibration evaluation for probabilistic classifiers:
 - Detailed bin-by-bin calibration data tables
 """
 
+import argparse
 import json
 import logging
 import os
@@ -329,8 +330,48 @@ def run_primary_calibration_analysis(
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Probability Calibration Analysis for Baseline Models")
+    parser.add_argument(
+        "--data",
+        type=str,
+        default="experiments/baselines/supervised_signals_combined.parquet",
+        help="Path to supervised signal parquet dataset",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="experiments/baselines/results/calibration",
+        help="Directory to save calibration plots and metrics",
+    )
+    parser.add_argument(
+        "--test-size",
+        type=float,
+        default=0.2,
+        help="Stratified holdout test size (default: 0.2)",
+    )
+    parser.add_argument(
+        "--random-state",
+        type=int,
+        default=42,
+        help="Random seed for deterministic splitting",
+    )
+    parser.add_argument(
+        "--n-bins",
+        type=int,
+        default=10,
+        help="Number of calibration probability bins (default: 10)",
+    )
+
+    args = parser.parse_args()
+
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s - %(message)s")
-    run_primary_calibration_analysis()
+    run_primary_calibration_analysis(
+        data_path=args.data,
+        output_dir=args.output_dir,
+        test_size=args.test_size,
+        random_state=args.random_state,
+        n_bins=args.n_bins,
+    )
 
 
 if __name__ == "__main__":

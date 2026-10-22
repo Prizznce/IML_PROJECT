@@ -111,6 +111,9 @@ def get_trained_classifiers(
     cache_key_xgb = f"xgb_model_{slug}"
 
     if not force_reload and cache_key_lr in _GLOBAL_MODEL_CACHE and cache_key_xgb in _GLOBAL_MODEL_CACHE:
+        _GLOBAL_MODEL_CACHE["lr_pipeline"] = _GLOBAL_MODEL_CACHE[cache_key_lr]
+        _GLOBAL_MODEL_CACHE["xgb_model"] = _GLOBAL_MODEL_CACHE[cache_key_xgb]
+        _GLOBAL_MODEL_CACHE["active_model_id"] = model_id
         return _GLOBAL_MODEL_CACHE[cache_key_lr], _GLOBAL_MODEL_CACHE[cache_key_xgb]
 
     # Check for pre-serialized model artifacts on disk
@@ -125,6 +128,9 @@ def get_trained_classifiers(
             xgb_mdl = joblib.load(xgb_saved)
             _GLOBAL_MODEL_CACHE[cache_key_lr] = lr_pipe
             _GLOBAL_MODEL_CACHE[cache_key_xgb] = xgb_mdl
+            _GLOBAL_MODEL_CACHE["lr_pipeline"] = lr_pipe
+            _GLOBAL_MODEL_CACHE["xgb_model"] = xgb_mdl
+            _GLOBAL_MODEL_CACHE["active_model_id"] = model_id
             return lr_pipe, xgb_mdl
         except Exception as e:
             logger.warning(f"Could not load pre-saved classifiers from {model_dir}: {e}")

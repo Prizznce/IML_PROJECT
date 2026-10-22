@@ -130,4 +130,16 @@ def get_cached_models(model_id: str = "Qwen/Qwen3.5-0.8B", target_device: str = 
                 emb_model.to(effective_device)
         except Exception:
             pass
+
+    nli_model = models.get("nli_model")
+    if nli_model is not None:
+        try:
+            target_obj = getattr(nli_model, "model", nli_model)
+            if hasattr(target_obj, "to"):
+                curr_nli_dev = str(getattr(target_obj, "device", ""))
+                if ("cuda" in effective_device and "cuda" not in curr_nli_dev) or ("cpu" in effective_device and "cuda" in curr_nli_dev):
+                    target_obj.to(effective_device)
+        except Exception:
+            pass
+
     return models

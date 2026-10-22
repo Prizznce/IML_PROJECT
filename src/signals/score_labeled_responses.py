@@ -73,7 +73,13 @@ def format_scoring_prompt(
     if source_dataset == "halueval":
         user_content = f"Passage: {context_str}\n\nQuestion: {prompt_str}" if context_str else f"Question: {prompt_str}"
     elif source_dataset == "fever":
-        user_content = f"Verify whether the following claim is supported by factual evidence.\nClaim: "
+        standard_instruction = "Verify whether the following claim is supported by factual evidence."
+        if not prompt_str or prompt_str == standard_instruction:
+            user_content = f"{standard_instruction}\nClaim: "
+        elif standard_instruction in prompt_str:
+            user_content = f"{prompt_str}\nClaim: " if "Claim:" not in prompt_str else prompt_str
+        else:
+            user_content = f"{standard_instruction}\n{prompt_str}\nClaim: " if "Claim:" not in prompt_str else f"{standard_instruction}\n{prompt_str}"
     elif source_dataset == "truthfulqa":
         user_content = f"Question: {prompt_str}"
     else:

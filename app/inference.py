@@ -169,10 +169,10 @@ def get_trained_classifiers(
     _GLOBAL_MODEL_CACHE[cache_key_lr] = lr_pipeline
     _GLOBAL_MODEL_CACHE[cache_key_xgb] = xgb_model
 
-    # Backward compatibility keys for Qwen
-    if "qwen" in slug:
-        _GLOBAL_MODEL_CACHE["lr_pipeline"] = lr_pipeline
-        _GLOBAL_MODEL_CACHE["xgb_model"] = xgb_model
+    # Always point active global pipeline keys to the most recently loaded model
+    _GLOBAL_MODEL_CACHE["lr_pipeline"] = lr_pipeline
+    _GLOBAL_MODEL_CACHE["xgb_model"] = xgb_model
+    _GLOBAL_MODEL_CACHE["active_model_id"] = model_id
 
     return lr_pipeline, xgb_model
 
@@ -774,6 +774,7 @@ def compute_feature_contributions(
     X = pd.DataFrame([[feature_vector[f] for f in UNIVERSAL_CORE_FEATURES]], columns=UNIVERSAL_CORE_FEATURES)
 
     contributions_dict: Dict[str, float] = {}
+    base_value = 0.0
     method_used = "Tree SHAP (XGBoost native pred_contribs)"
 
     try:
@@ -782,6 +783,9 @@ def compute_feature_contributions(
             raw_contribs = xgb_model.get_booster().predict(dmat, pred_contribs=True)[0]
             for idx, feat in enumerate(UNIVERSAL_CORE_FEATURES):
                 contributions_dict[feat] = float(raw_contribs[idx])
+            # The final element is the TreeSHAP expected value / base margin: E[f(x)]
+            if len(raw_contribs) > len(UNIVERSAL_CORE_FEATURES):
+                base_value = float(raw_contribs[-1])
         else:
             raise AttributeError("xgb_model has no get_booster method")
     except Exception as exc:
@@ -795,6 +799,8 @@ def compute_feature_contributions(
                     lr_contribs = (z * clf.coef_[0])[0]
                     for idx, feat in enumerate(UNIVERSAL_CORE_FEATURES):
                         contributions_dict[feat] = float(lr_contribs[idx])
+                    if hasattr(clf, "intercept_"):
+                        base_value = float(clf.intercept_[0])
                     method_used = "Standardized Coefficient Contribution (Logistic Regression)"
             except Exception as e:
                 logger.warning(f"LR contribution fallback failed: {e}. Falling back to Signal Profile.")
@@ -817,6 +823,7 @@ def compute_feature_contributions(
             "magnitude": abs(contrib),
             "direction": direction,
             "method": method_used,
+            "base_value": base_value,
         })
 
     records.sort(key=lambda r: r["magnitude"], reverse=True)
@@ -920,6 +927,7 @@ def predict_hallucination_risk(
     feature_vector: Dict[str, float],
     lr_pipeline: Optional[Any] = None,
     xgb_model: Optional[Any] = None,
+    model_id: Optional[str] = None,
 ) -> Tuple[float, float, str]:
     """
     Score the 19-feature vector using the Phase 14 Logistic Regression and XGBoost classifiers.
@@ -928,6 +936,7 @@ def predict_hallucination_risk(
         feature_vector: Exact 19-feature dictionary.
         lr_pipeline: Fitted Logistic Regression pipeline, or tuple of (lr_pipeline, xgb_model).
         xgb_model: Fitted XGBoost model (optional if unpacked from lr_pipeline).
+        model_id: Optional model ID to resolve model-specific classifiers.
 
     Returns:
         Tuple of (xgb_probability, lr_probability, risk_level).
@@ -941,7 +950,8 @@ def predict_hallucination_risk(
 
     # Load classifiers from cache/disk if not provided
     if lr_pipeline is None or xgb_model is None:
-        cached_lr, cached_xgb = get_trained_classifiers()
+        target_model = model_id or _GLOBAL_MODEL_CACHE.get("active_model_id") or "Qwen/Qwen3.5-0.8B"
+        cached_lr, cached_xgb = get_trained_classifiers(model_id=target_model)
         if lr_pipeline is None and xgb_model is None:
             lr_pipeline, xgb_model = cached_lr, cached_xgb
         elif lr_pipeline is None:
@@ -1233,6 +1243,7 @@ def run_live_inference(
         },
         "token_details": token_details,
         "feature_contributions": feature_contributions,
+        "shap_base_value": feature_contributions[0].get("base_value", 0.0) if feature_contributions else 0.0,
         "evidence_analysis": evidence_analysis,
         "consistency_responses": sc_responses,
         "self_consistency_features": sc_features,

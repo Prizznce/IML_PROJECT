@@ -447,11 +447,15 @@ def render_dashboard(
 
     # --- TAB 2: Feature Attribution (Tree SHAP) ---
     with tabs[1]:
+        base_val = res.get("shap_base_value", 0.0)
         st.markdown(
-            """
+            f"""
             <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
                 Tree SHAP decomposes the XGBoost risk prediction into exact local log-odds contributions
                 from each measured feature for this specific generation.
+                <span style="display: inline-block; margin-left: 12px; padding: 2px 8px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-family: var(--font-mono); font-size: 11.5px;">
+                    Prior Base Margin E[f(x)]: <strong>{base_val:+.4f}</strong>
+                </span>
             </div>
             """,
             unsafe_allow_html=True,

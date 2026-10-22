@@ -17,7 +17,11 @@ def download_file():
         return
 
     url = "https://huggingface.co/google/gemma-3-1b-it/resolve/main/model.safetensors"
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    else:
+        print("Warning: HF_TOKEN is not set. Download will fail if access to Gemma 3 is gated.", flush=True)
 
     existing_bytes = 0
     if part_file.exists():

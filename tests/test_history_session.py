@@ -401,3 +401,91 @@ def test_history_load_benchmark_resets_preset_keys():
     assert st.session_state.get("bm_user_prompt") == "Loaded BM Prompt"
 
 
+def test_history_load_query_into_detector_clears_inference_result():
+    """Bug 2 verification: loading query from history resets inference_result to prevent stale display."""
+    from app.components.history import _render_full_detection_card, _render_full_benchmark_card
+
+    init_session()
+    st.session_state["inference_result"] = {"response": "stale response", "risk_percentage": 95}
+    st.session_state["selected_preset_key"] = "paris"
+
+    det_rec = {
+        "id": "DET-001",
+        "is_benchmark": False,
+        "full_prompt": "Loaded Prompt",
+        "full_context": "Loaded Context",
+        "result": {"risk_percentage": 5},
+    }
+
+    def mock_button(label, **kwargs):
+        return label == "Load Query into Detector"
+
+    with patch("streamlit.markdown"), \
+         patch("streamlit.code"), \
+         patch("streamlit.caption"), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]), \
+         patch("streamlit.button", side_effect=mock_button), \
+         patch("streamlit.rerun"):
+        _render_full_detection_card(det_rec, 0)
+
+    assert st.session_state.get("inference_result") is None
+    assert st.session_state.get("user_prompt") == "Loaded Prompt"
+    assert st.session_state.get("active_nav") == "Detector"
+
+    # Also verify benchmark card "Load Query into Detector"
+    st.session_state["inference_result"] = {"response": "stale response 2"}
+    bm_rec = {
+        "id": "BM-003",
+        "is_benchmark": True,
+        "full_prompt": "Loaded BM Prompt 2",
+        "full_context": "Loaded BM Context 2",
+        "benchmark_results": {},
+        "models": [],
+        "model_summaries": [],
+    }
+
+    with patch("streamlit.markdown"), \
+         patch("streamlit.code"), \
+         patch("streamlit.caption"), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]), \
+         patch("streamlit.button", side_effect=mock_button), \
+         patch("streamlit.rerun"):
+        _render_full_benchmark_card(bm_rec, 0)
+
+    assert st.session_state.get("inference_result") is None
+    assert st.session_state.get("user_prompt") == "Loaded BM Prompt 2"
+
+
+def test_dialog_model_switch_clears_inference_result():
+    """Bug 1 verification: switching model in dialog resets inference_result to prevent stale display."""
+    from app.components.dialogs import configure_infrastructure_dialog
+
+    init_session()
+    st.session_state["selected_model_name"] = "microsoft/phi-2"
+    st.session_state["inference_result"] = {"response": "stale phi2 response"}
+    st.session_state["threshold_low"] = 0.35
+    st.session_state["threshold_high"] = 0.70
+
+    def mock_selectbox(label, options, index=0, **kwargs):
+        # Switch model to index 1 (google/gemma-2b-it)
+        return options[1]
+
+    def mock_button(label, **kwargs):
+        return "Apply & Update Runtime" in label
+
+    fn = getattr(configure_infrastructure_dialog, "__wrapped__", configure_infrastructure_dialog)
+    with patch("streamlit.markdown"), \
+         patch("streamlit.info"), \
+         patch("streamlit.tabs", return_value=[MagicMock(), MagicMock(), MagicMock(), MagicMock()]), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]), \
+         patch("streamlit.selectbox", side_effect=mock_selectbox), \
+         patch("streamlit.slider", side_effect=lambda label, **kw: (0.35, 0.70)), \
+         patch("streamlit.button", side_effect=mock_button), \
+         patch("streamlit.rerun"):
+        fn(cuda_available=False, gpu_display="None", cpu_display="8 cores")
+
+    assert st.session_state.get("selected_model_name") != "microsoft/phi-2"
+    assert st.session_state.get("inference_result") is None
+
+
+

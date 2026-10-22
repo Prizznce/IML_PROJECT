@@ -475,6 +475,7 @@ def _render_full_benchmark_card(rec: Dict[str, Any], idx: int, key_prefix: str =
             st.session_state["user_context"] = context_text
             st.session_state["main_context_input_field"] = context_text
             st.session_state["selected_preset_key"] = None
+            st.session_state["inference_result"] = None
             st.session_state["active_nav"] = "Detector"
             st.rerun()
 
@@ -625,6 +626,7 @@ def _render_full_detection_card(rec: Dict[str, Any], idx: int, key_prefix: str =
             st.session_state["user_context"] = context_text
             st.session_state["main_context_input_field"] = context_text
             st.session_state["selected_preset_key"] = None
+            st.session_state["inference_result"] = None
             st.session_state["active_nav"] = "Detector"
             st.rerun()
 

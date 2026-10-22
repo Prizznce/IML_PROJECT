@@ -203,7 +203,11 @@ def configure_infrastructure_dialog(cuda_available: bool, gpu_display: str, cpu_
     col_save, col_close = st.columns([1, 1])
     with col_save:
         if st.button("Apply & Update Runtime ↵", type="primary", width="stretch"):
-            st.session_state["selected_model_name"] = new_model
+            if st.session_state.get("selected_model_name") != new_model:
+                st.session_state["selected_model_name"] = new_model
+                st.session_state["inference_result"] = None
+            else:
+                st.session_state["selected_model_name"] = new_model
             if cuda_available and "dialog_hw_select" in st.session_state:
                 st.session_state["hardware_choice"] = st.session_state["dialog_hw_select"]
             st.session_state["threshold_low"] = new_t_low

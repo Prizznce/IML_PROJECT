@@ -97,13 +97,37 @@ def get_hardware_info():
 
 
 @st.cache_resource(show_spinner="Initializing neural pipelines and cached weights...")
-def get_cached_models(model_id: str = "Qwen/Qwen3.5-0.8B", target_device: str = "cuda:0"):
-    """
-    Load and persist models in Streamlit's resource cache across sessions and reruns.
-    Supports Qwen3.5-0.8B, Llama 3.2 1B Instruct, and Gemma 3 1B IT.
-    """
+def _load_cached_models_resource(model_id: str = "Qwen/Qwen3.5-0.8B", target_device: str = "cuda:0"):
     effective_device = target_device if (torch.cuda.is_available() and "cuda" in target_device) else "cpu"
     return load_inference_models(
         device=effective_device,
         model_id=model_id,
     )
+
+
+def get_cached_models(model_id: str = "Qwen/Qwen3.5-0.8B", target_device: str = "cuda:0"):
+    """
+    Load and persist models in Streamlit's resource cache across sessions and reruns.
+    Ensures device placement matches target_device even if cached object was relocated.
+    Supports Qwen3.5-0.8B, Llama 3.2 1B Instruct, and Gemma 3 1B IT.
+    """
+    effective_device = target_device if (torch.cuda.is_available() and "cuda" in target_device) else "cpu"
+    models = _load_cached_models_resource(model_id=model_id, target_device=effective_device)
+    causal_model = models.get("causal_model")
+    if causal_model is not None and hasattr(causal_model, "parameters"):
+        try:
+            curr_dev = str(next(causal_model.parameters()).device)
+            if ("cuda" in effective_device and "cuda" not in curr_dev) or ("cpu" in effective_device and "cuda" in curr_dev):
+                causal_model.to(effective_device)
+                models["device"] = effective_device
+        except Exception:
+            pass
+    emb_model = models.get("embedding_model")
+    if emb_model is not None and hasattr(emb_model, "to"):
+        try:
+            emb_dev = str(getattr(emb_model, "device", ""))
+            if ("cuda" in effective_device and "cuda" not in emb_dev) or ("cpu" in effective_device and "cuda" in emb_dev):
+                emb_model.to(effective_device)
+        except Exception:
+            pass
+    return models

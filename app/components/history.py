@@ -236,7 +236,7 @@ def render_history_view():
         _render_history_record_card(rec, idx)
 
 
-def _render_history_record_card(rec: Dict[str, Any], idx: int):
+def _render_history_record_card(rec: Dict[str, Any], idx: int, force_open: bool = False):
     """
     Render a minimalist history record showing strictly the Question and Model,
     with a View Details toggle button that opens the full card details inline for that specific record.
@@ -269,7 +269,7 @@ def _render_history_record_card(rec: Dict[str, Any], idx: int):
     safe_tier = html.escape(str(tier))
 
     detail_state_key = f"hist_show_detail_{rec_id}"
-    is_open = bool(st.session_state.get(detail_state_key, False))
+    is_open = force_open or bool(st.session_state.get(detail_state_key, False))
 
     col_card_body, col_card_action = st.columns([5.5, 1.5], vertical_alignment="center")
 
@@ -458,6 +458,7 @@ def _render_full_benchmark_card(rec: Dict[str, Any], idx: int, key_prefix: str =
             st.session_state["bm_results"] = rec.get("benchmark_results")
             st.session_state["bm_prompt_ran"] = prompt_text
             st.session_state["bm_context_ran"] = context_text
+            st.session_state["bm_preset_key"] = None
             st.session_state["active_nav"] = "Benchmark Mode"
             st.rerun()
 
@@ -473,6 +474,7 @@ def _render_full_benchmark_card(rec: Dict[str, Any], idx: int, key_prefix: str =
             st.session_state["main_prompt_input_field"] = prompt_text
             st.session_state["user_context"] = context_text
             st.session_state["main_context_input_field"] = context_text
+            st.session_state["selected_preset_key"] = None
             st.session_state["active_nav"] = "Detector"
             st.rerun()
 
@@ -622,6 +624,7 @@ def _render_full_detection_card(rec: Dict[str, Any], idx: int, key_prefix: str =
             st.session_state["main_prompt_input_field"] = prompt_text
             st.session_state["user_context"] = context_text
             st.session_state["main_context_input_field"] = context_text
+            st.session_state["selected_preset_key"] = None
             st.session_state["active_nav"] = "Detector"
             st.rerun()
 
@@ -671,7 +674,3 @@ def _render_empty_session_state(session_id: str):
         ):
             st.session_state["active_nav"] = "Detector"
             st.rerun()
-
-
-# Backward compatibility alias for test suites and older callers
-_render_history_record_card = _render_full_detection_card

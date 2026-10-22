@@ -328,11 +328,76 @@ def test_history_load_detector_synchronizes_input_fields():
          patch("streamlit.caption"), \
          patch("streamlit.button", side_effect=mock_button), \
          patch("streamlit.rerun"):
-        _render_history_record_card(rec, 0)
+        _render_history_record_card(rec, 0, force_open=True)
 
     assert st.session_state["user_prompt"] == "NEW_LOADED_PROMPT"
     assert st.session_state["main_prompt_input_field"] == "NEW_LOADED_PROMPT"
     assert st.session_state["user_context"] == "NEW_LOADED_CONTEXT"
     assert st.session_state["main_context_input_field"] == "NEW_LOADED_CONTEXT"
     assert st.session_state["active_nav"] == "Detector"
+
+
+def test_history_record_card_delegates_to_benchmark_card_when_is_bm():
+    """Verify that _render_history_record_card calls _render_full_benchmark_card for benchmark items."""
+    from app.components.history import _render_history_record_card
+
+    init_session()
+    bm_rec = {
+        "id": "BM-001",
+        "is_benchmark": True,
+        "record_type": "benchmark",
+        "models": ["Qwen 3.5 (0.8B)"],
+        "model_summaries": [],
+        "best_model": "Qwen 3.5 (0.8B)",
+        "best_model_risk": 15.0,
+        "risk_pct": 15.0,
+        "confidence_score": 85.0,
+        "telemetry": {"latency_ms": 100.0, "tokens": 20},
+        "full_prompt": "Test Benchmark Query",
+        "full_context": "",
+    }
+
+    with patch("streamlit.markdown"), \
+         patch("streamlit.container"), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]), \
+         patch("streamlit.button", return_value=False), \
+         patch("app.components.history._render_full_benchmark_card") as mock_bm_card:
+        _render_history_record_card(bm_rec, 0, force_open=True)
+        mock_bm_card.assert_called_once()
+
+
+def test_history_load_benchmark_resets_preset_keys():
+    """Verify that loading benchmark or detector queries from history clears active preset selection."""
+    from app.components.history import _render_full_benchmark_card
+
+    init_session()
+    st.session_state["bm_preset_key"] = "moon"
+    st.session_state["selected_preset_key"] = "paris"
+
+    bm_rec = {
+        "id": "BM-002",
+        "is_benchmark": True,
+        "full_prompt": "Loaded BM Prompt",
+        "full_context": "Loaded BM Context",
+        "benchmark_results": {},
+        "models": [],
+        "model_summaries": [],
+    }
+
+    def mock_button(label, **kwargs):
+        if label == "Load into Benchmark Mode":
+            return True
+        return False
+
+    with patch("streamlit.markdown"), \
+         patch("streamlit.code"), \
+         patch("streamlit.caption"), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]), \
+         patch("streamlit.button", side_effect=mock_button), \
+         patch("streamlit.rerun"):
+        _render_full_benchmark_card(bm_rec, 0)
+
+    assert st.session_state.get("bm_preset_key") is None
+    assert st.session_state.get("bm_user_prompt") == "Loaded BM Prompt"
+
 

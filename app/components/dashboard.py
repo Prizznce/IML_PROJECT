@@ -337,7 +337,7 @@ def render_dashboard(
     # 5. Deep-Dive Diagnostic Telemetry Tabs (Organized & Intuitive)
     # ==========================================================================
     evidence_data = res.get("evidence_analysis", {})
-    has_grounding = is_evidence_mode or (evidence_data and evidence_data.get("has_reference_context"))
+    has_grounding = bool(evidence_data and evidence_data.get("has_reference_context")) or bool(res.get("context"))
 
     tab_titles = [
         "Token Uncertainty & Heatmap",
@@ -713,10 +713,12 @@ def render_dashboard(
         )
 
         export_col1, export_col2 = st.columns(2)
+        eval_prompt = res.get("prompt") or st.session_state.get("user_prompt", "")
+        eval_context = res.get("context") if res.get("context") is not None else st.session_state.get("user_context", "")
         audit_payload = {
             "model_slug": active_model_id,
-            "prompt": st.session_state.get("user_prompt", ""),
-            "context": st.session_state.get("user_context", ""),
+            "prompt": eval_prompt,
+            "context": eval_context,
             "generated_response": res["generated_response"],
             "risk_verdict": {
                 "combined_probability": combined_prob,
@@ -734,12 +736,11 @@ def render_dashboard(
         }
         audit_json = json.dumps(audit_payload, indent=2)
         export_fmt = st.session_state.get("pref_export_format", "JSON (AST & Logits)")
-        user_prompt_val = st.session_state.get("user_prompt", "")
 
         with export_col1:
             if "CSV" in export_fmt:
                 export_df = pd.DataFrame([{
-                    "prompt": user_prompt_val,
+                    "prompt": eval_prompt,
                     "generated_response": res["generated_response"],
                     "combined_probability": combined_prob,
                     "combined_risk_pct": combined_pct,
@@ -760,7 +761,7 @@ def render_dashboard(
                 )
             elif "Parquet" in export_fmt:
                 export_df = pd.DataFrame([{
-                    "prompt": user_prompt_val,
+                    "prompt": eval_prompt,
                     "generated_response": res["generated_response"],
                     "combined_probability": combined_prob,
                     "combined_risk_pct": combined_pct,
@@ -798,7 +799,7 @@ def render_dashboard(
             - **Calibrated Confidence**: {conf_pct:.1f}%
             - **XGBoost Risk**: {xgb_pct:.1f}%
             - **Logistic Regression Risk**: {lr_pct:.1f}%
-            - **Prompt**: "{user_prompt_val}"
+            - **Prompt**: "{eval_prompt}"
             - **Generation**: "{res['generated_response']}"
             - **Total Pipeline Latency**: {total_elapsed:.1f} ms
             """).strip()

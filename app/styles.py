@@ -60,13 +60,12 @@ THEME_VARS_DARK = THEME_VARS
 
 CUSTOM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
-/* --- Root Theme Tokens --- */
+/* --- Root Theme Tokens (Offline Native System & Monospace Typography) --- */
 :root {
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
 }
+
 
 /* --- Base Canvas Overhauls --- */
 html, body, [class*="css"], .stApp {

@@ -233,8 +233,9 @@ def balance_and_sample(
 
 
 # =====================================================================
-# LOADERS WITH OFFLINE CACHING
+# DATASET LOADERS AND PREPROCESSING
 # =====================================================================
+
 
 def load_config(config_path: str = "configs/data.yaml") -> Dict[str, Any]:
     """Load YAML dataset configuration file."""
@@ -261,8 +262,15 @@ def load_and_process_halueval(
     Path(processed_dir).mkdir(parents=True, exist_ok=True)
     out_path = Path(processed_dir) / target_file
 
+    if out_path.exists():
+        logger.info("Loading cached processed HaluEval dataset from '%s'...", out_path)
+        cached_df = pd.read_parquet(out_path)
+        validate_canonical_dataframe(cached_df)
+        return cached_df
+
     logger.info("Loading HaluEval from Hugging Face ('flowaicom/HaluEval')...")
     ds = load_dataset("flowaicom/HaluEval", split="test")
+
 
     records: List[Dict[str, Any]] = []
     for idx, row in enumerate(ds):
@@ -301,8 +309,16 @@ def load_and_process_truthfulqa(
     Path(processed_dir).mkdir(parents=True, exist_ok=True)
     out_path = Path(processed_dir) / target_file
 
+    if out_path.exists():
+        logger.info("Loading cached processed TruthfulQA dataset from '%s'...", out_path)
+        cached_df = pd.read_parquet(out_path)
+        validate_canonical_dataframe(cached_df)
+        return cached_df
+
     logger.info("Loading TruthfulQA from Hugging Face ('truthfulqa/truthful_qa', 'generation')...")
     ds = load_dataset("truthfulqa/truthful_qa", "generation", split="validation")
+
+
 
     records: List[Dict[str, Any]] = []
     for idx, row in enumerate(ds):

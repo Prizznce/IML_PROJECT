@@ -76,6 +76,26 @@ class TestEnvironment(unittest.TestCase):
         print(f"[INFO] Streamlit Version: {st.__version__}")
         self.assertIsNotNone(st.__version__)
 
+    def test_local_model_environment(self):
+        import os
+        from src.utils.model_registry import is_model_cached_locally, is_offline_mode
+        self.assertTrue(is_offline_mode())
+        self.assertEqual(os.environ.get("HF_HUB_OFFLINE"), "1")
+        self.assertEqual(os.environ.get("TRANSFORMERS_OFFLINE"), "1")
+        self.assertTrue(is_model_cached_locally("Qwen/Qwen3.5-0.8B"))
+        self.assertTrue(is_model_cached_locally("sentence-transformers/all-MiniLM-L6-v2"))
+        self.assertTrue(is_model_cached_locally("cross-encoder/nli-MiniLM2-L6-H768"))
+
+    def test_local_model_loading(self):
+        from app.inference import load_inference_models
+        models = load_inference_models(device="cpu", model_id="Qwen/Qwen3.5-0.8B")
+        self.assertIn("causal_model", models)
+        self.assertIn("tokenizer", models)
+        self.assertIn("embedding_model", models)
+        self.assertIn("nli_model", models)
+
+
+
 
 def main():
     print("=" * 60)

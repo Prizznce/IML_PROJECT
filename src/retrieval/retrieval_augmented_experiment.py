@@ -178,7 +178,11 @@ def extract_dense_retrieval_features(
     """
     dev = device if torch.cuda.is_available() and "cuda" in device else "cpu"
     logger.info(f"Loading SentenceTransformer '{model_name}' on device '{dev}'...")
-    model = SentenceTransformer(model_name, device=dev)
+    try:
+        model = SentenceTransformer(model_name, device=dev, local_files_only=True)
+    except Exception:
+        model = SentenceTransformer(model_name, device=dev)
+
 
     # Encode corpora
     corpus_embs: dict[str, np.ndarray] = {}

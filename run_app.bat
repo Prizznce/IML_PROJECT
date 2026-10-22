@@ -3,6 +3,9 @@ title VeritasLM - Enterprise LLM Observability and Hallucination Defense
 
 echo Launching VeritasLM Neural Observability Platform (.venv CUDA runtime)...
 
+set HF_HUB_OFFLINE=1
+set TRANSFORMERS_OFFLINE=1
+
 .\.venv\Scripts\streamlit.exe run app\app.py
 if errorlevel 1 (
     echo.

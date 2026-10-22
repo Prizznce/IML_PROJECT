@@ -183,6 +183,7 @@ def load_inference_models(
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
     nli_model_name: str = "cross-encoder/nli-MiniLM2-L6-H768",
     token: Optional[str] = None,
+    local_files_only: bool = True,
 ) -> Dict[str, Any]:
     """
     Load generative LLM, sentence embedding model, NLI model, and trained tabular classifiers.
@@ -193,14 +194,21 @@ def load_inference_models(
         embedding_model_name: SentenceTransformer repository ID.
         nli_model_name: CrossEncoder NLI repository ID.
         token: Hugging Face authentication token for gated repositories (e.g. Llama 3.2).
+        local_files_only: Whether to load from local disk cache (defaults to True).
 
     Returns:
         Dict containing loaded model instances and metadata.
     """
     global _GLOBAL_MODEL_CACHE
-    from src.utils.model_registry import get_hf_token, get_model_slug
+    from src.utils.model_registry import (
+        get_hf_token,
+        get_model_slug,
+    )
     auth_token = get_hf_token(token)
     slug = get_model_slug(model_id)
+
+
+
 
     if device is None:
         target = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -213,7 +221,12 @@ def load_inference_models(
 
     if causal_key not in _GLOBAL_MODEL_CACHE:
         logger.info(f"Loading causal model '{model_id}' on {actual_device}...")
-        causal_model, tokenizer = load_model_and_tokenizer(model_id=model_id, device=actual_device, token=auth_token)
+        causal_model, tokenizer = load_model_and_tokenizer(
+            model_id=model_id,
+            device=actual_device,
+            token=auth_token,
+            local_files_only=local_files_only,
+        )
         _GLOBAL_MODEL_CACHE[causal_key] = causal_model
         _GLOBAL_MODEL_CACHE[tok_key] = tokenizer
         _GLOBAL_MODEL_CACHE["causal_model"] = causal_model
@@ -231,7 +244,11 @@ def load_inference_models(
 
     if "embedding_model" not in _GLOBAL_MODEL_CACHE:
         logger.info(f"Loading embedding model '{embedding_model_name}' on {actual_device}...")
-        embedding_model = load_embedding_model(model_name=embedding_model_name, device=actual_device)
+        embedding_model = load_embedding_model(
+            model_name=embedding_model_name,
+            device=actual_device,
+            local_files_only=local_files_only,
+        )
         _GLOBAL_MODEL_CACHE["embedding_model"] = embedding_model
     else:
         try:
@@ -242,7 +259,11 @@ def load_inference_models(
 
     if "nli_model" not in _GLOBAL_MODEL_CACHE:
         logger.info(f"Loading NLI model '{nli_model_name}' on {actual_device}...")
-        nli_res = load_nli_model(model_name=nli_model_name, device=actual_device)
+        nli_res = load_nli_model(
+            model_name=nli_model_name,
+            device=actual_device,
+            local_files_only=local_files_only,
+        )
         if isinstance(nli_res, tuple):
             nli_model, label_indices = nli_res
         else:

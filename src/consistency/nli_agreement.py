@@ -87,6 +87,7 @@ def get_nli_label_indices(config_or_id2label: Union[Any, Dict[int, str]]) -> Dic
 def load_nli_model(
     model_name: str = "cross-encoder/nli-MiniLM2-L6-H768",
     device: str = "cuda:0",
+    local_files_only: bool = True,
 ) -> Tuple[CrossEncoder, Dict[str, int]]:
     """
     Load cross-encoder NLI model with device placement and resolved label indices.
@@ -94,21 +95,35 @@ def load_nli_model(
     Parameters:
         model_name: HuggingFace model repository identifier.
         device: CUDA or CPU target device string.
+        local_files_only: Whether to load from local disk cache (defaults to True).
 
     Returns:
         Tuple of (CrossEncoder instance, label_indices_dict).
     """
     dev = device if torch.cuda.is_available() and "cuda" in device else "cpu"
-    logger.info(f"Loading CrossEncoder '{model_name}' on device '{dev}'...")
+    logger.info(f"Loading CrossEncoder '{model_name}' on device '{dev}' (local_files_only={local_files_only})...")
     t0 = time.perf_counter()
-    model = CrossEncoder(model_name, device=dev)
+
+    if local_files_only:
+        try:
+            model = CrossEncoder(model_name, device=dev, local_files_only=True)
+        except Exception as e:
+            raise FileNotFoundError(
+                f"Local NLI model '{model_name}' not found: {e}"
+            ) from e
+    else:
+        model = CrossEncoder(model_name, device=dev)
+
     load_time = time.perf_counter() - t0
     logger.info(f"CrossEncoder successfully loaded in {load_time:.2f}s.")
+
+
 
     label_indices = get_nli_label_indices(model.model.config)
     logger.info(f"Resolved NLI label indices: {label_indices}")
 
     return model, label_indices
+
 
 
 # ==============================================================================

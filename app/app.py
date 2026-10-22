@@ -14,6 +14,10 @@ if _repo_root not in sys.path:
 
 import streamlit as st
 
+from src.utils.model_registry import ensure_offline_env
+
+ensure_offline_env()
+
 from app.assets import ICON_PNG_PATH
 from app.styles import apply_custom_styles
 from app.config import (
@@ -33,6 +37,7 @@ from app.components.history import render_history_view
 from app.components.benchmark_mode import render_benchmark_mode
 from app.components.system_health import render_system_health_view
 from app.session import init_session, record_detector_activity
+
 
 # ==============================================================================
 # 1. Page Configuration & Custom Design System

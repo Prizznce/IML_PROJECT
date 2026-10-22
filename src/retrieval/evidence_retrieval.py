@@ -252,6 +252,7 @@ def build_evidence_corpus(
 def load_retrieval_model(
     model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
     device: str = "cuda:0",
+    local_files_only: bool = True,
 ) -> Tuple[SentenceTransformer, float]:
     """
     Load dense retrieval embedding model.
@@ -259,17 +260,31 @@ def load_retrieval_model(
     Parameters:
         model_name: HuggingFace model repository identifier.
         device: CUDA or CPU device string.
+        local_files_only: Whether to load from local disk cache (defaults to True).
 
     Returns:
         Tuple of (SentenceTransformer instance, loading_time_s).
     """
     dev = device if torch.cuda.is_available() and "cuda" in device else "cpu"
-    logger.info(f"Loading retrieval embedding model '{model_name}' on device '{dev}'...")
+    logger.info(f"Loading retrieval embedding model '{model_name}' on device '{dev}' (local_files_only={local_files_only})...")
     t0 = time.perf_counter()
-    model = SentenceTransformer(model_name, device=dev)
+
+    if local_files_only:
+        try:
+            model = SentenceTransformer(model_name, device=dev, local_files_only=True)
+        except Exception as e:
+            raise FileNotFoundError(
+                f"Local retrieval model '{model_name}' not found: {e}"
+            ) from e
+    else:
+        model = SentenceTransformer(model_name, device=dev)
+
+
     load_time = time.perf_counter() - t0
     logger.info(f"Retrieval embedding model loaded in {load_time:.2f}s.")
     return model, load_time
+
+
 
 
 def extract_retrieval_features(

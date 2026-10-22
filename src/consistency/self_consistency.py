@@ -342,6 +342,7 @@ def extract_self_consistency_signals(
 def load_embedding_model(
     model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
     device: str = "cuda:0",
+    local_files_only: bool = True,
 ) -> Any:
     """
     Load lightweight sentence transformer model for pairwise semantic similarity.
@@ -349,16 +350,32 @@ def load_embedding_model(
     Parameters:
         model_name: Repository ID of sentence embedding model.
         device: CUDA or CPU device string.
+        local_files_only: Whether to load from local disk cache (defaults to True).
 
     Returns:
         SentenceTransformer model instance.
     """
     from sentence_transformers import SentenceTransformer
+
     dev = device if torch.cuda.is_available() and "cuda" in device else "cpu"
-    logger.info(f"Loading SentenceTransformer '{model_name}' on device '{dev}'...")
+    logger.info(f"Loading SentenceTransformer '{model_name}' on device '{dev}' (local_files_only={local_files_only})...")
+
+    if local_files_only:
+        try:
+            model = SentenceTransformer(model_name, device=dev, local_files_only=True)
+            logger.info(f"SentenceTransformer '{model_name}' successfully loaded from local files.")
+            return model
+        except Exception as e:
+            raise FileNotFoundError(
+                f"Local embedding model '{model_name}' not found: {e}"
+            ) from e
+
+
     model = SentenceTransformer(model_name, device=dev)
     logger.info(f"SentenceTransformer '{model_name}' successfully loaded.")
     return model
+
+
 
 
 def generate_stochastic_responses(

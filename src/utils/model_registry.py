@@ -15,6 +15,12 @@ from typing import Dict, Optional, Tuple, Any
 # Root repository directory
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
+# Environment defaults for local model execution
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
+
+
 # Known model configurations
 SUPPORTED_MODELS: Dict[str, Dict[str, Any]] = {
     "Qwen/Qwen3.5-0.8B": {
@@ -152,3 +158,59 @@ def get_hf_token(explicit_token: Optional[str] = None) -> Optional[str]:
         pass
 
     return None
+
+
+def is_offline_mode() -> bool:
+    """Check if local execution mode is active."""
+    return os.environ.get("HF_HUB_OFFLINE", "1") == "1"
+
+
+def set_offline_mode(enabled: bool = True) -> None:
+    """Configure environment flags for local model execution."""
+    val = "1" if enabled else "0"
+    os.environ["HF_HUB_OFFLINE"] = val
+    os.environ["TRANSFORMERS_OFFLINE"] = val
+
+
+def ensure_offline_env() -> bool:
+    """Ensure environment is configured for local model execution."""
+    set_offline_mode(True)
+    return True
+
+
+
+
+def is_model_cached_locally(model_id: str) -> bool:
+    """
+    Check if a model's repository or snapshot exists in the local Hugging Face hub cache.
+
+    Parameters:
+        model_id: HuggingFace model repository ID or local path.
+
+    Returns:
+        bool: True if model weights are present locally on disk.
+    """
+    p = Path(model_id)
+    if p.exists() and p.is_dir():
+        return True
+
+    try:
+        from huggingface_hub.constants import HUGGINGFACE_HUB_CACHE
+        hub_cache = Path(HUGGINGFACE_HUB_CACHE)
+        if not hub_cache.exists():
+            return False
+
+        repo_folder_name = "models--" + model_id.replace("/", "--")
+        model_dir = hub_cache / repo_folder_name
+        if model_dir.exists():
+            snapshots = model_dir / "snapshots"
+            if snapshots.exists() and any(snapshots.iterdir()):
+                return True
+            blobs = model_dir / "blobs"
+            if blobs.exists() and any(blobs.iterdir()):
+                return True
+            return True
+    except Exception:
+        pass
+    return False
+

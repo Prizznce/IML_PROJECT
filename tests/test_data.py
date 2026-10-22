@@ -251,8 +251,9 @@ class TestDataConfiguration(unittest.TestCase):
         self.assertIn("datasets", cfg)
         self.assertIn("halueval", cfg["datasets"])
         self.assertIn("truthfulqa", cfg["datasets"])
-    def test_load_and_process_fever_offline_fallback(self):
-        """Verify load_and_process_fever falls back gracefully to processed parquet if network fails."""
+    def test_load_and_process_fever_cache_priority(self):
+        """Verify load_and_process_fever loads from processed parquet cache."""
+
         import tempfile
         from unittest.mock import patch
         import urllib.error

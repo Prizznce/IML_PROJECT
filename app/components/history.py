@@ -13,6 +13,7 @@ import html
 from typing import Any, Dict, List
 import streamlit as st
 
+from app.config import MODEL_OPTIONS
 from app.session import (
     get_session_id,
     get_session_history,
@@ -476,6 +477,16 @@ def _render_full_benchmark_card(rec: Dict[str, Any], idx: int, key_prefix: str =
             st.session_state["main_context_input_field"] = context_text
             st.session_state["selected_preset_key"] = None
             st.session_state["inference_result"] = None
+            bm_models = rec.get("models") or []
+            if bm_models:
+                first_m = bm_models[0]
+                if first_m in MODEL_OPTIONS:
+                    st.session_state["selected_model_name"] = first_m
+                else:
+                    for opt_name, opt_id in MODEL_OPTIONS.items():
+                        if first_m == opt_id:
+                            st.session_state["selected_model_name"] = opt_name
+                            break
             st.session_state["active_nav"] = "Detector"
             st.rerun()
 
@@ -627,6 +638,16 @@ def _render_full_detection_card(rec: Dict[str, Any], idx: int, key_prefix: str =
             st.session_state["main_context_input_field"] = context_text
             st.session_state["selected_preset_key"] = None
             st.session_state["inference_result"] = None
+            target_model = None
+            if model_name in MODEL_OPTIONS:
+                target_model = model_name
+            else:
+                for opt_name, opt_id in MODEL_OPTIONS.items():
+                    if model_name == opt_id:
+                        target_model = opt_name
+                        break
+            if target_model:
+                st.session_state["selected_model_name"] = target_model
             st.session_state["active_nav"] = "Detector"
             st.rerun()
 

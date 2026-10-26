@@ -422,11 +422,27 @@ def render_system_health_view(
                 perplexity_spikes += 1
             # Check internal signals if benchmark or detailed
             bench = r.get("benchmark_results") or {}
-            if isinstance(bench, dict):
+            if isinstance(bench, dict) and bench:
                 for b_data in bench.values():
                     if isinstance(b_data, dict):
                         sig = b_data.get("internal_signals") or {}
-                        if isinstance(sig, dict) and float(sig.get("mean_entropy", 1.0) or 1.0) < 0.15:
+                        if isinstance(sig, dict):
+                            raw_ent = sig.get("mean_entropy")
+                            ent = 1.0 if raw_ent is None else float(raw_ent)
+                            if ent < 0.15:
+                                entropy_collapses += 1
+            else:
+                # Single-engine detector records
+                ent_val = t.get("mean_entropy")
+                if ent_val is not None:
+                    if float(ent_val) < 0.15:
+                        entropy_collapses += 1
+                elif "internal_signals" in r:
+                    sig = r.get("internal_signals") or {}
+                    if isinstance(sig, dict):
+                        raw_ent = sig.get("mean_entropy")
+                        ent = 1.0 if raw_ent is None else float(raw_ent)
+                        if ent < 0.15:
                             entropy_collapses += 1
 
         degen_status = "STABLE (0 Collapses)" if entropy_collapses == 0 else f"WARN ({entropy_collapses} Collapses)"

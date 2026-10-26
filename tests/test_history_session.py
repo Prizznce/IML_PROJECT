@@ -488,4 +488,183 @@ def test_dialog_model_switch_clears_inference_result():
     assert st.session_state.get("inference_result") is None
 
 
+def test_history_load_query_syncs_model_selection():
+    """Verify that loading historical audit query into detector syncs selected_model_name."""
+    from app.components.history import _render_full_detection_card
+
+    init_session()
+    st.session_state["selected_model_name"] = "Qwen 3.5 (0.8B)"
+
+    det_rec = {
+        "id": "DET-099",
+        "is_benchmark": False,
+        "full_prompt": "Prompt for Llama",
+        "full_context": "",
+        "model": "Llama 3.2 (1B Instruct)",
+        "result": {"risk_percentage": 10},
+    }
+
+    def mock_button(label, **kwargs):
+        return label == "Load Query into Detector"
+
+    with patch("streamlit.markdown"), \
+         patch("streamlit.code"), \
+         patch("streamlit.caption"), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]), \
+         patch("streamlit.button", side_effect=mock_button), \
+         patch("streamlit.rerun"):
+        _render_full_detection_card(det_rec, 0)
+
+    assert st.session_state.get("selected_model_name") == "Llama 3.2 (1B Instruct)"
+    assert st.session_state.get("user_prompt") == "Prompt for Llama"
+
+
+def test_detector_activity_records_mean_entropy_and_system_health():
+    """Verify that record_detector_activity records mean_entropy and system health detects collapse."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    mock_res = {
+        "predicted_risk_xgb": 0.2,
+        "predicted_risk_lr": 0.2,
+        "total_latency_ms": 100.0,
+        "internal_signals": {
+            "num_tokens": 15,
+            "perplexity": 2.5,
+            "mean_entropy": 0.08,  # Degenerate collapse (<0.15)
+        },
+    }
+
+    rec = record_detector_activity(prompt="Repetitive prompt", result=mock_res)
+    assert "mean_entropy" in rec["telemetry"]
+    assert rec["telemetry"]["mean_entropy"] == 0.08
+
+    # Render system health and verify it flags WARN (1 Collapses)
+    markdown_outputs = []
+    def mock_markdown(text, **kwargs):
+        markdown_outputs.append(str(text))
+
+    with patch("streamlit.markdown", side_effect=mock_markdown), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+
+    full_output = " ".join(markdown_outputs)
+    assert "WARN (1 Collapses)" in full_output
+
+
+@pytest.mark.parametrize(
+    "entropy_input,expected_telemetry,expected_status",
+    [
+        (0.0, 0.0, "WARN (1 Collapses)"),
+        (0, 0.0, "WARN (1 Collapses)"),
+        (0.08, 0.08, "WARN (1 Collapses)"),
+        (0.50, 0.50, "STABLE (0 Collapses)"),
+        (None, 1.0, "STABLE (0 Collapses)"),
+    ],
+)
+def test_entropy_monitoring_numeric_and_fallback_values(entropy_input, expected_telemetry, expected_status):
+    """Verify numeric zero, low, normal, and null entropy values preserve exact semantics in telemetry & health."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    signals = {"num_tokens": 15, "perplexity": 2.5, "mean_entropy": entropy_input}
+
+    mock_res = {
+        "predicted_risk_xgb": 0.2,
+        "predicted_risk_lr": 0.2,
+        "total_latency_ms": 100.0,
+        "internal_signals": signals,
+    }
+
+    rec = record_detector_activity(prompt="Entropy test", result=mock_res)
+    assert rec["telemetry"]["mean_entropy"] == expected_telemetry
+
+    markdown_outputs = []
+    with patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+
+    full_output = " ".join(markdown_outputs)
+    assert expected_status in full_output
+
+
+def test_entropy_monitoring_missing_key_fallback():
+    """Verify completely missing mean_entropy key in internal_signals defaults to 1.0 without collapse alarm."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    mock_res = {
+        "predicted_risk_xgb": 0.2,
+        "predicted_risk_lr": 0.2,
+        "total_latency_ms": 100.0,
+        "internal_signals": {"num_tokens": 10, "perplexity": 2.0},
+    }
+
+    rec = record_detector_activity(prompt="Missing entropy test", result=mock_res)
+    assert rec["telemetry"]["mean_entropy"] == 1.0
+
+    markdown_outputs = []
+    with patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+
+    full_output = " ".join(markdown_outputs)
+    assert "STABLE (0 Collapses)" in full_output
+
+
+def test_entropy_monitoring_no_duplicate_counting():
+    """Verify records containing both telemetry mean_entropy and internal_signals mean_entropy are counted once."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    mock_res = {
+        "predicted_risk_xgb": 0.2,
+        "predicted_risk_lr": 0.2,
+        "total_latency_ms": 100.0,
+        "internal_signals": {"num_tokens": 10, "perplexity": 2.0, "mean_entropy": 0.0},
+    }
+
+    rec = record_detector_activity(prompt="Duplicate counting test", result=mock_res)
+    # Both telemetry and internal_signals have mean_entropy
+    assert "mean_entropy" in rec["telemetry"]
+    assert "mean_entropy" in rec["internal_signals"]
+
+    markdown_outputs = []
+    with patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+
+    full_output = " ".join(markdown_outputs)
+    assert "WARN (1 Collapses)" in full_output
+    assert "WARN (2 Collapses)" not in full_output
+
+
+def test_entropy_monitoring_benchmark_zero_entropy_collapse():
+    """Verify benchmark record with a model producing 0.0 entropy is properly flagged as collapse."""
+    from app.components.system_health import render_system_health_view
+    from app.session import record_benchmark_activity
+
+    init_session()
+    bm_results = {
+        "Qwen 3.5 (0.8B)": {
+            "predicted_risk_xgb": 0.1,
+            "internal_signals": {"mean_entropy": 0.0},
+        },
+        "Llama 3.2 (1B Instruct)": {
+            "predicted_risk_xgb": 0.2,
+            "internal_signals": {"mean_entropy": 0.75},
+        },
+    }
+    record_benchmark_activity(prompt="Benchmark 0.0 entropy test", benchmark_results=bm_results)
+
+    markdown_outputs = []
+    with patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+
+    full_output = " ".join(markdown_outputs)
+    assert "WARN (1 Collapses)" in full_output
+
+
+
 

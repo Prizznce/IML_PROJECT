@@ -239,3 +239,12 @@ class TestEndToEndErrorAnalysisPipeline:
         assert summary["both_correct_rate"] == 0.0
         assert summary["disagreement_rate"] == 0.0
         assert len(diff_df) == 0
+
+    def test_error_analysis_main_cli(self):
+        """Verify error_analysis main() parses arguments without error."""
+        from src.evaluation.error_analysis import main
+        from unittest.mock import patch
+
+        with patch("sys.argv", ["error_analysis.py", "--help"]), pytest.raises(SystemExit) as exc_info:
+            main()
+        assert exc_info.value.code == 0

@@ -134,6 +134,8 @@ def record_detector_activity(
     internal_signals = result.get("internal_signals", {})
     num_tokens = int(internal_signals.get("num_tokens", 0) or 0)
     perplexity = float(internal_signals.get("perplexity", 0.0) or 0.0)
+    val = internal_signals.get("mean_entropy")
+    mean_entropy = 1.0 if val is None else float(val)
     total_latency_ms = float(result.get("total_latency_ms", 0.0) or 0.0)
 
     record_id = f"REC-{len(st.session_state.get('history', [])) + 1:03d}-{uuid.uuid4().hex[:4].upper()}"
@@ -181,11 +183,13 @@ def record_detector_activity(
         "model": model_name,
         "tier": tier,
         "time": now.strftime("%I:%M %p"),
+        "internal_signals": internal_signals,
         # Telemetry & performance
         "telemetry": {
             "latency_ms": round(total_latency_ms, 1),
             "tokens": num_tokens,
             "perplexity": round(perplexity, 2),
+            "mean_entropy": round(mean_entropy, 3),
             "feature_vector_len": len(result.get("feature_vector", []) or []),
         },
     }

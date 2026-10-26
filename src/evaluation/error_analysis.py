@@ -9,6 +9,7 @@ effect sizes, and inter-model disagreement.
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 from pathlib import Path
@@ -981,3 +982,45 @@ def generate_summary_markdown(
     lines.append("")
     with open(filepath, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Comprehensive Error Analysis for Universal Core Hallucination Detector (Phase 18)")
+    parser.add_argument(
+        "--predictions-path",
+        type=str,
+        default="experiments/baselines/combined/combined_test_predictions.parquet",
+        help="Path to combined test predictions parquet",
+    )
+    parser.add_argument(
+        "--processed-data-path",
+        type=str,
+        default="data/processed/combined_processed.parquet",
+        help="Path to combined processed dataset parquet",
+    )
+    parser.add_argument(
+        "--features-path",
+        type=str,
+        default="experiments/baselines/combined/universal_features.parquet",
+        help="Path to universal features parquet",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="experiments/error_analysis",
+        help="Directory to save error analysis reports and figures",
+    )
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s - %(message)s")
+    run_error_analysis_pipeline(
+        predictions_path=args.predictions_path,
+        processed_data_path=args.processed_data_path,
+        features_path=args.features_path,
+        output_dir=args.output_dir,
+    )
+
+
+if __name__ == "__main__":
+    main()

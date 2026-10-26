@@ -666,5 +666,145 @@ def test_entropy_monitoring_benchmark_zero_entropy_collapse():
     assert "WARN (1 Collapses)" in full_output
 
 
+def test_system_health_diagnostics_not_run_by_default():
+    """Verify that diagnostics do not execute and spinner is not called when button is not clicked."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    st.session_state.pop("health_diag_results", None)
+
+    spinner_calls = []
+    markdown_outputs = []
+
+    with patch("streamlit.button", return_value=False), \
+         patch("streamlit.spinner", side_effect=lambda msg: spinner_calls.append(msg)), \
+         patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+
+    assert len(spinner_calls) == 0
+    assert "health_diag_results" not in st.session_state
+    full_output = " ".join(markdown_outputs)
+    assert "ALL NEURAL SYSTEMS DIAGNOSED" not in full_output
+
+
+def test_system_health_diagnostics_executes_on_button_click_and_stores_dict():
+    """Verify diagnostics execute when button is clicked, saving structured result dict and rendering banner."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    st.session_state.pop("health_diag_results", None)
+
+    spinner_calls = []
+    markdown_outputs = []
+
+    with patch("streamlit.button", return_value=True), \
+         patch("streamlit.spinner") as mock_spinner, \
+         patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+        mock_spinner.assert_called_once_with("Executing neural pipeline self-diagnostics...")
+
+    assert "health_diag_results" in st.session_state
+    results = st.session_state["health_diag_results"]
+    assert isinstance(results, dict)
+    assert results["all_passed"] is True
+    assert results["t1_pass"] is True
+    assert results["t2_pass"] is True
+    assert results["t3_pass"] is True
+    assert "device_label" in results
+
+    full_output = " ".join(markdown_outputs)
+    assert "ALL NEURAL SYSTEMS DIAGNOSED: OPERATIONAL & READY" in full_output
+    assert "PyTorch Tensor Allocation" in full_output
+
+
+def test_system_health_diagnostics_subsequent_rerun_does_not_reexecute():
+    """Verify that on subsequent Streamlit reruns, stored results render without calling spinner or re-running tests."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    # Simulate existing diagnostic run in session state
+    st.session_state["health_diag_results"] = {
+        "all_passed": True,
+        "device_label": "CUDA:0 (Test GPU)",
+        "t1_pass": True,
+        "t2_pass": True,
+        "t3_pass": True,
+        "t4_pass": True,
+    }
+
+    markdown_outputs = []
+    with patch("streamlit.button", return_value=False), \
+         patch("streamlit.spinner") as mock_spinner, \
+         patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+        # Spinner must NOT be called on subsequent reruns!
+        mock_spinner.assert_not_called()
+
+    # Results remain preserved
+    assert st.session_state["health_diag_results"]["device_label"] == "CUDA:0 (Test GPU)"
+    full_output = " ".join(markdown_outputs)
+    assert "ALL NEURAL SYSTEMS DIAGNOSED: OPERATIONAL & READY" in full_output
+    assert "Verified tensor computation on CUDA:0 (Test GPU)" in full_output
+
+
+def test_system_health_diagnostics_reclick_runs_fresh_test():
+    """Verify that clicking the button again runs a fresh test and updates session state."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    st.session_state["health_diag_results"] = {
+        "all_passed": False,
+        "device_label": "OLD_DEVICE",
+        "t1_pass": False,
+        "t2_pass": False,
+        "t3_pass": False,
+        "t4_pass": False,
+    }
+
+    with patch("streamlit.button", return_value=True), \
+         patch("streamlit.spinner") as mock_spinner, \
+         patch("streamlit.markdown"), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+        mock_spinner.assert_called_once_with("Executing neural pipeline self-diagnostics...")
+
+    updated = st.session_state["health_diag_results"]
+    assert updated["all_passed"] is True
+    assert updated["t1_pass"] is True
+    assert updated["device_label"] != "OLD_DEVICE"
+
+
+def test_system_health_diagnostics_handles_missing_or_empty_safely():
+    """Verify that empty, None, or boolean diagnostic results are handled safely."""
+    from app.components.system_health import render_system_health_view
+
+    init_session()
+    # Test None / empty dict
+    st.session_state["health_diag_results"] = {}
+    with patch("streamlit.button", return_value=False), \
+         patch("streamlit.spinner") as mock_spinner, \
+         patch("streamlit.markdown"), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+        mock_spinner.assert_not_called()
+
+    # Test legacy boolean True fallback
+    st.session_state["health_diag_results"] = True
+    markdown_outputs = []
+    with patch("streamlit.button", return_value=False), \
+         patch("streamlit.spinner") as mock_spinner, \
+         patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]):
+        render_system_health_view()
+        mock_spinner.assert_not_called()
+
+    full_output = " ".join(markdown_outputs)
+    assert "ALL NEURAL SYSTEMS DIAGNOSED: OPERATIONAL & READY" in full_output
+
+
+
 
 

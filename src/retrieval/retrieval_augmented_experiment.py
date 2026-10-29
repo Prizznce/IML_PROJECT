@@ -66,6 +66,11 @@ RETRIEVAL_FEATURES: list[str] = [
     "retrieval_agreement",
 ]
 
+RETRIEVAL_FEATURE_ALIASES: dict[str, str] = {
+    "response_top1_evidence_similarity": "response_top1_similarity",
+    "evidence_margin": "evidence_response_margin",
+}
+
 CONDITION_FEATURE_MAP: dict[str, list[str]] = {
     "internal_only": INTERNAL_SIGNAL_FEATURES,
     "universal_core": UNIVERSAL_CORE_FEATURES,
@@ -260,8 +265,10 @@ def extract_dense_retrieval_features(
             "top1_evidence_similarity": top1_q,
             "top3_evidence_similarity": top3_q,
             "response_top1_similarity": top1_r,
+            "response_top1_evidence_similarity": top1_r,
             "response_top3_similarity": top3_r,
             "evidence_response_margin": margin,
+            "evidence_margin": margin,
             "retrieval_agreement": agreement,
         })
 

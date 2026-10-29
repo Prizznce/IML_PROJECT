@@ -12,7 +12,10 @@ import io
 import json
 import math
 import textwrap
+import logging
 import time
+
+logger = logging.getLogger(__name__)
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -28,6 +31,7 @@ from app.inference import (
     run_live_inference,
 )
 from app.session import (
+    to_json_serializable,
     calculate_confidence_score,
     record_benchmark_activity,
 )
@@ -419,8 +423,8 @@ def render_benchmark_mode(
                     threshold_high=float(threshold_high),
                     is_evidence_mode=is_evidence_mode,
                 )
-            except Exception as h_err:
-                pass
+            except Exception:
+                logger.exception("Failed to record benchmark activity into session audit history")
 
             st.session_state["bm_results"] = results_dict
             st.session_state["bm_prompt_ran"] = clean_p
@@ -932,7 +936,7 @@ def _render_bm_comparison_dashboard(
             ],
             "results_by_model": valid_results,
         }
-        json_str = json.dumps(export_payload, indent=2, default=str)
+        json_str = json.dumps(to_json_serializable(export_payload), indent=2)
         st.download_button(
             label="Download Complete Benchmark Telemetry (JSON)",
             data=json_str,

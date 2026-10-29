@@ -114,6 +114,9 @@ feature_families:
       - response_top1_evidence_similarity
       - evidence_margin
       - retrieval_agreement
+    feature_aliases:
+      response_top1_similarity: response_top1_evidence_similarity
+      evidence_response_margin: evidence_margin
     ablation_features:
       - mean_top3_evidence_similarity          # Highly collinear with top1_evidence_similarity (r = 0.947)
       - mean_response_top3_evidence_similarity # Highly collinear with response_top1_evidence_similarity (r = 0.950)

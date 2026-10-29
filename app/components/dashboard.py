@@ -601,7 +601,7 @@ def render_dashboard(
             nli_table_data = [
                 {"Signal": "mean_pairwise_entailment", "Value": f"{nli_sig.get('mean_pairwise_entailment', 0.0):.4f}", "Interpretation": "Average cross-encoder entailment probability"},
                 {"Signal": "mean_pairwise_contradiction", "Value": f"{nli_sig.get('mean_pairwise_contradiction', 0.0):.4f}", "Interpretation": "Average cross-encoder contradiction probability"},
-                {"Signal": "nli_disagreement", "Value": f"{nli_sig.get('nli_disagreement', 0.0):.4f}", "Interpretation": "Composite NLI disagreement [contradiction + 0.5 * (1 - entailment)]"},
+                {"Signal": "nli_disagreement", "Value": f"{nli_sig.get('nli_disagreement', 0.0):.4f}", "Interpretation": "Composite NLI disagreement [contradiction + 0.5 * neutral]"},
             ]
             st.dataframe(pd.DataFrame(nli_table_data), width="stretch", hide_index=True)
 

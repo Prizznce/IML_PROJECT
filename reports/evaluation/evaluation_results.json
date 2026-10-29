@@ -1,0 +1,2429 @@
+{
+  "qwen3_5_0_8b": {
+    "model_name": "Qwen 3.5 (0.8B)",
+    "model_id": "Qwen/Qwen3.5-0.8B",
+    "classifiers": {
+      "xgboost": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 267,
+            "fp": 124,
+            "tn": 276,
+            "fn": 133
+          },
+          "accuracy": 0.6788,
+          "accuracy_95ci": [
+            0.6456,
+            0.7102
+          ],
+          "precision": 0.6829,
+          "precision_95ci": [
+            0.6351,
+            0.727
+          ],
+          "recall_sensitivity": 0.6675,
+          "recall_95ci": [
+            0.6199,
+            0.7119
+          ],
+          "specificity": 0.69,
+          "specificity_95ci": [
+            0.643,
+            0.7333
+          ],
+          "false_positive_rate": 0.31,
+          "fpr_95ci": [
+            0.2667,
+            0.357
+          ],
+          "balanced_accuracy": 0.6788,
+          "f1_score": 0.6751,
+          "roc_auc": 0.7688,
+          "roc_auc_95ci": [
+            0.7362,
+            0.7996
+          ],
+          "pr_auc": 0.7795
+        },
+        "calibration": {
+          "ece": 0.0341,
+          "brier_score": 0.1891,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 84,
+              "mean_pred_prob": 0.0388,
+              "observed_positive_rate": 0.0,
+              "abs_error": 0.0388
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 17,
+              "mean_pred_prob": 0.1556,
+              "observed_positive_rate": 0.1765,
+              "abs_error": 0.0209
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 29,
+              "mean_pred_prob": 0.2581,
+              "observed_positive_rate": 0.2759,
+              "abs_error": 0.0178
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 89,
+              "mean_pred_prob": 0.3602,
+              "observed_positive_rate": 0.3371,
+              "abs_error": 0.0231
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 190,
+              "mean_pred_prob": 0.4485,
+              "observed_positive_rate": 0.4842,
+              "abs_error": 0.0357
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 146,
+              "mean_pred_prob": 0.5464,
+              "observed_positive_rate": 0.5068,
+              "abs_error": 0.0395
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 103,
+              "mean_pred_prob": 0.6433,
+              "observed_positive_rate": 0.6796,
+              "abs_error": 0.0363
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 31,
+              "mean_pred_prob": 0.7421,
+              "observed_positive_rate": 0.7419,
+              "abs_error": 0.0001
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 46,
+              "mean_pred_prob": 0.8627,
+              "observed_positive_rate": 0.8043,
+              "abs_error": 0.0584
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 65,
+              "mean_pred_prob": 0.9371,
+              "observed_positive_rate": 0.9692,
+              "abs_error": 0.0321
+            }
+          ]
+        }
+      },
+      "logistic_regression": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 259,
+            "fp": 156,
+            "tn": 244,
+            "fn": 141
+          },
+          "accuracy": 0.6288,
+          "accuracy_95ci": [
+            0.5947,
+            0.6615
+          ],
+          "precision": 0.6241,
+          "precision_95ci": [
+            0.5766,
+            0.6694
+          ],
+          "recall_sensitivity": 0.6475,
+          "recall_95ci": [
+            0.5995,
+            0.6927
+          ],
+          "specificity": 0.61,
+          "specificity_95ci": [
+            0.5614,
+            0.6565
+          ],
+          "false_positive_rate": 0.39,
+          "fpr_95ci": [
+            0.3435,
+            0.4386
+          ],
+          "balanced_accuracy": 0.6287,
+          "f1_score": 0.6356,
+          "roc_auc": 0.7079,
+          "roc_auc_95ci": [
+            0.6741,
+            0.744
+          ],
+          "pr_auc": 0.7124
+        },
+        "calibration": {
+          "ece": 0.0525,
+          "brier_score": 0.2151,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 7,
+              "mean_pred_prob": 0.0738,
+              "observed_positive_rate": 0.1429,
+              "abs_error": 0.0691
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 67,
+              "mean_pred_prob": 0.1597,
+              "observed_positive_rate": 0.0896,
+              "abs_error": 0.0701
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 70,
+              "mean_pred_prob": 0.2467,
+              "observed_positive_rate": 0.2571,
+              "abs_error": 0.0104
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 100,
+              "mean_pred_prob": 0.359,
+              "observed_positive_rate": 0.47,
+              "abs_error": 0.111
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 141,
+              "mean_pred_prob": 0.4514,
+              "observed_positive_rate": 0.4894,
+              "abs_error": 0.0379
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 149,
+              "mean_pred_prob": 0.5535,
+              "observed_positive_rate": 0.5034,
+              "abs_error": 0.0502
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 137,
+              "mean_pred_prob": 0.6481,
+              "observed_positive_rate": 0.5766,
+              "abs_error": 0.0714
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 69,
+              "mean_pred_prob": 0.7456,
+              "observed_positive_rate": 0.7681,
+              "abs_error": 0.0225
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 51,
+              "mean_pred_prob": 0.8381,
+              "observed_positive_rate": 0.8431,
+              "abs_error": 0.005
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 9,
+              "mean_pred_prob": 0.9342,
+              "observed_positive_rate": 1.0,
+              "abs_error": 0.0658
+            }
+          ]
+        }
+      },
+      "combined_ensemble": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 273,
+            "fp": 145,
+            "tn": 255,
+            "fn": 127
+          },
+          "accuracy": 0.66,
+          "accuracy_95ci": [
+            0.6265,
+            0.692
+          ],
+          "precision": 0.6531,
+          "precision_95ci": [
+            0.6063,
+            0.6972
+          ],
+          "recall_sensitivity": 0.6825,
+          "recall_95ci": [
+            0.6353,
+            0.7262
+          ],
+          "specificity": 0.6375,
+          "specificity_95ci": [
+            0.5893,
+            0.6831
+          ],
+          "false_positive_rate": 0.3625,
+          "fpr_95ci": [
+            0.3169,
+            0.4107
+          ],
+          "balanced_accuracy": 0.66,
+          "f1_score": 0.6675,
+          "roc_auc": 0.7538,
+          "roc_auc_95ci": [
+            0.7221,
+            0.7863
+          ],
+          "pr_auc": 0.7689
+        },
+        "calibration": {
+          "ece": 0.041,
+          "brier_score": 0.1957,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 31,
+              "mean_pred_prob": 0.0814,
+              "observed_positive_rate": 0.0,
+              "abs_error": 0.0814
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 60,
+              "mean_pred_prob": 0.1387,
+              "observed_positive_rate": 0.0333,
+              "abs_error": 0.1054
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 29,
+              "mean_pred_prob": 0.2544,
+              "observed_positive_rate": 0.3103,
+              "abs_error": 0.056
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 101,
+              "mean_pred_prob": 0.357,
+              "observed_positive_rate": 0.3762,
+              "abs_error": 0.0192
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 161,
+              "mean_pred_prob": 0.4539,
+              "observed_positive_rate": 0.4845,
+              "abs_error": 0.0306
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 181,
+              "mean_pred_prob": 0.5488,
+              "observed_positive_rate": 0.5083,
+              "abs_error": 0.0405
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 111,
+              "mean_pred_prob": 0.6375,
+              "observed_positive_rate": 0.6306,
+              "abs_error": 0.0069
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 50,
+              "mean_pred_prob": 0.747,
+              "observed_positive_rate": 0.78,
+              "abs_error": 0.033
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 55,
+              "mean_pred_prob": 0.8525,
+              "observed_positive_rate": 0.9273,
+              "abs_error": 0.0748
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 21,
+              "mean_pred_prob": 0.9241,
+              "observed_positive_rate": 1.0,
+              "abs_error": 0.0759
+            }
+          ]
+        }
+      }
+    },
+    "subgroups": {
+      "halueval": {
+        "sample_count": 300,
+        "xgboost": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 128,
+            "fp": 19,
+            "tn": 131,
+            "fn": 22
+          },
+          "accuracy": 0.8633,
+          "accuracy_95ci": [
+            0.8198,
+            0.8976
+          ],
+          "precision": 0.8707,
+          "precision_95ci": [
+            0.8069,
+            0.9157
+          ],
+          "recall_sensitivity": 0.8533,
+          "recall_95ci": [
+            0.7879,
+            0.9011
+          ],
+          "specificity": 0.8733,
+          "specificity_95ci": [
+            0.8106,
+            0.9174
+          ],
+          "false_positive_rate": 0.1267,
+          "fpr_95ci": [
+            0.0826,
+            0.1894
+          ],
+          "balanced_accuracy": 0.8633,
+          "f1_score": 0.862,
+          "roc_auc": 0.9433,
+          "roc_auc_95ci": [
+            0.9175,
+            0.9659
+          ],
+          "pr_auc": 0.9368
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 121,
+            "fp": 19,
+            "tn": 131,
+            "fn": 29
+          },
+          "accuracy": 0.84,
+          "accuracy_95ci": [
+            0.7943,
+            0.8771
+          ],
+          "precision": 0.8643,
+          "precision_95ci": [
+            0.7977,
+            0.9114
+          ],
+          "recall_sensitivity": 0.8067,
+          "recall_95ci": [
+            0.7361,
+            0.8619
+          ],
+          "specificity": 0.8733,
+          "specificity_95ci": [
+            0.8106,
+            0.9174
+          ],
+          "false_positive_rate": 0.1267,
+          "fpr_95ci": [
+            0.0826,
+            0.1894
+          ],
+          "balanced_accuracy": 0.84,
+          "f1_score": 0.8345,
+          "roc_auc": 0.9311,
+          "roc_auc_95ci": [
+            0.902,
+            0.9555
+          ],
+          "pr_auc": 0.9352
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 131,
+            "fp": 17,
+            "tn": 133,
+            "fn": 19
+          },
+          "accuracy": 0.88,
+          "accuracy_95ci": [
+            0.8383,
+            0.912
+          ],
+          "precision": 0.8851,
+          "precision_95ci": [
+            0.8237,
+            0.927
+          ],
+          "recall_sensitivity": 0.8733,
+          "recall_95ci": [
+            0.8106,
+            0.9174
+          ],
+          "specificity": 0.8867,
+          "specificity_95ci": [
+            0.826,
+            0.928
+          ],
+          "false_positive_rate": 0.1133,
+          "fpr_95ci": [
+            0.072,
+            0.174
+          ],
+          "balanced_accuracy": 0.88,
+          "f1_score": 0.8792,
+          "roc_auc": 0.9487,
+          "roc_auc_95ci": [
+            0.9254,
+            0.969
+          ],
+          "pr_auc": 0.9477
+        }
+      },
+      "truthfulqa": {
+        "sample_count": 300,
+        "xgboost": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 89,
+            "fp": 61,
+            "tn": 89,
+            "fn": 61
+          },
+          "accuracy": 0.5933,
+          "accuracy_95ci": [
+            0.5369,
+            0.6474
+          ],
+          "precision": 0.5933,
+          "precision_95ci": [
+            0.5133,
+            0.6687
+          ],
+          "recall_sensitivity": 0.5933,
+          "recall_95ci": [
+            0.5133,
+            0.6687
+          ],
+          "specificity": 0.5933,
+          "specificity_95ci": [
+            0.5133,
+            0.6687
+          ],
+          "false_positive_rate": 0.4067,
+          "fpr_95ci": [
+            0.3313,
+            0.4867
+          ],
+          "balanced_accuracy": 0.5933,
+          "f1_score": 0.5933,
+          "roc_auc": 0.6066,
+          "roc_auc_95ci": [
+            0.5437,
+            0.671
+          ],
+          "pr_auc": 0.6171
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 78,
+            "fp": 74,
+            "tn": 76,
+            "fn": 72
+          },
+          "accuracy": 0.5133,
+          "accuracy_95ci": [
+            0.457,
+            0.5694
+          ],
+          "precision": 0.5132,
+          "precision_95ci": [
+            0.4344,
+            0.5913
+          ],
+          "recall_sensitivity": 0.52,
+          "recall_95ci": [
+            0.4406,
+            0.5984
+          ],
+          "specificity": 0.5067,
+          "specificity_95ci": [
+            0.4275,
+            0.5855
+          ],
+          "false_positive_rate": 0.4933,
+          "fpr_95ci": [
+            0.4145,
+            0.5725
+          ],
+          "balanced_accuracy": 0.5133,
+          "f1_score": 0.5166,
+          "roc_auc": 0.521,
+          "roc_auc_95ci": [
+            0.4583,
+            0.587
+          ],
+          "pr_auc": 0.4996
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 84,
+            "fp": 74,
+            "tn": 76,
+            "fn": 66
+          },
+          "accuracy": 0.5333,
+          "accuracy_95ci": [
+            0.4768,
+            0.589
+          ],
+          "precision": 0.5316,
+          "precision_95ci": [
+            0.454,
+            0.6078
+          ],
+          "recall_sensitivity": 0.56,
+          "recall_95ci": [
+            0.48,
+            0.637
+          ],
+          "specificity": 0.5067,
+          "specificity_95ci": [
+            0.4275,
+            0.5855
+          ],
+          "false_positive_rate": 0.4933,
+          "fpr_95ci": [
+            0.4145,
+            0.5725
+          ],
+          "balanced_accuracy": 0.5333,
+          "f1_score": 0.5455,
+          "roc_auc": 0.5701,
+          "roc_auc_95ci": [
+            0.5059,
+            0.6357
+          ],
+          "pr_auc": 0.5732
+        }
+      },
+      "fever": {
+        "sample_count": 200,
+        "xgboost": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 50,
+            "fp": 44,
+            "tn": 56,
+            "fn": 50
+          },
+          "accuracy": 0.53,
+          "accuracy_95ci": [
+            0.4609,
+            0.598
+          ],
+          "precision": 0.5319,
+          "precision_95ci": [
+            0.4318,
+            0.6295
+          ],
+          "recall_sensitivity": 0.5,
+          "recall_95ci": [
+            0.4038,
+            0.5962
+          ],
+          "specificity": 0.56,
+          "specificity_95ci": [
+            0.4623,
+            0.6533
+          ],
+          "false_positive_rate": 0.44,
+          "fpr_95ci": [
+            0.3467,
+            0.5377
+          ],
+          "balanced_accuracy": 0.53,
+          "f1_score": 0.5155,
+          "roc_auc": 0.5441,
+          "roc_auc_95ci": [
+            0.4592,
+            0.6217
+          ],
+          "pr_auc": 0.5682
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 60,
+            "fp": 63,
+            "tn": 37,
+            "fn": 40
+          },
+          "accuracy": 0.485,
+          "accuracy_95ci": [
+            0.4167,
+            0.5539
+          ],
+          "precision": 0.4878,
+          "precision_95ci": [
+            0.4012,
+            0.5752
+          ],
+          "recall_sensitivity": 0.6,
+          "recall_95ci": [
+            0.502,
+            0.6906
+          ],
+          "specificity": 0.37,
+          "specificity_95ci": [
+            0.2818,
+            0.4678
+          ],
+          "false_positive_rate": 0.63,
+          "fpr_95ci": [
+            0.5322,
+            0.7182
+          ],
+          "balanced_accuracy": 0.485,
+          "f1_score": 0.5381,
+          "roc_auc": 0.487,
+          "roc_auc_95ci": [
+            0.4054,
+            0.571
+          ],
+          "pr_auc": 0.5003
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 58,
+            "fp": 54,
+            "tn": 46,
+            "fn": 42
+          },
+          "accuracy": 0.52,
+          "accuracy_95ci": [
+            0.451,
+            0.5882
+          ],
+          "precision": 0.5179,
+          "precision_95ci": [
+            0.4263,
+            0.6083
+          ],
+          "recall_sensitivity": 0.58,
+          "recall_95ci": [
+            0.4821,
+            0.672
+          ],
+          "specificity": 0.46,
+          "specificity_95ci": [
+            0.3656,
+            0.5574
+          ],
+          "false_positive_rate": 0.54,
+          "fpr_95ci": [
+            0.4426,
+            0.6344
+          ],
+          "balanced_accuracy": 0.52,
+          "f1_score": 0.5472,
+          "roc_auc": 0.5213,
+          "roc_auc_95ci": [
+            0.4434,
+            0.6055
+          ],
+          "pr_auc": 0.5258
+        }
+      }
+    }
+  },
+  "llama_3_2_1b_instruct": {
+    "model_name": "Llama 3.2 (1B Instruct)",
+    "model_id": "meta-llama/Llama-3.2-1B-Instruct",
+    "classifiers": {
+      "xgboost": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 286,
+            "fp": 151,
+            "tn": 249,
+            "fn": 114
+          },
+          "accuracy": 0.6688,
+          "accuracy_95ci": [
+            0.6354,
+            0.7005
+          ],
+          "precision": 0.6545,
+          "precision_95ci": [
+            0.6087,
+            0.6975
+          ],
+          "recall_sensitivity": 0.715,
+          "recall_95ci": [
+            0.6689,
+            0.757
+          ],
+          "specificity": 0.6225,
+          "specificity_95ci": [
+            0.574,
+            0.6686
+          ],
+          "false_positive_rate": 0.3775,
+          "fpr_95ci": [
+            0.3314,
+            0.426
+          ],
+          "balanced_accuracy": 0.6688,
+          "f1_score": 0.6834,
+          "roc_auc": 0.745,
+          "roc_auc_95ci": [
+            0.712,
+            0.7768
+          ],
+          "pr_auc": 0.7492
+        },
+        "calibration": {
+          "ece": 0.0392,
+          "brier_score": 0.1991,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 76,
+              "mean_pred_prob": 0.0473,
+              "observed_positive_rate": 0.0263,
+              "abs_error": 0.021
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 39,
+              "mean_pred_prob": 0.1481,
+              "observed_positive_rate": 0.2308,
+              "abs_error": 0.0826
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 36,
+              "mean_pred_prob": 0.256,
+              "observed_positive_rate": 0.2222,
+              "abs_error": 0.0338
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 46,
+              "mean_pred_prob": 0.3603,
+              "observed_positive_rate": 0.5435,
+              "abs_error": 0.1832
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 166,
+              "mean_pred_prob": 0.4604,
+              "observed_positive_rate": 0.4217,
+              "abs_error": 0.0387
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 221,
+              "mean_pred_prob": 0.5463,
+              "observed_positive_rate": 0.5611,
+              "abs_error": 0.0148
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 92,
+              "mean_pred_prob": 0.6437,
+              "observed_positive_rate": 0.5978,
+              "abs_error": 0.0459
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 37,
+              "mean_pred_prob": 0.7556,
+              "observed_positive_rate": 0.7568,
+              "abs_error": 0.0011
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 56,
+              "mean_pred_prob": 0.8466,
+              "observed_positive_rate": 0.875,
+              "abs_error": 0.0284
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 31,
+              "mean_pred_prob": 0.9244,
+              "observed_positive_rate": 0.9677,
+              "abs_error": 0.0433
+            }
+          ]
+        }
+      },
+      "logistic_regression": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 272,
+            "fp": 151,
+            "tn": 249,
+            "fn": 128
+          },
+          "accuracy": 0.6512,
+          "accuracy_95ci": [
+            0.6176,
+            0.6835
+          ],
+          "precision": 0.643,
+          "precision_95ci": [
+            0.5963,
+            0.6872
+          ],
+          "recall_sensitivity": 0.68,
+          "recall_95ci": [
+            0.6328,
+            0.7238
+          ],
+          "specificity": 0.6225,
+          "specificity_95ci": [
+            0.574,
+            0.6686
+          ],
+          "false_positive_rate": 0.3775,
+          "fpr_95ci": [
+            0.3314,
+            0.426
+          ],
+          "balanced_accuracy": 0.6513,
+          "f1_score": 0.661,
+          "roc_auc": 0.6929,
+          "roc_auc_95ci": [
+            0.6577,
+            0.7288
+          ],
+          "pr_auc": 0.6681
+        },
+        "calibration": {
+          "ece": 0.0319,
+          "brier_score": 0.2211,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 0,
+              "mean_pred_prob": null,
+              "observed_positive_rate": null,
+              "abs_error": 0.0
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 45,
+              "mean_pred_prob": 0.1729,
+              "observed_positive_rate": 0.1556,
+              "abs_error": 0.0173
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 86,
+              "mean_pred_prob": 0.2479,
+              "observed_positive_rate": 0.2209,
+              "abs_error": 0.0269
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 114,
+              "mean_pred_prob": 0.3539,
+              "observed_positive_rate": 0.3596,
+              "abs_error": 0.0057
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 132,
+              "mean_pred_prob": 0.4531,
+              "observed_positive_rate": 0.4621,
+              "abs_error": 0.0091
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 183,
+              "mean_pred_prob": 0.5512,
+              "observed_positive_rate": 0.612,
+              "abs_error": 0.0609
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 131,
+              "mean_pred_prob": 0.6446,
+              "observed_positive_rate": 0.6412,
+              "abs_error": 0.0034
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 82,
+              "mean_pred_prob": 0.7467,
+              "observed_positive_rate": 0.6463,
+              "abs_error": 0.1003
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 22,
+              "mean_pred_prob": 0.833,
+              "observed_positive_rate": 0.8182,
+              "abs_error": 0.0149
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 5,
+              "mean_pred_prob": 0.9073,
+              "observed_positive_rate": 1.0,
+              "abs_error": 0.0927
+            }
+          ]
+        }
+      },
+      "combined_ensemble": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 286,
+            "fp": 162,
+            "tn": 238,
+            "fn": 114
+          },
+          "accuracy": 0.655,
+          "accuracy_95ci": [
+            0.6214,
+            0.6871
+          ],
+          "precision": 0.6384,
+          "precision_95ci": [
+            0.5929,
+            0.6815
+          ],
+          "recall_sensitivity": 0.715,
+          "recall_95ci": [
+            0.6689,
+            0.757
+          ],
+          "specificity": 0.595,
+          "specificity_95ci": [
+            0.5462,
+            0.642
+          ],
+          "false_positive_rate": 0.405,
+          "fpr_95ci": [
+            0.358,
+            0.4538
+          ],
+          "balanced_accuracy": 0.655,
+          "f1_score": 0.6745,
+          "roc_auc": 0.7338,
+          "roc_auc_95ci": [
+            0.701,
+            0.7684
+          ],
+          "pr_auc": 0.7353
+        },
+        "calibration": {
+          "ece": 0.0378,
+          "brier_score": 0.2038,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 10,
+              "mean_pred_prob": 0.0916,
+              "observed_positive_rate": 0.0,
+              "abs_error": 0.0916
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 70,
+              "mean_pred_prob": 0.1424,
+              "observed_positive_rate": 0.0571,
+              "abs_error": 0.0853
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 59,
+              "mean_pred_prob": 0.2542,
+              "observed_positive_rate": 0.2542,
+              "abs_error": 0.0001
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 65,
+              "mean_pred_prob": 0.3485,
+              "observed_positive_rate": 0.3231,
+              "abs_error": 0.0254
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 148,
+              "mean_pred_prob": 0.4533,
+              "observed_positive_rate": 0.5,
+              "abs_error": 0.0467
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 227,
+              "mean_pred_prob": 0.5503,
+              "observed_positive_rate": 0.5551,
+              "abs_error": 0.0048
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 121,
+              "mean_pred_prob": 0.6456,
+              "observed_positive_rate": 0.6033,
+              "abs_error": 0.0423
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 59,
+              "mean_pred_prob": 0.7374,
+              "observed_positive_rate": 0.8136,
+              "abs_error": 0.0762
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 38,
+              "mean_pred_prob": 0.8462,
+              "observed_positive_rate": 0.9474,
+              "abs_error": 0.1012
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 3,
+              "mean_pred_prob": 0.9244,
+              "observed_positive_rate": 1.0,
+              "abs_error": 0.0756
+            }
+          ]
+        }
+      }
+    },
+    "subgroups": {
+      "halueval": {
+        "sample_count": 300,
+        "xgboost": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 133,
+            "fp": 8,
+            "tn": 142,
+            "fn": 17
+          },
+          "accuracy": 0.9167,
+          "accuracy_95ci": [
+            0.8799,
+            0.9429
+          ],
+          "precision": 0.9433,
+          "precision_95ci": [
+            0.892,
+            0.971
+          ],
+          "recall_sensitivity": 0.8867,
+          "recall_95ci": [
+            0.826,
+            0.928
+          ],
+          "specificity": 0.9467,
+          "specificity_95ci": [
+            0.8983,
+            0.9727
+          ],
+          "false_positive_rate": 0.0533,
+          "fpr_95ci": [
+            0.0273,
+            0.1017
+          ],
+          "balanced_accuracy": 0.9167,
+          "f1_score": 0.9141,
+          "roc_auc": 0.9519,
+          "roc_auc_95ci": [
+            0.9266,
+            0.9739
+          ],
+          "pr_auc": 0.9532
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 119,
+            "fp": 4,
+            "tn": 146,
+            "fn": 31
+          },
+          "accuracy": 0.8833,
+          "accuracy_95ci": [
+            0.8421,
+            0.9149
+          ],
+          "precision": 0.9675,
+          "precision_95ci": [
+            0.9194,
+            0.9873
+          ],
+          "recall_sensitivity": 0.7933,
+          "recall_95ci": [
+            0.7216,
+            0.8504
+          ],
+          "specificity": 0.9733,
+          "specificity_95ci": [
+            0.9334,
+            0.9896
+          ],
+          "false_positive_rate": 0.0267,
+          "fpr_95ci": [
+            0.0104,
+            0.0666
+          ],
+          "balanced_accuracy": 0.8833,
+          "f1_score": 0.8718,
+          "roc_auc": 0.944,
+          "roc_auc_95ci": [
+            0.9138,
+            0.9691
+          ],
+          "pr_auc": 0.9522
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 130,
+            "fp": 6,
+            "tn": 144,
+            "fn": 20
+          },
+          "accuracy": 0.9133,
+          "accuracy_95ci": [
+            0.876,
+            0.9402
+          ],
+          "precision": 0.9559,
+          "precision_95ci": [
+            0.9071,
+            0.9796
+          ],
+          "recall_sensitivity": 0.8667,
+          "recall_95ci": [
+            0.803,
+            0.912
+          ],
+          "specificity": 0.96,
+          "specificity_95ci": [
+            0.9155,
+            0.9815
+          ],
+          "false_positive_rate": 0.04,
+          "fpr_95ci": [
+            0.0185,
+            0.0845
+          ],
+          "balanced_accuracy": 0.9133,
+          "f1_score": 0.9091,
+          "roc_auc": 0.9547,
+          "roc_auc_95ci": [
+            0.928,
+            0.9762
+          ],
+          "pr_auc": 0.9587
+        }
+      },
+      "truthfulqa": {
+        "sample_count": 300,
+        "xgboost": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 87,
+            "fp": 86,
+            "tn": 64,
+            "fn": 63
+          },
+          "accuracy": 0.5033,
+          "accuracy_95ci": [
+            0.4471,
+            0.5595
+          ],
+          "precision": 0.5029,
+          "precision_95ci": [
+            0.4291,
+            0.5765
+          ],
+          "recall_sensitivity": 0.58,
+          "recall_95ci": [
+            0.5,
+            0.656
+          ],
+          "specificity": 0.4267,
+          "specificity_95ci": [
+            0.3503,
+            0.5067
+          ],
+          "false_positive_rate": 0.5733,
+          "fpr_95ci": [
+            0.4933,
+            0.6497
+          ],
+          "balanced_accuracy": 0.5033,
+          "f1_score": 0.5387,
+          "roc_auc": 0.4903,
+          "roc_auc_95ci": [
+            0.42,
+            0.5601
+          ],
+          "pr_auc": 0.4963
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 86,
+            "fp": 82,
+            "tn": 68,
+            "fn": 64
+          },
+          "accuracy": 0.5133,
+          "accuracy_95ci": [
+            0.457,
+            0.5694
+          ],
+          "precision": 0.5119,
+          "precision_95ci": [
+            0.4369,
+            0.5864
+          ],
+          "recall_sensitivity": 0.5733,
+          "recall_95ci": [
+            0.4933,
+            0.6497
+          ],
+          "specificity": 0.4533,
+          "specificity_95ci": [
+            0.3758,
+            0.5332
+          ],
+          "false_positive_rate": 0.5467,
+          "fpr_95ci": [
+            0.4668,
+            0.6242
+          ],
+          "balanced_accuracy": 0.5133,
+          "f1_score": 0.5409,
+          "roc_auc": 0.4816,
+          "roc_auc_95ci": [
+            0.4178,
+            0.5481
+          ],
+          "pr_auc": 0.4729
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 87,
+            "fp": 93,
+            "tn": 57,
+            "fn": 63
+          },
+          "accuracy": 0.48,
+          "accuracy_95ci": [
+            0.4241,
+            0.5364
+          ],
+          "precision": 0.4833,
+          "precision_95ci": [
+            0.4114,
+            0.5559
+          ],
+          "recall_sensitivity": 0.58,
+          "recall_95ci": [
+            0.5,
+            0.656
+          ],
+          "specificity": 0.38,
+          "specificity_95ci": [
+            0.3062,
+            0.4598
+          ],
+          "false_positive_rate": 0.62,
+          "fpr_95ci": [
+            0.5402,
+            0.6938
+          ],
+          "balanced_accuracy": 0.48,
+          "f1_score": 0.5273,
+          "roc_auc": 0.4768,
+          "roc_auc_95ci": [
+            0.4088,
+            0.5453
+          ],
+          "pr_auc": 0.4837
+        }
+      },
+      "fever": {
+        "sample_count": 200,
+        "xgboost": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 66,
+            "fp": 57,
+            "tn": 43,
+            "fn": 34
+          },
+          "accuracy": 0.545,
+          "accuracy_95ci": [
+            0.4758,
+            0.6125
+          ],
+          "precision": 0.5366,
+          "precision_95ci": [
+            0.4487,
+            0.6223
+          ],
+          "recall_sensitivity": 0.66,
+          "recall_95ci": [
+            0.5628,
+            0.7454
+          ],
+          "specificity": 0.43,
+          "specificity_95ci": [
+            0.3373,
+            0.5278
+          ],
+          "false_positive_rate": 0.57,
+          "fpr_95ci": [
+            0.4722,
+            0.6627
+          ],
+          "balanced_accuracy": 0.545,
+          "f1_score": 0.5919,
+          "roc_auc": 0.5494,
+          "roc_auc_95ci": [
+            0.4611,
+            0.629
+          ],
+          "pr_auc": 0.5263
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 67,
+            "fp": 65,
+            "tn": 35,
+            "fn": 33
+          },
+          "accuracy": 0.51,
+          "accuracy_95ci": [
+            0.4412,
+            0.5784
+          ],
+          "precision": 0.5076,
+          "precision_95ci": [
+            0.4233,
+            0.5914
+          ],
+          "recall_sensitivity": 0.67,
+          "recall_95ci": [
+            0.5731,
+            0.7544
+          ],
+          "specificity": 0.35,
+          "specificity_95ci": [
+            0.2636,
+            0.4475
+          ],
+          "false_positive_rate": 0.65,
+          "fpr_95ci": [
+            0.5525,
+            0.7364
+          ],
+          "balanced_accuracy": 0.51,
+          "f1_score": 0.5776,
+          "roc_auc": 0.4952,
+          "roc_auc_95ci": [
+            0.4186,
+            0.5747
+          ],
+          "pr_auc": 0.4838
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 69,
+            "fp": 63,
+            "tn": 37,
+            "fn": 31
+          },
+          "accuracy": 0.53,
+          "accuracy_95ci": [
+            0.4609,
+            0.598
+          ],
+          "precision": 0.5227,
+          "precision_95ci": [
+            0.4381,
+            0.6061
+          ],
+          "recall_sensitivity": 0.69,
+          "recall_95ci": [
+            0.5937,
+            0.7722
+          ],
+          "specificity": 0.37,
+          "specificity_95ci": [
+            0.2818,
+            0.4678
+          ],
+          "false_positive_rate": 0.63,
+          "fpr_95ci": [
+            0.5322,
+            0.7182
+          ],
+          "balanced_accuracy": 0.53,
+          "f1_score": 0.5948,
+          "roc_auc": 0.5137,
+          "roc_auc_95ci": [
+            0.4403,
+            0.5948
+          ],
+          "pr_auc": 0.4951
+        }
+      }
+    }
+  },
+  "gemma_3_1b_it": {
+    "model_name": "Gemma 3 (1B IT)",
+    "model_id": "google/gemma-3-1b-it",
+    "classifiers": {
+      "xgboost": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 296,
+            "fp": 124,
+            "tn": 276,
+            "fn": 104
+          },
+          "accuracy": 0.715,
+          "accuracy_95ci": [
+            0.6827,
+            0.7452
+          ],
+          "precision": 0.7048,
+          "precision_95ci": [
+            0.6594,
+            0.7464
+          ],
+          "recall_sensitivity": 0.74,
+          "recall_95ci": [
+            0.6949,
+            0.7806
+          ],
+          "specificity": 0.69,
+          "specificity_95ci": [
+            0.643,
+            0.7333
+          ],
+          "false_positive_rate": 0.31,
+          "fpr_95ci": [
+            0.2667,
+            0.357
+          ],
+          "balanced_accuracy": 0.715,
+          "f1_score": 0.722,
+          "roc_auc": 0.7913,
+          "roc_auc_95ci": [
+            0.7628,
+            0.8209
+          ],
+          "pr_auc": 0.7914
+        },
+        "calibration": {
+          "ece": 0.041,
+          "brier_score": 0.1854,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 92,
+              "mean_pred_prob": 0.0429,
+              "observed_positive_rate": 0.0326,
+              "abs_error": 0.0103
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 32,
+              "mean_pred_prob": 0.1429,
+              "observed_positive_rate": 0.2812,
+              "abs_error": 0.1383
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 21,
+              "mean_pred_prob": 0.256,
+              "observed_positive_rate": 0.1429,
+              "abs_error": 0.1131
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 85,
+              "mean_pred_prob": 0.3626,
+              "observed_positive_rate": 0.3176,
+              "abs_error": 0.0449
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 150,
+              "mean_pred_prob": 0.4568,
+              "observed_positive_rate": 0.4133,
+              "abs_error": 0.0434
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 146,
+              "mean_pred_prob": 0.5446,
+              "observed_positive_rate": 0.5959,
+              "abs_error": 0.0513
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 125,
+              "mean_pred_prob": 0.6483,
+              "observed_positive_rate": 0.64,
+              "abs_error": 0.0083
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 51,
+              "mean_pred_prob": 0.7557,
+              "observed_positive_rate": 0.7451,
+              "abs_error": 0.0106
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 73,
+              "mean_pred_prob": 0.8559,
+              "observed_positive_rate": 0.9178,
+              "abs_error": 0.0619
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 25,
+              "mean_pred_prob": 0.9135,
+              "observed_positive_rate": 0.96,
+              "abs_error": 0.0465
+            }
+          ]
+        }
+      },
+      "logistic_regression": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 282,
+            "fp": 164,
+            "tn": 236,
+            "fn": 118
+          },
+          "accuracy": 0.6475,
+          "accuracy_95ci": [
+            0.6138,
+            0.6798
+          ],
+          "precision": 0.6323,
+          "precision_95ci": [
+            0.5866,
+            0.6757
+          ],
+          "recall_sensitivity": 0.705,
+          "recall_95ci": [
+            0.6585,
+            0.7476
+          ],
+          "specificity": 0.59,
+          "specificity_95ci": [
+            0.5412,
+            0.6371
+          ],
+          "false_positive_rate": 0.41,
+          "fpr_95ci": [
+            0.3629,
+            0.4588
+          ],
+          "balanced_accuracy": 0.6475,
+          "f1_score": 0.6667,
+          "roc_auc": 0.7092,
+          "roc_auc_95ci": [
+            0.6734,
+            0.7436
+          ],
+          "pr_auc": 0.7054
+        },
+        "calibration": {
+          "ece": 0.0521,
+          "brier_score": 0.214,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 3,
+              "mean_pred_prob": 0.0769,
+              "observed_positive_rate": 0.3333,
+              "abs_error": 0.2564
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 83,
+              "mean_pred_prob": 0.1339,
+              "observed_positive_rate": 0.0602,
+              "abs_error": 0.0736
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 49,
+              "mean_pred_prob": 0.2514,
+              "observed_positive_rate": 0.2857,
+              "abs_error": 0.0343
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 88,
+              "mean_pred_prob": 0.3499,
+              "observed_positive_rate": 0.4659,
+              "abs_error": 0.1161
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 131,
+              "mean_pred_prob": 0.4561,
+              "observed_positive_rate": 0.4351,
+              "abs_error": 0.021
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 147,
+              "mean_pred_prob": 0.55,
+              "observed_positive_rate": 0.5714,
+              "abs_error": 0.0214
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 152,
+              "mean_pred_prob": 0.6475,
+              "observed_positive_rate": 0.5526,
+              "abs_error": 0.0949
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 106,
+              "mean_pred_prob": 0.7463,
+              "observed_positive_rate": 0.7358,
+              "abs_error": 0.0105
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 37,
+              "mean_pred_prob": 0.8341,
+              "observed_positive_rate": 0.8649,
+              "abs_error": 0.0307
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 4,
+              "mean_pred_prob": 0.9173,
+              "observed_positive_rate": 1.0,
+              "abs_error": 0.0827
+            }
+          ]
+        }
+      },
+      "combined_ensemble": {
+        "overall": {
+          "sample_counts": {
+            "total": 800,
+            "positives_actual_hallucinated": 400,
+            "negatives_actual_faithful": 400,
+            "tp": 295,
+            "fp": 145,
+            "tn": 255,
+            "fn": 105
+          },
+          "accuracy": 0.6875,
+          "accuracy_95ci": [
+            0.6545,
+            0.7187
+          ],
+          "precision": 0.6705,
+          "precision_95ci": [
+            0.6252,
+            0.7127
+          ],
+          "recall_sensitivity": 0.7375,
+          "recall_95ci": [
+            0.6923,
+            0.7782
+          ],
+          "specificity": 0.6375,
+          "specificity_95ci": [
+            0.5893,
+            0.6831
+          ],
+          "false_positive_rate": 0.3625,
+          "fpr_95ci": [
+            0.3169,
+            0.4107
+          ],
+          "balanced_accuracy": 0.6875,
+          "f1_score": 0.7024,
+          "roc_auc": 0.771,
+          "roc_auc_95ci": [
+            0.7389,
+            0.8023
+          ],
+          "pr_auc": 0.7776
+        },
+        "calibration": {
+          "ece": 0.0476,
+          "brier_score": 0.1927,
+          "bins": [
+            {
+              "bin": 1,
+              "range": "[0.0, 0.1]",
+              "count": 50,
+              "mean_pred_prob": 0.0726,
+              "observed_positive_rate": 0.0,
+              "abs_error": 0.0726
+            },
+            {
+              "bin": 2,
+              "range": "[0.1, 0.2]",
+              "count": 42,
+              "mean_pred_prob": 0.1445,
+              "observed_positive_rate": 0.119,
+              "abs_error": 0.0255
+            },
+            {
+              "bin": 3,
+              "range": "[0.2, 0.3]",
+              "count": 42,
+              "mean_pred_prob": 0.2563,
+              "observed_positive_rate": 0.1667,
+              "abs_error": 0.0896
+            },
+            {
+              "bin": 4,
+              "range": "[0.3, 0.4]",
+              "count": 73,
+              "mean_pred_prob": 0.3604,
+              "observed_positive_rate": 0.411,
+              "abs_error": 0.0505
+            },
+            {
+              "bin": 5,
+              "range": "[0.4, 0.5]",
+              "count": 153,
+              "mean_pred_prob": 0.4534,
+              "observed_positive_rate": 0.4118,
+              "abs_error": 0.0416
+            },
+            {
+              "bin": 6,
+              "range": "[0.5, 0.6]",
+              "count": 174,
+              "mean_pred_prob": 0.5498,
+              "observed_positive_rate": 0.5575,
+              "abs_error": 0.0077
+            },
+            {
+              "bin": 7,
+              "range": "[0.6, 0.7]",
+              "count": 142,
+              "mean_pred_prob": 0.6438,
+              "observed_positive_rate": 0.6056,
+              "abs_error": 0.0382
+            },
+            {
+              "bin": 8,
+              "range": "[0.7, 0.8]",
+              "count": 61,
+              "mean_pred_prob": 0.7523,
+              "observed_positive_rate": 0.8361,
+              "abs_error": 0.0837
+            },
+            {
+              "bin": 9,
+              "range": "[0.8, 0.9]",
+              "count": 60,
+              "mean_pred_prob": 0.842,
+              "observed_positive_rate": 0.9667,
+              "abs_error": 0.1246
+            },
+            {
+              "bin": 10,
+              "range": "[0.9, 1.0]",
+              "count": 3,
+              "mean_pred_prob": 0.9173,
+              "observed_positive_rate": 1.0,
+              "abs_error": 0.0827
+            }
+          ]
+        }
+      }
+    },
+    "subgroups": {
+      "halueval": {
+        "sample_count": 300,
+        "xgboost": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 135,
+            "fp": 13,
+            "tn": 137,
+            "fn": 15
+          },
+          "accuracy": 0.9067,
+          "accuracy_95ci": [
+            0.8684,
+            0.9346
+          ],
+          "precision": 0.9122,
+          "precision_95ci": [
+            0.8555,
+            0.9479
+          ],
+          "recall_sensitivity": 0.9,
+          "recall_95ci": [
+            0.8416,
+            0.9385
+          ],
+          "specificity": 0.9133,
+          "specificity_95ci": [
+            0.8574,
+            0.9487
+          ],
+          "false_positive_rate": 0.0867,
+          "fpr_95ci": [
+            0.0513,
+            0.1426
+          ],
+          "balanced_accuracy": 0.9067,
+          "f1_score": 0.906,
+          "roc_auc": 0.9531,
+          "roc_auc_95ci": [
+            0.9262,
+            0.9733
+          ],
+          "pr_auc": 0.9448
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 129,
+            "fp": 19,
+            "tn": 131,
+            "fn": 21
+          },
+          "accuracy": 0.8667,
+          "accuracy_95ci": [
+            0.8235,
+            0.9005
+          ],
+          "precision": 0.8716,
+          "precision_95ci": [
+            0.8082,
+            0.9163
+          ],
+          "recall_sensitivity": 0.86,
+          "recall_95ci": [
+            0.7954,
+            0.9066
+          ],
+          "specificity": 0.8733,
+          "specificity_95ci": [
+            0.8106,
+            0.9174
+          ],
+          "false_positive_rate": 0.1267,
+          "fpr_95ci": [
+            0.0826,
+            0.1894
+          ],
+          "balanced_accuracy": 0.8667,
+          "f1_score": 0.8658,
+          "roc_auc": 0.9442,
+          "roc_auc_95ci": [
+            0.9195,
+            0.9643
+          ],
+          "pr_auc": 0.9471
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 132,
+            "fp": 12,
+            "tn": 138,
+            "fn": 18
+          },
+          "accuracy": 0.9,
+          "accuracy_95ci": [
+            0.8608,
+            0.9291
+          ],
+          "precision": 0.9167,
+          "precision_95ci": [
+            0.86,
+            0.9517
+          ],
+          "recall_sensitivity": 0.88,
+          "recall_95ci": [
+            0.8183,
+            0.9227
+          ],
+          "specificity": 0.92,
+          "specificity_95ci": [
+            0.8654,
+            0.9536
+          ],
+          "false_positive_rate": 0.08,
+          "fpr_95ci": [
+            0.0464,
+            0.1346
+          ],
+          "balanced_accuracy": 0.9,
+          "f1_score": 0.898,
+          "roc_auc": 0.9648,
+          "roc_auc_95ci": [
+            0.9425,
+            0.9807
+          ],
+          "pr_auc": 0.9654
+        }
+      },
+      "truthfulqa": {
+        "sample_count": 300,
+        "xgboost": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 95,
+            "fp": 71,
+            "tn": 79,
+            "fn": 55
+          },
+          "accuracy": 0.58,
+          "accuracy_95ci": [
+            0.5235,
+            0.6345
+          ],
+          "precision": 0.5723,
+          "precision_95ci": [
+            0.4962,
+            0.6451
+          ],
+          "recall_sensitivity": 0.6333,
+          "recall_95ci": [
+            0.5538,
+            0.7062
+          ],
+          "specificity": 0.5267,
+          "specificity_95ci": [
+            0.4471,
+            0.6049
+          ],
+          "false_positive_rate": 0.4733,
+          "fpr_95ci": [
+            0.3951,
+            0.5529
+          ],
+          "balanced_accuracy": 0.58,
+          "f1_score": 0.6013,
+          "roc_auc": 0.5744,
+          "roc_auc_95ci": [
+            0.5061,
+            0.6445
+          ],
+          "pr_auc": 0.5767
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 77,
+            "fp": 77,
+            "tn": 73,
+            "fn": 73
+          },
+          "accuracy": 0.5,
+          "accuracy_95ci": [
+            0.4438,
+            0.5562
+          ],
+          "precision": 0.5,
+          "precision_95ci": [
+            0.422,
+            0.578
+          ],
+          "recall_sensitivity": 0.5133,
+          "recall_95ci": [
+            0.434,
+            0.592
+          ],
+          "specificity": 0.4867,
+          "specificity_95ci": [
+            0.408,
+            0.566
+          ],
+          "false_positive_rate": 0.5133,
+          "fpr_95ci": [
+            0.434,
+            0.592
+          ],
+          "balanced_accuracy": 0.5,
+          "f1_score": 0.5066,
+          "roc_auc": 0.4991,
+          "roc_auc_95ci": [
+            0.4334,
+            0.5647
+          ],
+          "pr_auc": 0.498
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 300,
+            "positives_actual_hallucinated": 150,
+            "negatives_actual_faithful": 150,
+            "tp": 89,
+            "fp": 77,
+            "tn": 73,
+            "fn": 61
+          },
+          "accuracy": 0.54,
+          "accuracy_95ci": [
+            0.4835,
+            0.5955
+          ],
+          "precision": 0.5361,
+          "precision_95ci": [
+            0.4603,
+            0.6103
+          ],
+          "recall_sensitivity": 0.5933,
+          "recall_95ci": [
+            0.5133,
+            0.6687
+          ],
+          "specificity": 0.4867,
+          "specificity_95ci": [
+            0.408,
+            0.566
+          ],
+          "false_positive_rate": 0.5133,
+          "fpr_95ci": [
+            0.434,
+            0.592
+          ],
+          "balanced_accuracy": 0.54,
+          "f1_score": 0.5633,
+          "roc_auc": 0.537,
+          "roc_auc_95ci": [
+            0.4707,
+            0.6029
+          ],
+          "pr_auc": 0.5344
+        }
+      },
+      "fever": {
+        "sample_count": 200,
+        "xgboost": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 66,
+            "fp": 40,
+            "tn": 60,
+            "fn": 34
+          },
+          "accuracy": 0.63,
+          "accuracy_95ci": [
+            0.5612,
+            0.6939
+          ],
+          "precision": 0.6226,
+          "precision_95ci": [
+            0.5276,
+            0.7091
+          ],
+          "recall_sensitivity": 0.66,
+          "recall_95ci": [
+            0.5628,
+            0.7454
+          ],
+          "specificity": 0.6,
+          "specificity_95ci": [
+            0.502,
+            0.6906
+          ],
+          "false_positive_rate": 0.4,
+          "fpr_95ci": [
+            0.3094,
+            0.498
+          ],
+          "balanced_accuracy": 0.63,
+          "f1_score": 0.6408,
+          "roc_auc": 0.6732,
+          "roc_auc_95ci": [
+            0.5917,
+            0.7371
+          ],
+          "pr_auc": 0.6409
+        },
+        "logistic_regression": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 76,
+            "fp": 68,
+            "tn": 32,
+            "fn": 24
+          },
+          "accuracy": 0.54,
+          "accuracy_95ci": [
+            0.4708,
+            0.6077
+          ],
+          "precision": 0.5278,
+          "precision_95ci": [
+            0.4466,
+            0.6075
+          ],
+          "recall_sensitivity": 0.76,
+          "recall_95ci": [
+            0.6677,
+            0.8331
+          ],
+          "specificity": 0.32,
+          "specificity_95ci": [
+            0.2367,
+            0.4166
+          ],
+          "false_positive_rate": 0.68,
+          "fpr_95ci": [
+            0.5834,
+            0.7633
+          ],
+          "balanced_accuracy": 0.54,
+          "f1_score": 0.623,
+          "roc_auc": 0.484,
+          "roc_auc_95ci": [
+            0.4045,
+            0.5683
+          ],
+          "pr_auc": 0.4874
+        },
+        "combined": {
+          "sample_counts": {
+            "total": 200,
+            "positives_actual_hallucinated": 100,
+            "negatives_actual_faithful": 100,
+            "tp": 74,
+            "fp": 56,
+            "tn": 44,
+            "fn": 26
+          },
+          "accuracy": 0.59,
+          "accuracy_95ci": [
+            0.5208,
+            0.6558
+          ],
+          "precision": 0.5692,
+          "precision_95ci": [
+            0.4833,
+            0.6512
+          ],
+          "recall_sensitivity": 0.74,
+          "recall_95ci": [
+            0.6463,
+            0.816
+          ],
+          "specificity": 0.44,
+          "specificity_95ci": [
+            0.3467,
+            0.5377
+          ],
+          "false_positive_rate": 0.56,
+          "fpr_95ci": [
+            0.4623,
+            0.6533
+          ],
+          "balanced_accuracy": 0.59,
+          "f1_score": 0.6435,
+          "roc_auc": 0.6152,
+          "roc_auc_95ci": [
+            0.5337,
+            0.701
+          ],
+          "pr_auc": 0.5561
+        }
+      }
+    }
+  }
+}

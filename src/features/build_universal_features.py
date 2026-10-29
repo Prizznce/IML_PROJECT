@@ -469,3 +469,32 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ==============================================================================
+# Retrieval Feature Alias Mapping & Resolution
+# ==============================================================================
+RETRIEVAL_CANONICAL_TO_ALIAS: Dict[str, str] = {
+    "response_top1_evidence_similarity": "response_top1_similarity",
+    "evidence_margin": "evidence_response_margin",
+}
+
+RETRIEVAL_ALIAS_TO_CANONICAL: Dict[str, str] = {
+    "response_top1_similarity": "response_top1_evidence_similarity",
+    "evidence_response_margin": "evidence_margin",
+}
+
+
+def resolve_feature_aliases(features_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Bi-directionally populate canonical retrieval feature names and experiment aliases.
+    Guarantees that both configs/combined_features.yaml canonical names and experiment
+    script names resolve identically without duplicating entries in model feature vectors.
+    """
+    resolved = dict(features_dict)
+    for canonical, alias in RETRIEVAL_CANONICAL_TO_ALIAS.items():
+        if canonical in resolved and alias not in resolved:
+            resolved[alias] = resolved[canonical]
+        elif alias in resolved and canonical not in resolved:
+            resolved[canonical] = resolved[alias]
+    return resolved

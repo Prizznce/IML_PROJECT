@@ -294,8 +294,8 @@ def load_inference_models(
     lr_pipeline, xgb_model = get_trained_classifiers(model_id=model_id)
 
     return {
-        "causal_model": _GLOBAL_MODEL_CACHE["causal_model"],
-        "tokenizer": _GLOBAL_MODEL_CACHE["tokenizer"],
+        "causal_model": _GLOBAL_MODEL_CACHE[causal_key],
+        "tokenizer": _GLOBAL_MODEL_CACHE[tok_key],
         "embedding_model": _GLOBAL_MODEL_CACHE["embedding_model"],
         "nli_model": _GLOBAL_MODEL_CACHE["nli_model"],
         "nli_label_indices": _GLOBAL_MODEL_CACHE["nli_label_indices"],
@@ -431,30 +431,51 @@ def extract_internal_signals(
     )
     t1 = time.perf_counter()
 
-    # Rank aggregation
+    # Rank aggregation with non-finite / empty safety
     ranks = [t.rank for t in signals.tokens] if signals.tokens else []
-    mean_token_rank = float(sum(ranks) / len(ranks)) if ranks else 1.0
-    max_token_rank = int(max(ranks)) if ranks else 1
-    rank_std = float(statistics.stdev(ranks)) if len(ranks) > 1 else 0.0
+    finite_ranks = [r for r in ranks if isinstance(r, (int, float)) and math.isfinite(r) and r >= 1]
+    if finite_ranks:
+        mean_token_rank = float(sum(finite_ranks) / len(finite_ranks))
+        max_token_rank = int(max(finite_ranks))
+        rank_std = float(statistics.stdev(finite_ranks)) if len(finite_ranks) > 1 else 0.0
+    else:
+        mean_token_rank = 1.0
+        max_token_rank = 1
+        rank_std = 0.0
 
     # Numerical transforms matching Phase 13/14
-    log_ppl = float(np.log(max(signals.perplexity, 1e-12)))
-    log_mean_rank = float(np.log1p(max(mean_token_rank, 0.0)))
-    log_max_rank = float(np.log1p(max(float(max_token_rank), 0.0)))
+    # During training, perplexity was capped at math.exp(100.0).
+    # Underflow limit: ln(1e-12) ≈ -27.63. Overflow limit: 100.0.
+    ppl = getattr(signals, "perplexity", None)
+    if ppl is not None and isinstance(ppl, (int, float)) and np.isfinite(ppl) and ppl > 0:
+        safe_ppl = min(max(float(ppl), 1e-12), math.exp(100.0))
+        log_ppl = float(np.log(safe_ppl))
+    elif hasattr(signals, "mean_log_prob") and np.isfinite(signals.mean_log_prob):
+        log_ppl = float(np.clip(-signals.mean_log_prob, -27.631688, 100.0))
+    else:
+        log_ppl = 100.0
+
+    log_mean_rank = float(np.log1p(max(mean_token_rank, 1.0)))
+    log_max_rank = float(np.log1p(max(float(max_token_rank), 1.0)))
     log_r_std = float(np.log1p(max(rank_std, 0.0)))
 
+    def _sanitize(val: Any, default: float, vmin: float = -100.0, vmax: float = 100.0) -> float:
+        if val is None or not isinstance(val, (int, float)) or not np.isfinite(val):
+            return default
+        return float(np.clip(val, vmin, vmax))
+
     features = {
-        "min_log_prob": float(signals.min_log_prob),
-        "mean_log_prob": float(signals.mean_log_prob),
-        "mean_token_prob": float(signals.mean_token_prob),
-        "token_prob_std": float(signals.token_prob_std),
-        "mean_entropy": float(signals.mean_entropy),
-        "max_entropy": float(signals.max_entropy),
-        "entropy_std": float(signals.entropy_std),
-        "log_perplexity": log_ppl,
-        "log_mean_token_rank": log_mean_rank,
-        "log_max_token_rank": log_max_rank,
-        "log_rank_std": log_r_std,
+        "min_log_prob": _sanitize(signals.min_log_prob, default=-100.0, vmin=-100.0, vmax=0.0),
+        "mean_log_prob": _sanitize(signals.mean_log_prob, default=-100.0, vmin=-100.0, vmax=0.0),
+        "mean_token_prob": _sanitize(signals.mean_token_prob, default=0.0, vmin=0.0, vmax=1.0),
+        "token_prob_std": _sanitize(signals.token_prob_std, default=0.0, vmin=0.0, vmax=1.0),
+        "mean_entropy": _sanitize(signals.mean_entropy, default=0.0, vmin=0.0, vmax=50.0),
+        "max_entropy": _sanitize(signals.max_entropy, default=0.0, vmin=0.0, vmax=50.0),
+        "entropy_std": _sanitize(signals.entropy_std, default=0.0, vmin=0.0, vmax=50.0),
+        "log_perplexity": float(np.clip(log_ppl, -27.631688, 100.0)),
+        "log_mean_token_rank": float(np.clip(log_mean_rank, 0.693147, 20.0)),
+        "log_max_token_rank": float(np.clip(log_max_rank, 0.693147, 20.0)),
+        "log_rank_std": float(np.clip(log_r_std, 0.0, 20.0)),
     }
     t2 = time.perf_counter()
 
@@ -859,7 +880,9 @@ def compute_reference_evidence_agreement(
             "has_reference_context": False,
             "top1_evidence_similarity": 0.0,
             "response_top1_similarity": 0.0,
+            "response_top1_evidence_similarity": 0.0,
             "evidence_margin": 0.0,
+            "evidence_response_margin": 0.0,
             "retrieval_agreement": 0.0,
             "retrieved_evidence": [],
             "offline_benchmark_note": (
@@ -919,7 +942,9 @@ def compute_reference_evidence_agreement(
         "has_reference_context": True,
         "top1_evidence_similarity": top1_q,
         "response_top1_similarity": top1_r,
+        "response_top1_evidence_similarity": top1_r,
         "evidence_margin": margin,
+        "evidence_response_margin": margin,
         "retrieval_agreement": agreement,
         "retrieved_evidence": retrieved_cards,
         "offline_benchmark_note": (
@@ -1006,6 +1031,7 @@ def run_live_inference(
     prompt: str,
     context: Optional[str] = None,
     device: Optional[str] = None,
+    model_id: str = "Qwen/Qwen3.5-0.8B",
     causal_model: Optional[Any] = None,
     tokenizer: Optional[Any] = None,
     embedding_model: Optional[Any] = None,
@@ -1064,7 +1090,7 @@ def run_live_inference(
         or lr_pipeline is None
         or xgb_model is None
     ):
-        models = load_inference_models(device=device)
+        models = load_inference_models(model_id=model_id, device=device)
         causal_model = causal_model or models["causal_model"]
         tokenizer = tokenizer or models["tokenizer"]
         embedding_model = embedding_model or models["embedding_model"]
@@ -1112,8 +1138,8 @@ def run_live_inference(
     t_int_total = (time.perf_counter() - t0_s3_4) * 1000.0
     t_logit = getattr(seq_signals, "_t_logit_extraction_ms", None)
     t_sig = getattr(seq_signals, "_t_signal_computation_ms", None)
-    t_stages["3. token/logit extraction"] = t_logit if t_logit is not None else t_int_total * 0.95
-    t_stages["4. internal signal computation"] = t_sig if t_sig is not None else t_int_total * 0.05
+    t_stages["3. token/logit extraction"] = float(t_logit) if isinstance(t_logit, (int, float)) else t_int_total * 0.95
+    t_stages["4. internal signal computation"] = float(t_sig) if isinstance(t_sig, (int, float)) else t_int_total * 0.05
 
     # Stage 5: self-consistency generation, Stage 6: embedding model loading, Stage 7: self-consistency similarity
     t0_s5_7 = time.perf_counter()
@@ -1240,6 +1266,7 @@ def run_live_inference(
     return {
         "prompt": clean_prompt,
         "context": clean_context,
+        "model_id": model_id,
         "generated_response": primary_response,
         "internal_signals": {
             **internal_features,

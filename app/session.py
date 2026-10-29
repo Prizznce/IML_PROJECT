@@ -12,6 +12,8 @@ import csv
 import datetime
 import io
 import json
+import math
+import numpy as np
 from typing import Any, Dict, List, Optional
 import uuid
 
@@ -408,6 +410,35 @@ def get_session_analytics() -> Dict[str, Any]:
     }
 
 
+
+def to_json_serializable(val: Any) -> Any:
+    """
+    Recursively sanitize objects to JSON-serializable standard Python types.
+    Preserves numeric types as JSON numbers, booleans as JSON booleans,
+    and arrays as JSON lists, preventing silent string conversion.
+    """
+    if val is None:
+        return None
+    if isinstance(val, (bool, np.bool_)):
+        return bool(val)
+    if isinstance(val, (int, np.integer)):
+        return int(val)
+    if isinstance(val, (float, np.floating)):
+        f = float(val)
+        return None if (math.isnan(f) or math.isinf(f)) else f
+    if isinstance(val, str):
+        return val
+    if isinstance(val, np.ndarray):
+        return [to_json_serializable(x) for x in val.tolist()]
+    if isinstance(val, (list, tuple, set)):
+        return [to_json_serializable(x) for x in val]
+    if isinstance(val, dict):
+        return {str(k): to_json_serializable(v) for k, v in val.items()}
+    if hasattr(val, "isoformat"):
+        return val.isoformat()
+    return str(val)
+
+
 def export_history_to_json() -> str:
     """Export current session history to formatted JSON string."""
     history = get_session_history()
@@ -418,7 +449,8 @@ def export_history_to_json() -> str:
         "analytics": get_session_analytics(),
         "records": history,
     }
-    return json.dumps(export_payload, indent=2, ensure_ascii=False)
+    sanitized_payload = to_json_serializable(export_payload)
+    return json.dumps(sanitized_payload, indent=2, ensure_ascii=False)
 
 
 def export_history_to_csv() -> str:

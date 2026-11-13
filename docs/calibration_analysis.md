@@ -1,4 +1,4 @@
-# Probability Calibration Analysis for the Universal Core Hallucination Detector (Phase 17)
+# Probability Calibration Analysis for the Universal Core Hallucination Detector
 
 ## 1. Executive Summary
 

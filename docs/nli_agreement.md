@@ -1,6 +1,6 @@
 # Natural Language Inference (NLI) Agreement Signals: Methodology, Formulation, and Pilot Evaluation
 
-## 1. Executive Summary & Phase Context
+## 1. Executive Summary
 
 This document details the design, mathematical formulation, implementation, and empirical validation of **NLI Agreement signals**—the second additional hallucination signal group following internal signals and self-consistency.
 
@@ -87,7 +87,7 @@ $$\text{nli\_disagreement} = \text{mean\_pairwise\_contradiction} + 0.5 \times \
   - `2: neutral`
 
 ### 4.2 Pilot Data Controls
-- **Input Data**: The exact 100 generated candidate responses from the Phase 7 self-consistency pilot ([`pilot_generations_raw.parquet`](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/baselines/self_consistency/pilot_generations_raw.parquet)).
+- **Input Data**: The exact 100 generated candidate responses from the self-consistency pilot ([`pilot_generations_raw.parquet`](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/baselines/self_consistency/pilot_generations_raw.parquet)).
 - **No new generations were created**: Guarantees direct experimental comparability between self-consistency and NLI signals.
 - **Evaluation scale**:
   - 20 benchmark examples

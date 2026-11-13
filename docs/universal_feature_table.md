@@ -1,7 +1,7 @@
 # Universal Combined Feature Table
 
 **Project:** Catching an LLM Lying: A Lightweight Classifier for Real-Time Hallucination Detection  
-**Phase:** Phase 13 — Build and Validate the Universal Combined Feature Table  
+**Specification:** Unified Multi-Signal Feature Schema  
 **Source Tables Joined:**
 1. [`experiments/baselines/supervised_signals_combined.parquet`](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/baselines/supervised_signals_combined.parquet) (Internal Signals)
 2. [`experiments/baselines/self_consistency/full_self_consistency_aggregated.parquet`](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/baselines/self_consistency/full_self_consistency_aggregated.parquet) (Self-Consistency)

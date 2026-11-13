@@ -6,9 +6,9 @@ This document provides a comprehensive post-hoc error analysis of the Universal 
 
 ## 1. Experimental Methodology & Safeguards
 
-All analyses in Phase 18 evaluate the **fixed Phase 14 holdout test set** ($N = 800$), strictly preserving the baseline partitions and models without modification:
+All analyses evaluate the **fixed holdout test set** ($N = 800$), strictly preserving the primary baseline partitions and models without modification:
 
-- **Zero Retraining & Parameter Tuning**: Pre-trained model weights, decision thresholds ($0.5$), and scaling parameters are identical to Phase 14. No models were retrained or tuned.
+- **Zero Retraining & Parameter Tuning**: Pre-trained model weights, decision thresholds ($0.5$), and scaling parameters are preserved without modification. No models were retrained or tuned for this analysis.
 - **Untouched Holdout Set**: Exactly $N = 800$ instances (400 non-hallucinated [label 0], 400 hallucinated [label 1]).
   - HaluEval: 300 instances
   - TruthfulQA: 300 instances

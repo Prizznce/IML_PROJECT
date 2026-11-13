@@ -1,5 +1,5 @@
 """
-Unit and Integration Tests for Probability Calibration Analysis (Phase 17).
+Unit and integration tests for probability calibration analysis.
 
 Validates nested split isolation (model-fit, calibration-fit, untouched test set),
 zero ID leakage, 10-bin reliability calculations, ECE/MCE/Brier metric bounds,

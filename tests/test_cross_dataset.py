@@ -183,7 +183,7 @@ class TestCrossDataset(unittest.TestCase):
 
 
 class TestUniversalCrossDatasetEvaluation(unittest.TestCase):
-    """Test suite for Phase 16 Universal Cross-Dataset Generalization Evaluation."""
+    """Test suite for cross-dataset generalization evaluation."""
 
     def setUp(self):
         np.random.seed(42)

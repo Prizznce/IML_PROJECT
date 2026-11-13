@@ -1,5 +1,5 @@
 """
-Unit and Integration Tests for Universal Hallucination Detector Ablation Study (Phase 15).
+Unit and integration tests for feature ablation experiments.
 
 Verifies condition specifications, feature set integrity, split invariance, delta
 mathematics, and prediction record formatting.

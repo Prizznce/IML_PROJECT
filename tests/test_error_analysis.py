@@ -1,5 +1,5 @@
 """
-Unit tests for Phase 18: Hallucination Detector Error Analysis.
+Unit tests for hallucination detector error analysis.
 """
 
 from pathlib import Path

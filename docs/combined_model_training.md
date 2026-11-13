@@ -1,8 +1,8 @@
-# Universal Combined Hallucination Detector — Training and Validation (Phase 14)
+# Universal Combined Hallucination Detector — Training and Validation
 
 ## 1. Executive Summary
 
-This document presents the implementation, mathematical validation, empirical results, and baseline comparative analysis for the **Universal Core Hallucination Detector** trained across the 19 canonical features established in Phase 13.
+This document presents the implementation, mathematical validation, empirical results, and baseline comparative analysis for the **Universal Core Hallucination Detector** trained across the 19 canonical features established in the universal feature table.
 
 The detector integrates three complementary signal families:
 1. **Internal Generation Signals (11 features)**: Token probabilities, predictive entropy, perplexity, and rank dispersion statistics computed directly on the primary evaluated response.
@@ -25,7 +25,7 @@ The detector integrates three complementary signal families:
 
 ## 3. Experimental Protocol & Partitioning
 
-To maintain strict, uncompromised comparability with the Phase 6 baseline:
+To maintain strict, uncompromised comparability with the internal baseline:
 - **Input Table**: `experiments/baselines/combined/universal_features.parquet` (4,000 rows $\times$ 22 columns).
 - **Feature Matrix ($X$)**: Exactly 19 features; zero metadata, zero text payloads, zero sequence length (`num_tokens`), zero retrieval features.
 - **Stratified Partitioning**: 80/20 train/test split with `random_state=42`, stratified by the composite joint key `source_dataset + "_" + label`.
@@ -46,7 +46,7 @@ To maintain strict, uncompromised comparability with the Phase 6 baseline:
 
 ### Model 2: Gradient Boosted Trees (XGBoost)
 - **Estimator**: `XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.05, subsample=0.8, colsample_bytree=0.8, gamma=0.1, eval_metric="logloss", random_state=42, n_jobs=-1)`
-- **Configuration**: Preserved identically from the Phase 6 baseline to isolate the exact empirical impact of feature integration without confounding hyperparameter shifts.
+- **Configuration**: Preserved identically from the internal baseline to isolate the exact empirical impact of feature integration without confounding hyperparameter shifts.
 
 ---
 

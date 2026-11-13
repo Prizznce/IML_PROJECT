@@ -1,4 +1,4 @@
-# Universal Hallucination Detector — Feature Family Ablation Study (Phase 15)
+# Universal Hallucination Detector — Feature Family Ablation Study
 
 ## 1. Executive Summary
 
@@ -89,7 +89,7 @@ Evaluation metrics on the identical 800-instance holdout test set across all 7 c
 
 ## 6. Collinearity and Redundancy Audit
 
-As documented in Phase 13, `mean_log_prob` and `log_perplexity` exhibit exact inverse linear collinearity:
+As documented in the feature analysis, `mean_log_prob` and `log_perplexity` exhibit exact inverse linear collinearity:
 $$\text{Perplexity} = \exp(-\text{mean\_log\_prob}) \implies \log(\text{Perplexity}) = -\text{mean\_log\_prob} \implies r = -1.000000$$
 
 Both features were retained in all internal-signal conditions (A, D, E, G) in compliance with the predefined specification. Neither Logistic Regression (stabilized by $L_2$ regularization) nor XGBoost exhibited numerical instability or optimization divergence.

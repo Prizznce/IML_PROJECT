@@ -1,6 +1,6 @@
 # Evidence Retrieval Agreement Signals: Methodology, Formulation, and Pilot Evaluation
 
-## 1. Executive Summary & Phase Context
+## 1. Executive Summary
 
 This document details the design, mathematical formulation, implementation, and empirical validation of **Evidence Retrieval Agreement signals**—the third additional hallucination signal group following internal signals, self-consistency, and NLI agreement.
 
@@ -10,7 +10,7 @@ The primary motivation is **external groundedness**: internal signals measure th
 
 ## 2. Dataset Context Formats & Provenance Disclaimers
 
-A critical finding of this phase is that the three benchmark datasets in the project have **fundamentally different context structures**:
+A critical finding of this analysis is that the three benchmark datasets in the project have **fundamentally different context structures**:
 
 ```
 +---------------------------------------------------------------------------------------+

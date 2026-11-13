@@ -1,5 +1,5 @@
 """
-Unit tests for Phase 3 Dataset Pipeline.
+Unit tests for dataset schema and loaders.
 
 Verifies schema adherence, record parsers, balanced sampling,
 and ensures no single-class collapse occurs for HaluEval or TruthfulQA.

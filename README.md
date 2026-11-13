@@ -88,9 +88,9 @@ By fusing **11 internal generation signals** (token log-probabilities, Shannon e
    - **Google Gemma 3 (1B IT)**: Reaches **0.7913 ROC-AUC**, 0.7914 PR-AUC, 71.50% Accuracy.
    - **Qwen 3.5 (0.8B)**: Reaches **0.7688 ROC-AUC**, 0.7795 PR-AUC, 67.88% Accuracy.
    - **Meta Llama 3.2 (1B Instruct)**: Reaches **0.7450 ROC-AUC**, 0.7492 PR-AUC, 66.88% Accuracy.
-3. **Strict Length Isolation Safeguard**: Formally enforces an anti-confounder policy by isolating sequence length (`num_tokens`), prompt text, and dataset metadata. Phase 7 ablation proved that `num_tokens` acts as an artificial shortcut that degrades true scientific validity.
+3. **Strict Length Isolation Safeguard**: Formally enforces an anti-confounder policy by isolating sequence length (`num_tokens`), prompt text, and dataset metadata. Controlled ablation experiments proved that `num_tokens` acts as an artificial shortcut that degrades true scientific validity.
 4. **Rigorous Probability Calibration**: Evaluated using a 3-way nested partition ($2,560$ train / $640$ calibration / $800$ test). Non-parametric Isotonic Regression cuts Expected Calibration Error (ECE) for XGBoost from `0.0712` down to **`0.0244`** (a **65.7% reduction**).
-5. **Cross-Dataset Generalization (LODO)**: Conducts a Leave-One-Dataset-Out transfer study (Phase 16) exposing significant cross-benchmark domain shifts, proving the necessity of multi-task training data.
+5. **Cross-Dataset Generalization (LODO)**: Conducts a Leave-One-Dataset-Out transfer study exposing significant cross-benchmark domain shifts, proving the necessity of multi-task training data.
 6. **Live Interactive Web Demo**: Full-featured Streamlit application featuring live GPU-accelerated inference across all 3 models, token-level probability/entropy heatmaps, TreeSHAP attribution, and 15-stage millisecond latency profiling.
 
 ---
@@ -155,14 +155,14 @@ All metrics represent exact, validated outputs extracted from persisted experime
 | Google Gemma 3 (1B IT) | Logistic Regression | 0.6475 | 0.6667 | 0.7092 | 0.7054 | 0.2140 | 0.0521 |
 | **Qwen 3.5 (0.8B)** | **XGBoost** | **0.6788** | **0.6751** | **0.7688** | **0.7795** | **0.1891** | **0.0341** |
 | Qwen 3.5 (0.8B) | Logistic Regression | 0.6288 | 0.6356 | 0.7079 | 0.7124 | 0.2151 | 0.0525 |
-| Qwen 3.5 (0.8B) [Phase 6 Baseline] | XGBoost (11 signals) | 0.6700 | 0.6887 | 0.7411 | 0.7322 | 0.1999 | 0.0228 |
-| Qwen 3.5 (0.8B) [Phase 6 Baseline] | Logistic Regression (11 signals)| 0.6212 | 0.6363 | 0.6930 | 0.6618 | 0.2177 | 0.0649 |
+| Qwen 3.5 (0.8B) [Internal Baseline] | XGBoost (11 signals) | 0.6700 | 0.6887 | 0.7411 | 0.7322 | 0.1999 | 0.0228 |
+| Qwen 3.5 (0.8B) [Internal Baseline] | Logistic Regression (11 signals)| 0.6212 | 0.6363 | 0.6930 | 0.6618 | 0.2177 | 0.0649 |
 | **Meta Llama 3.2 (1B Instruct)** | **XGBoost** | **0.6688** | **0.6834** | **0.7450** | **0.7492** | 0.1991 | 0.0392 |
 | Meta Llama 3.2 (1B Instruct) | Logistic Regression | 0.6512 | 0.6610 | 0.6929 | 0.6681 | 0.2211 | **0.0319** |
 
 ---
 
-### 2. Feature-Family Ablation Study (Phase 15)
+### 2. Feature-Family Ablation Study
 
 Evaluated on the 800-instance holdout test set to isolate individual and combined feature families:
 
@@ -192,7 +192,7 @@ Evaluated on the 800-instance holdout test set to isolate individual and combine
 
 ---
 
-### 4. Cross-Dataset Generalization (Phase 16 Leave-One-Dataset-Out / LODO)
+### 4. Cross-Dataset Generalization (Leave-One-Dataset-Out / LODO)
 
 Models were trained exclusively on two benchmark datasets and evaluated on the 100% unseen third dataset to assess zero-shot transferability:
 
@@ -209,7 +209,7 @@ Models were trained exclusively on two benchmark datasets and evaluated on the 1
 
 ---
 
-### 5. Probability Calibration Analysis (Phase 17)
+### 5. Probability Calibration Analysis
 
 Evaluated using a leak-free 3-way nested partition ($2,560$ base training / $640$ calibration tuning / $800$ holdout test):
 
@@ -226,7 +226,7 @@ Evaluated using a leak-free 3-way nested partition ($2,560$ base training / $640
 
 ---
 
-### 6. Standalone Retrieval-Augmented Detector (Phase 19)
+### 6. Standalone Retrieval-Augmented Detector
 
 Evaluated strictly on the $N = 2,500$ population where reference evidence passages exist (HaluEval: 1,500, FEVER: 1,000) using a 500-instance holdout test split ($2,000$ train / $500$ test, balanced 250/250):
 
@@ -299,21 +299,21 @@ IML_PROJECT/
 │   ├── processed/                 # Curated 4,000-instance balanced benchmark
 │   └── raw/                       # Immutable raw source datasets
 ├── docs/                          # Comprehensive research reports and analysis
-│   ├── ablation_study.md          # Phase 15 feature-family ablation report
-│   ├── calibration_analysis.md    # Phase 17 probability calibration report
-│   ├── cross_dataset_evaluation.md# Phase 16 Leave-One-Dataset-Out (LODO) report
-│   ├── error_analysis.md          # Phase 18 comprehensive error analysis
-│   ├── final_project_report.md    # Authoritative 58KB scientific report
+│   ├── ablation_study.md          # Feature-family ablation report
+│   ├── calibration_analysis.md    # Probability calibration report
+│   ├── cross_dataset_evaluation.md# Leave-One-Dataset-Out (LODO) report
+│   ├── error_analysis.md          # Comprehensive error analysis
+│   ├── final_project_report.md    # Authoritative scientific report
 │   ├── master_results_table.md    # Master verified experimental results
-│   └── retrieval_augmented_experiment.md # Phase 19 retrieval variant
+│   └── retrieval_augmented_experiment.md # Standalone retrieval variant
 ├── experiments/
-│   ├── baselines/                 # Phase 6 baseline models & feature tables
-│   ├── calibration/               # Phase 17 calibration partitions & artifacts
+│   ├── baselines/                 # Baseline models & feature tables
+│   ├── calibration/               # Calibration partitions & artifacts
 │   ├── models/                    # Model-specific feature tables & runs
 │   │   ├── gemma_3_1b_it/         # Gemma 3 1B feature parquet & model results
 │   │   ├── llama_3_2_1b_instruct/ # Llama 3.2 1B feature parquet & model results
 │   │   └── qwen3_5_0_8b/          # Qwen 3.5 0.8B feature parquet & model results
-│   └── retrieval_augmented/       # Phase 19 standalone retrieval parquet
+│   └── retrieval_augmented/       # Standalone retrieval parquet
 ├── models/                        # Serialized classifiers (.joblib)
 │   ├── gemma_3_1b_it/             # Retrained XGBoost & LR pipelines for Gemma 3
 │   ├── llama_3_2_1b_instruct/     # Retrained XGBoost & LR pipelines for Llama 3.2
@@ -326,7 +326,7 @@ IML_PROJECT/
 │   ├── signals/                   # Token-level forward pass & logit extraction
 │   ├── training/                  # Retraining pipelines & cross-validation
 │   └── utils/                     # Model registry & GPU/CPU device resolution
-├── tests/                         # 226 unit and integration tests (100% passing)
+├── tests/                         # Unit and integration test suite (100% passing)
 ├── requirements.txt               # Locked project dependencies
 └── README.md                      # Comprehensive project documentation
 ```

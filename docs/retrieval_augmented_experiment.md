@@ -8,7 +8,7 @@ This document details the design, methodology, and empirical evaluation of the *
 
 A preliminary retrieval pilot evaluated the feasibility of dense evidence retrieval using `sentence-transformers/all-MiniLM-L6-v2`. That pilot demonstrated that attempting to query a HaluEval-derived evidence corpus on instances from FEVER or TruthfulQA produces severe cross-domain missingness. 
 
-In Phase 19, we establish a clean, dataset-appropriate evidence retrieval methodology designed to avoid structural missingness and dataset-identifying leakage.
+Here, we establish a clean, dataset-appropriate evidence retrieval methodology designed to avoid structural missingness and dataset-identifying leakage.
 
 ---
 

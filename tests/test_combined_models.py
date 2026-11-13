@@ -1,5 +1,5 @@
 """
-Unit and Integration Tests for Universal Combined Hallucination Detector Training (Phase 14).
+Unit and integration tests for combined multi-signal hallucination detector training.
 
 Validates feature selection rigor, strict metadata/token exclusion, deterministic
 stratified splitting, train-only scaler fitting, finite metric bounds, and baseline

@@ -1,8 +1,8 @@
-# Baseline Classification Modeling Pipeline (Phase 6)
+# Baseline Classification Modeling Pipeline
 
 ## 1. Overview & Scientific Objectives
 
-Phase 6 establishes reproducible, supervised classification baselines for detecting Large Language Model (LLM) hallucinations using internal generation signals extracted from `Qwen/Qwen3.5-0.8B`. 
+This pipeline establishes reproducible, supervised classification baselines for detecting Large Language Model (LLM) hallucinations using internal generation signals extracted from `Qwen/Qwen3.5-0.8B`. 
 
 The modeling pipeline operates on the canonical 4,000-example supervised feature dataset:
 [`experiments/baselines/supervised_signals_combined.parquet`](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/experiments/baselines/supervised_signals_combined.parquet)
@@ -158,7 +158,7 @@ Provides explicit counts of:
 
 ## 6. Planned Baseline Experiments (Execution Roadmap)
 
-The baseline experiment will be executed in subsequent steps of Phase 6:
+The baseline experiment is executed as follows:
 
 ### 6.1 Execution Command
 The baseline classification pipeline will be executed via the dedicated CLI:

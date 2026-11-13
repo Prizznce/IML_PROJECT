@@ -1,5 +1,5 @@
 """
-Unit tests for Phase 19: Retrieval-Augmented Hallucination Detection Variant.
+Unit tests for retrieval-augmented hallucination detection experiments.
 """
 
 import math

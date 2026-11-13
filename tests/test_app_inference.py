@@ -162,7 +162,7 @@ def test_predict_hallucination_risk_with_mock_classifiers():
 
 
 def test_get_trained_classifiers_split_and_caching():
-    """Verify that get_trained_classifiers reproduces Phase 14 split and caches models."""
+    """Verify that get_trained_classifiers produces trained baseline models and caches them."""
     lr_pipe, xgb_mod = get_trained_classifiers()
 
     assert hasattr(lr_pipe, "predict_proba")

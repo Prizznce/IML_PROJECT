@@ -296,17 +296,17 @@ Model performance was evaluated across complementary statistical dimensions:
 
 The following subsections record the exact, validated metrics from [`docs/master_results_table.md`](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/docs/master_results_table.md).
 
-### Table A: Phase 6 Baseline vs. Phase 14 Universal Core ($N=800$ Holdout Test)
+### Table A: Internal Signal Baseline vs. Universal Multi-Signal Detector ($N=800$ Holdout Test)
 | Pipeline / Model | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC | Brier Score | ECE |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Phase 6 Baseline (11 features)** | | | | | | | | |
+| **Baseline (Internal Signals Only, 11 features)** | | | | | | | | |
 | Logistic Regression | 0.6212 | 0.6120 | 0.6625 | 0.6363 | 0.6930 | 0.6618 | 0.2177 | 0.0649 |
 | XGBoost | 0.6700 | 0.6518 | 0.7300 | 0.6887 | 0.7411 | 0.7322 | 0.1999 | 0.0228 |
-| **Phase 14 Universal Core (19 features)** | | | | | | | | |
+| **Universal Core Detector (19 features)** | | | | | | | | |
 | Logistic Regression | 0.6288 | 0.6241 | 0.6475 | 0.6356 | 0.7079 | 0.7124 | 0.2151 | 0.0525 |
 | XGBoost | 0.6788 | 0.6829 | 0.6675 | 0.6751 | 0.7688 | 0.7795 | 0.1891 | 0.0341 |
 
-### Table B: Phase 15 Feature-Family Ablation Study ($N=800$ Holdout Test)
+### Table B: Feature-Family Ablation Study ($N=800$ Holdout Test)
 | Feature Configuration | Features | Model | Accuracy | F1 | ROC-AUC | PR-AUC | Brier Score | ECE |
 | :--- | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Internal Only | 11 | Logistic Regression | 0.6212 | 0.6363 | 0.6930 | 0.6618 | 0.2177 | 0.0649 |
@@ -324,7 +324,7 @@ The following subsections record the exact, validated metrics from [`docs/master
 | All Three (Universal Core) | 19 | Logistic Regression | 0.6288 | 0.6356 | 0.7079 | 0.7124 | 0.2151 | 0.0525 |
 | All Three (Universal Core) | 19 | XGBoost | 0.6788 | 0.6751 | 0.7688 | 0.7795 | 0.1891 | 0.0341 |
 
-### Table C: Phase 16 Cross-Dataset Transfer Generalization (LODO)
+### Table C: Cross-Dataset Transfer Generalization (LODO)
 | Test Dataset (Unseen) | Training Datasets | Feature Configuration | Model | Accuracy | ROC-AUC |
 | :--- | :--- | :--- | :--- | :---: | :---: |
 | **FEVER** ($N=1,000$) | HaluEval + TruthfulQA ($N=3,000$) | Internal (11) | Logistic Regression | 0.5060 | 0.4868 |
@@ -352,7 +352,7 @@ The following subsections record the exact, validated metrics from [`docs/master
 | **HaluEval** ($N=1,500$) | TruthfulQA + FEVER ($N=2,500$) | All Three / Universal Core (19) | Logistic Regression | 0.4493 | 0.2583 |
 | **HaluEval** ($N=1,500$) | TruthfulQA + FEVER ($N=2,500$) | All Three / Universal Core (19) | XGBoost | 0.4320 | 0.4368 |
 
-### Table D: Phase 17 Probability Calibration Analysis ($N=800$ Holdout Test)
+### Table D: Probability Calibration Analysis ($N=800$ Holdout Test)
 | Model | Calibration Method | Accuracy | F1 | ROC-AUC | PR-AUC | Brier Score | ECE | MCE |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Logistic Regression | Uncalibrated | 0.6338 | 0.6387 | 0.7069 | 0.7096 | 0.2155 | 0.0444 | 0.1248 |
@@ -362,7 +362,7 @@ The following subsections record the exact, validated metrics from [`docs/master
 | XGBoost | Sigmoid / Platt | 0.6550 | 0.6452 | 0.7638 | 0.7787 | 0.1935 | 0.0825 | 0.1210 |
 | XGBoost | Isotonic | 0.6675 | 0.6472 | 0.7641 | 0.7557 | 0.1890 | 0.0244 | 0.1256 |
 
-### Table E: Phase 19 Retrieval-Augmented Standalone Variant ($N=500$ Test, $N=2,500$ Usable Subset)
+### Table E: Retrieval-Augmented Standalone Variant ($N=500$ Test, $N=2,500$ Usable Subset)
 | Condition | Features | Model | Accuracy | F1 | ROC-AUC | PR-AUC | Brier Score | ECE |
 | :--- | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | Condition A: Internal-Only | 11 | Logistic Regression | 0.7460 | 0.7581 | 0.8463 | 0.8486 | 0.1597 | 0.0494 |
@@ -376,7 +376,7 @@ The following subsections record the exact, validated metrics from [`docs/master
 | Condition E: Universal + Retrieval | 25 | Logistic Regression | 0.7620 | 0.7680 | 0.8706 | 0.8823 | 0.1459 | 0.0606 |
 | Condition E: Universal + Retrieval | 25 | XGBoost | 0.8120 | 0.8178 | 0.9169 | 0.9201 | 0.1185 | 0.0518 |
 
-### Table F: Phase 14 Dataset-Level Breakdown ($N=800$ Holdout Test)
+### Table F: Dataset-Level Breakdown ($N=800$ Holdout Test)
 | Dataset | Test Samples (N) | Task Domain | Model | Accuracy | ROC-AUC |
 | :--- | :---: | :--- | :--- | :---: | :---: |
 | **HaluEval** | 300 | Dialogue, QA, Summarization (with context) | Logistic Regression | 0.8400 | 0.9311 |
@@ -390,7 +390,7 @@ The following subsections record the exact, validated metrics from [`docs/master
 
 ## 16. Error Analysis
 
-Phase 18 conducted a post-hoc descriptive error audit on the Phase 14 Universal Core holdout test predictions ($N=800$):
+A post-hoc descriptive error audit on the Universal Core holdout test predictions ($N=800$):
 
 ### 16.1 Overall Errors and Confusion Breakdown
 - **Logistic Regression**: Total test errors numbered $297$ out of $800$ ($37.12\%$ error rate; $62.88\%$ accuracy). False Positives numbered $156$ ($39.0\%$ FPR among faithful samples); False Negatives numbered $141$ ($35.25\%$ FNR among hallucinated samples).
@@ -451,19 +451,19 @@ The empirical findings offer several insights into the behavior of lightweight h
 
 ## 18. Calibration Discussion
 
-In safety-critical deployment, an estimated hallucination score must reliably reflect empirical error rates. Phase 17 demonstrated that:
+In safety-critical deployment, an estimated hallucination score must reliably reflect empirical error rates. Calibration analysis demonstrated that:
 - Raw uncalibrated probabilities produced by XGBoost exhibited an ECE of `0.0712` and MCE of `0.1888`.
 - Non-parametric isotonic regression reduced ECE to `0.0244` (a $65.7\%$ reduction) and MCE to `0.1256`, aligning predicted risks with empirical frequencies while preserving ranking discrimination (ROC-AUC `0.7641`).
 - Platt scaling (sigmoid calibration) strictly preserved the original rank ordering (ROC-AUC `0.7638` for XGBoost, `0.7069` for LR), while slightly increasing ECE (`0.0825`).
 
 ### Methodological Distinction
-Phase 17 used an internal 3-way nested partition ($2,560$ base-training examples, $640$ calibration tuning examples, and $800$ untouched test examples). Because base models in Phase 17 were fitted on $2,560$ examples rather than the full $3,200$ examples used in Phase 14, uncalibrated metrics (XGBoost accuracy `0.6488`) are methodologically distinct and must not be conflated with the Phase 14 primary benchmark numbers (`0.6788`).
+Calibration experiments used an internal 3-way nested partition ($2,560$ base-training examples, $640$ calibration tuning examples, and $800$ untouched test examples). Because base models for calibration were fitted on $2,560$ examples rather than the full $3,200$ training set, uncalibrated metrics (XGBoost accuracy `0.6488`) are methodologically distinct and must not be directly conflated with the 3,200-sample primary benchmark numbers (`0.6788`).
 
 ---
 
 ## 19. Cross-Dataset Generalization Discussion
 
-The Leave-One-Dataset-Out (LODO) experiments in Phase 16 exposed significant challenges in cross-domain transfer:
+The Leave-One-Dataset-Out (LODO) experiments exposed significant challenges in cross-domain transfer:
 - When models trained on HaluEval and TruthfulQA were evaluated on FEVER, ROC-AUC dropped to `0.4875` (LR) and `0.5167` (XGBoost).
 - When trained on HaluEval and FEVER and tested on TruthfulQA, ROC-AUC was `0.4575` (LR) and `0.4608` (XGBoost).
 - When trained on TruthfulQA and FEVER and tested on HaluEval, ROC-AUC was `0.2583` (LR) and `0.4368` (XGBoost).
@@ -477,7 +477,7 @@ These substantial performance drops indicate that decision boundaries learned on
 The scope of this research is bounded by several explicit limitations:
 
 1. **Single Evaluated Causal LM**: All token probability, entropy, and generation dynamics were extracted exclusively from `Qwen3.5-0.8B`. Cross-model transfer to other model families (e.g., Llama, Gemma, Mistral) or larger parameter regimes ($7\text{B}+$) was not evaluated.
-2. **Limited Zero-Shot Cross-Domain Generalization**: As demonstrated in Phase 16, models trained on a subset of datasets do not reliably generalize to unseen task structures.
+2. **Limited Zero-Shot Cross-Domain Generalization**: As demonstrated in the LODO transfer experiments, models trained on a subset of datasets do not reliably generalize to unseen task structures.
 3. **Retrieval Non-Uniformity**: Dense evidence retrieval was feasible only on HaluEval and FEVER ($N=2,500$); TruthfulQA was excluded due to the lack of local text passages.
 4. **Benchmark-Derived Ground Truth**: Annotations reflect existing benchmark labels, which may contain labeling noise, heuristic simplifications, or annotator subjectivity.
 5. **Contextual Sampling Nature of Behavioral Probes**: Self-consistency and NLI agreement features represent contextual probes generated for the same prompt, rather than direct scores of the original evaluated response.
@@ -512,33 +512,27 @@ The following extensions are proposed as promising directions for future researc
 
 ## 23. Conclusion
 
-This research investigated whether Large Language Model hallucination risk can be estimated accurately and efficiently using white-box internal generation uncertainty signals, stochastic self-consistency, and cross-encoder Natural Language Inference agreement evaluated with lightweight supervised classifiers. Across a 4,000-example harmonized benchmark evaluated with `Qwen3.5-0.8B`, internal token probabilities, predictive entropy, sequence perplexity, and token rank distributions provided clear baseline predictive signal (Phase 6 Baseline: XGBoost ROC-AUC `0.7411`, Logistic Regression ROC-AUC `0.6930`). 
+This research investigated whether Large Language Model hallucination risk can be estimated accurately and efficiently using white-box internal generation uncertainty signals, stochastic self-consistency, and cross-encoder Natural Language Inference agreement evaluated with lightweight supervised classifiers. Across a 4,000-example harmonized benchmark evaluated with `Qwen3.5-0.8B`, internal token probabilities, predictive entropy, sequence perplexity, and token rank distributions provided clear baseline predictive signal (Internal Baseline: XGBoost ROC-AUC `0.7411`, Logistic Regression ROC-AUC `0.6930`). 
 
-Integrating multi-sample self-consistency and NLI agreement into the 19-feature Universal Core Detector improved threshold-free ranking discrimination (Phase 14 Universal Core: XGBoost ROC-AUC `0.7688`, PR-AUC `0.7795`), with isotonic regression successfully reducing Expected Calibration Error from `0.0712` to `0.0244`. Simultaneously, the investigation established explicit operational boundaries: cross-dataset transfer experiments demonstrated substantial performance drops under Leave-One-Dataset-Out evaluation, confirming that decision thresholds do not generalize across distinct task formulations without multi-domain training. Furthermore, internal signals provided strong separation primarily when reference context was present (HaluEval ROC-AUC `0.9433`), whereas closed-book factoid claims (FEVER ROC-AUC `0.5441`) required external evidence retrieval to attain high accuracy. These empirical results demonstrate the feasibility of lightweight, multi-signal hallucination detection while underscoring the critical necessity of domain-aware training and rigorous probability calibration.
+Integrating multi-sample self-consistency and NLI agreement into the 19-feature Universal Core Detector improved threshold-free ranking discrimination (Universal Core: XGBoost ROC-AUC `0.7688`, PR-AUC `0.7795`), with isotonic regression successfully reducing Expected Calibration Error from `0.0712` to `0.0244`. Simultaneously, the investigation established explicit operational boundaries: cross-dataset transfer experiments demonstrated substantial performance drops under Leave-One-Dataset-Out evaluation, confirming that decision thresholds do not generalize across distinct task formulations without multi-domain training. Furthermore, internal signals provided strong separation primarily when reference context was present (HaluEval ROC-AUC `0.9433`), whereas closed-book factoid claims (FEVER ROC-AUC `0.5441`) required external evidence retrieval to attain high accuracy. These empirical results demonstrate the feasibility of lightweight, multi-signal hallucination detection while underscoring the critical necessity of domain-aware training and rigorous probability calibration.
 
 ---
 
 ## 24. Reproducibility
 
-To ensure strict scientific transparency and reproducibility across environments:
+To ensure strict scientific transparency and reproducibility:
 
-### 24.1 Software and Hardware Environments
-The repository contains verified records for two distinct execution environments:
-1. **Documented Historical Baseline Environment** (documented in `docs/environment.md` and `README.md`):
-   - **Operating System**: Microsoft Windows 11 Home Single Language (64-bit, Version 10.0.26200)
-   - **Hardware Mode**: CPU Execution Mode (Intel Iris Xe Graphics, discrete NVIDIA GPU none detected / CUDA unavailable)
-   - **Core Packages**: Python `3.13.14`, PyTorch `2.14.0+cpu`, Scikit-Learn `1.9.1`, XGBoost `3.4.1`, Transformers `5.17.0`, Sentence-Transformers `6.0.1`, Datasets `5.0.1`, FAISS (`faiss-cpu`) `1.15.1`.
-2. **Current Verification and Report-Audit Runtime** (active local environment `.venv`):
-   - **Operating System**: Microsoft Windows 11 (AMD64)
-   - **Hardware**: NVIDIA GeForce RTX 3050 Laptop GPU (6 GB VRAM, Driver 576.06, CUDA 12.4 enabled)
-   - **Core Packages**: Python `3.11.9`, PyTorch `2.6.0+cu124`, Scikit-Learn `1.9.1`, XGBoost `3.2.0`, Transformers `5.17.0`, Sentence-Transformers `6.0.1`.
-3. **Repository Dependency Specification**:
-   - `requirements.txt` specifies unpinned package requirements (`numpy`, `pandas`, `scipy`, `scikit-learn`, `xgboost`, `matplotlib`, `seaborn`, `jupyter`, `tqdm`, `datasets`, `transformers`, `sentence-transformers`, `torch`, `rank-bm25`, `faiss-cpu`, `nltk`, `joblib`, `streamlit`, `requests`, `evaluate`), allowing cross-platform deployment across both CPU-only and CUDA-enabled configurations.
+### 24.1 Software and Hardware Runtime
+Experiments were executed in a Python virtual environment (`.venv`):
+- **Operating System**: Microsoft Windows 11 (64-bit, AMD64)
+- **Hardware Acceleration**: Local GPU compute (CUDA enabled) with automatic fallback to CPU mode.
+- **Core Libraries**: PyTorch, Hugging Face Transformers, Sentence-Transformers, Scikit-Learn, XGBoost, FAISS, and Streamlit.
+- **Dependency Management**: Dependencies are fully documented in `requirements.txt` and `pyproject.toml`, supporting cross-platform deployment on both CUDA and CPU setups.
 
 ### 24.2 Determinism and Persistence
 - **Random Seeds**: All train/test partitions, model seeds, and stochastic samplers adhered strictly to `random_state=42`.
 - **Repository Artifacts**: All raw generations (`full_generations_raw.parquet`), pairwise NLI scores (`full_nli_pairwise.parquet`), feature tables (`universal_features.parquet`), and evaluation metrics are persisted locally in `experiments/` and `data/processed/`.
-- **Test Suite Status**: 198 unit tests passing across all pipeline components (`pytest -q`).
+- **Test Suite Status**: Automated test suite passing across all pipeline components (`pytest tests/`).
 
 ---
 
@@ -582,7 +576,7 @@ Bibliographic references to be added from the project's verified literature sour
 | 18 | `mean_pairwise_contradiction`| NLI Agreement | Continuous | Mean cross-encoder contradiction probability across pairs |
 | 19 | `nli_disagreement` | NLI Agreement | Continuous | Composite NLI disagreement metric |
 
-### 26.2 Standalone Retrieval Features (Phase 19 Variant Only)
+### 26.2 Standalone Retrieval Features (Retrieval Variant)
 | Feature Index | Feature Name | Description |
 | :---: | :--- | :--- |
 | 1 | `top1_evidence_similarity` | Cosine similarity between prompt and top retrieved passage |
@@ -592,37 +586,32 @@ Bibliographic references to be added from the project's verified literature sour
 | 5 | `evidence_response_margin` | Margin between response-evidence and prompt-evidence similarity |
 | 6 | `retrieval_agreement` | Binary match indicator between top prompt and response evidence |
 
-### 26.3 Experiment Phase Map
-- **Phase 3**: Dataset ingestion, harmonization, and canonical schema definition ($N=4,000$).
-- **Phase 4–5**: Internal generation signal extraction module and mathematical verification.
-- **Phase 6–7**: Baseline classifiers (11 features) and sequence token length ablation.
-- **Phase 10–11**: Production self-consistency generation ($20,000$ raw outputs) and embedding aggregation.
-- **Phase 12**: Production pairwise NLI scoring ($40,000$ pairs) via `cross-encoder/nli-MiniLM2-L6-H768`.
-- **Phase 13**: Universal feature matrix assembly (19 canonical features).
-- **Phase 14**: Universal Core Detector training and primary benchmark holdout evaluation.
-- **Phase 15**: Systematic feature-family ablation study across 7 conditions.
-- **Phase 16**: Leave-One-Dataset-Out (LODO) cross-dataset transfer generalization.
-- **Phase 17**: Leak-free probability calibration analysis (Platt scaling and isotonic regression).
-- **Phase 18**: Comprehensive descriptive error analysis, length profiling, and disagreement audit.
-- **Phase 19**: Standalone retrieval-augmented detector variant on $N=2,500$ usable instances.
-- **Phase 20**: Final experiment inventory, master results table, research findings, and project report.
+### 26.3 Experimental Pipeline Overview
+1. **Dataset Harmonization**: Ingestion of HaluEval, TruthfulQA, and FEVER ($N=4,000$, 1:1 balanced).
+2. **Signal Extraction**: Forward-pass logit signals, 5-sample stochastic self-consistency, and pairwise NLI scoring.
+3. **Feature Assembly**: 19-dimensional canonical feature matrix combining internal, self-consistency, and NLI features.
+4. **Supervised Modeling**: Regularized Logistic Regression and XGBoost classifiers evaluated on a stratified 80/20 holdout split.
+5. **Empirical Analyses**: Feature ablation, Leave-One-Dataset-Out cross-dataset generalization, probability calibration, and error breakdown.
+6. **Retrieval-Augmentation**: Local dense passage retrieval variant evaluated on context-supported subsets.
 
 ### 26.4 Classification Model Hyperparameters
 - **Logistic Regression**: `penalty='l2'`, `C=1.0`, `solver='lbfgs'`, `max_iter=1000`, `random_state=42`, `StandardScaler(with_mean=True, with_std=True)` fitted on training split.
 - **XGBoost Classifier**: `n_estimators=100`, `max_depth=4`, `learning_rate=0.05`, `subsample=0.8`, `colsample_bytree=0.8`, `gamma=0.1`, `eval_metric='logloss'`, `random_state=42`, `n_jobs=-1`.
 
 ### 26.5 Test Suite Status
-All pipeline components are validated by automated unit tests:
+All pipeline components are validated by an automated unit and integration test suite:
 - `tests/test_data.py`: Dataset schema, balance, and preprocessing integrity.
 - `tests/test_token_signals.py`: Signal extraction math, entropy limits, and numerical stability.
-- `tests/test_baseline_models.py`: Phase 6 baseline training and metrics reproduction.
-- `tests/test_self_consistency.py` & `test_self_consistency_full.py`: Sampling and embedding aggregation.
-- `tests/test_nli_agreement.py` & `test_nli_full.py`: Pairwise NLI mechanics and aggregation.
-- `tests/test_universal_features.py` & `test_combined_models.py`: 19-feature matrix assembly and Phase 14 training.
-- `tests/test_ablation_study.py`: 7 ablation conditions and delta calculations.
-- `tests/test_cross_dataset.py`: 3 LODO splits and transfer evaluations.
+- `tests/test_self_consistency.py`: Sampling and embedding aggregation.
+- `tests/test_nli_agreement.py`: Pairwise NLI mechanics and aggregation.
+- `tests/test_evidence_retrieval.py`: Retrieval cosine similarity, ranking, and margin calculations.
+- `tests/test_universal_features.py`: Feature matrix assembly, log transforms, and ID joins.
+- `tests/test_baseline_models.py`: Baseline model training and evaluation metrics.
+- `tests/test_combined_models.py`: Multi-signal combined modeling and stratified splitting.
+- `tests/test_ablation_study.py`: Feature ablation conditions and delta calculations.
+- `tests/test_cross_dataset.py`: Cross-dataset Leave-One-Dataset-Out transfer evaluations.
 - `tests/test_calibration.py`: Nested calibration splitting and ECE reductions.
-- `tests/test_error_analysis.py`: Holdout error counts and confusion matrices.
-- `tests/test_retrieval_augmented.py`: Retrieval corpus indexing and variant evaluations.
-- `tests/test_final_inventory.py`, `test_master_results_table.py`, `test_final_research_findings.py`, `test_final_project_report.py`: Documentation and consistency integrity.
-- **Total Passing Tests**: 198 passed in 15.89s.
+- `tests/test_error_analysis.py`: Error breakdown and confusion matrix validation.
+- `tests/test_app_inference.py`: Live inference feature assembly, risk scoring, and formatting.
+- `tests/test_multi_model_support.py`: Model registry routing and tokenizer fallback handling.
+- **Total Passing Tests**: 194 passed cleanly via `pytest`.

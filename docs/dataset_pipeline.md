@@ -1,4 +1,4 @@
-# Phase 3: Dataset Pipeline Documentation
+# Dataset Pipeline Documentation
 
 ## 1. Overview and Purpose
 The goal of the dataset pipeline for **"Catching an LLM Lying: A Lightweight Classifier for Real-Time Hallucination Detection from Internal Generation Signals"** is to standardize heterogeneous hallucination benchmarks into a clean, unified schema while avoiding data contamination, class collapse, or unnecessary network overhead.

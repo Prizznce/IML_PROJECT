@@ -1,19 +1,19 @@
 # Master Results Table: Multi-Signal Hallucination Detection
 
-This document provides the authoritative, unified master results synthesis across all empirical experiments completed in **Phases 3–19** of the Hallucination Detection research pipeline. All reported metrics represent exact, validated outputs extracted directly from persisted experimental artifacts without modification or re-estimation.
+This document provides the authoritative, unified master results synthesis across all empirical experiments completed in the Hallucination Detection research pipeline. All reported metrics represent exact, validated outputs extracted directly from persisted experimental artifacts without modification or re-estimation.
 
 ---
 
 ## 1. Primary Benchmark
 
-The **Phase 14 Universal Core Detector** serves as the primary scientific benchmark, evaluated on the fixed, stratified 80/20 partition ($3,200$ train / $800$ holdout test, `random_state=42`) across the full $N = 4,000$ combined benchmark. It is compared directly against the **Phase 6 Baseline** (11 internal generation token signals) evaluated on the identical holdout partition.
+The **Universal Core Detector** serves as the primary scientific benchmark, evaluated on the fixed, stratified 80/20 partition ($3,200$ train / $800$ holdout test, `random_state=42`) across the full $N = 4,000$ combined benchmark. It is compared directly against the **Internal Signal Baseline** (11 internal generation token signals) evaluated on the identical holdout partition.
 
 | Experiment / Pipeline | Model | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC | Brier Score | ECE |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Phase 6 Baseline (11 features) | Logistic Regression | 0.6212 | 0.6120 | 0.6625 | 0.6363 | 0.6930 | 0.6618 | 0.2177 | 0.0649 |
-| Phase 6 Baseline (11 features) | XGBoost | 0.6700 | 0.6518 | 0.7300 | 0.6887 | 0.7411 | 0.7322 | 0.1999 | 0.0228 |
-| Phase 14 Universal Core (19 features) | Logistic Regression | 0.6288 | 0.6241 | 0.6475 | 0.6356 | 0.7079 | 0.7124 | 0.2151 | 0.0525 |
-| Phase 14 Universal Core (19 features) | XGBoost | 0.6788 | 0.6829 | 0.6675 | 0.6751 | 0.7688 | 0.7795 | 0.1891 | 0.0341 |
+| Baseline (Internal Signals, 11 features) | Logistic Regression | 0.6212 | 0.6120 | 0.6625 | 0.6363 | 0.6930 | 0.6618 | 0.2177 | 0.0649 |
+| Baseline (Internal Signals, 11 features) | XGBoost | 0.6700 | 0.6518 | 0.7300 | 0.6887 | 0.7411 | 0.7322 | 0.1999 | 0.0228 |
+| Universal Core (19 features) | Logistic Regression | 0.6288 | 0.6241 | 0.6475 | 0.6356 | 0.7079 | 0.7124 | 0.2151 | 0.0525 |
+| Universal Core (19 features) | XGBoost | 0.6788 | 0.6829 | 0.6675 | 0.6751 | 0.7688 | 0.7795 | 0.1891 | 0.0341 |
 
 ### Comparative Observations
 - **XGBoost Improvements**: Incorporating behavioral self-consistency ($k=5$) and cross-encoder NLI agreement signals into the 11 baseline internal signals increases XGBoost ROC-AUC from `0.7411` to `0.7688` ($+0.0277$) and PR-AUC from `0.7322` to `0.7795` ($+0.0474$).
@@ -24,7 +24,7 @@ The **Phase 14 Universal Core Detector** serves as the primary scientific benchm
 
 ## 2. Feature-Family Ablation
 
-Evaluated across the identical 800-example Phase 14 holdout test set to isolate the individual, pairwise, and combined contributions of the three primary signal families:
+Evaluated across the identical 800-example holdout test set to isolate the individual, pairwise, and combined contributions of the three primary signal families:
 - **Group 1: Internal Signals (11)**: Token log-probabilities, entropy, perplexity, token ranks from `Qwen3.5-0.8B`.
 - **Group 2: Self-Consistency (5)**: Exact match agreement, pairwise embedding cosine similarity statistics ($k=5$).
 - **Group 3: NLI Agreement (3)**: Bidirectional pairwise entailment, contradiction, and disagreement fractions via `cross-encoder/nli-MiniLM2-L6-H768`.
@@ -95,7 +95,7 @@ Evaluated using a rigorous Leave-One-Dataset-Out (LODO) paradigm where models ar
 Evaluated using leak-free nested partitioning to evaluate post-hoc calibration methods (Platt scaling and Isotonic regression) on the 800-instance holdout test set.
 
 > [!IMPORTANT]
-> **Comparability Note**: Phase 17 calibration uses an internal 3-way nested split ($2,560$ base-training instances $+$ $640$ calibration tuning instances $+$ $800$ untouched test instances) derived from the $3,200$ training partition. Consequently, the base models are trained on $2,560$ examples rather than the full $3,200$ examples used in Phase 14. Uncalibrated numbers in this table reflect this 2,560-sample model and must **NOT** be presented as directly identical to the Phase 14 primary benchmark numbers.
+> **Comparability Note**: Calibration uses an internal 3-way nested split ($2,560$ base-training instances $+$ $640$ calibration tuning instances $+$ $800$ untouched test instances) derived from the $3,200$ training partition. Consequently, the base models are trained on $2,560$ examples rather than the full $3,200$ examples used in the primary benchmark. Uncalibrated numbers in this table reflect this 2,560-sample model and must **NOT** be presented as directly identical to the 3,200-sample primary benchmark numbers.
 
 | Model | Calibration Method | Accuracy | F1 | ROC-AUC | PR-AUC | Brier Score | ECE | MCE |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -144,7 +144,7 @@ The retrieval-augmented pipeline evaluates whether adding external text-evidence
 
 ## 6. Dataset-Level Primary Benchmark
 
-Subgroup performance of the **Phase 14 Universal Core Detector** across individual benchmark sources on the 800-instance primary holdout test set ($N_{\text{HaluEval}}=300$, $N_{\text{TruthfulQA}}=300$, $N_{\text{FEVER}}=200$):
+Subgroup performance of the **Universal Core Detector** across individual benchmark sources on the 800-instance primary holdout test set ($N_{\text{HaluEval}}=300$, $N_{\text{TruthfulQA}}=300$, $N_{\text{FEVER}}=200$):
 
 | Dataset | Test Samples (N) | Task Domain | Model | Accuracy | ROC-AUC |
 | :--- | :---: | :--- | :--- | :---: | :---: |
@@ -164,7 +164,7 @@ Subgroup performance of the **Phase 14 Universal Core Detector** across individu
 
 ## 7. Error Analysis Summary
 
-Based on descriptive evaluation of the Phase 14 Universal Core holdout predictions ($N=800$):
+Based on descriptive evaluation of the Universal Core holdout predictions ($N=800$):
 
 ### 7.1 Overall Accuracy and Error Rates
 - **Logistic Regression**:
@@ -220,11 +220,11 @@ Based on descriptive evaluation of the Phase 14 Universal Core holdout predictio
 
 | Experiment | Dataset | N | Features | Models | Purpose | Primary / Secondary / Variant |
 | :--- | :--- | :---: | :---: | :--- | :--- | :---: |
-| **Phase 6: Baseline Classifiers** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 | 11 | Logistic Regression, XGBoost | Evaluate standalone white-box internal generation signals | Secondary (Baseline Reference) |
-| **Phase 7: Sequence Length Ablation** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 | 11 vs 12 | Logistic Regression, XGBoost | Quantify sensitivity and potential confound from token length feature | Secondary (Methodological Ablation) |
-| **Phase 14: Universal Core Detector** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 | 19 | Logistic Regression, XGBoost | Primary multi-signal benchmark combining internal, self-consistency, and NLI | **PRIMARY REFERENCE BENCHMARK** |
-| **Phase 15: Feature-Family Ablation** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 | 3, 5, 8, 11, 14, 16, 19 | Logistic Regression, XGBoost | Systematically isolate individual and pairwise contributions of feature groups | Secondary (Ablation Study) |
-| **Phase 16: Cross-Dataset Generalization** | LODO (FEVER, TruthfulQA, HaluEval) | 4,000 | 11, 14, 16, 19 | Logistic Regression, XGBoost | Measure out-of-domain transfer performance on completely unseen benchmarks | Secondary (Generalization Evaluation) |
-| **Phase 17: Probability Calibration** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 (2,560 / 640 / 800) | 19 | Logistic Regression, XGBoost (Platt, Isotonic) | Evaluate post-hoc calibration to ensure reliable posterior probability outputs | Secondary (Calibration Analysis) |
-| **Phase 18: Comprehensive Error Analysis** | Phase 14 Holdout Set | 800 | 19 | Logistic Regression, XGBoost | Post-hoc descriptive audit of confusion patterns, length profiles, and disagreements | Secondary (Error Profiling) |
-| **Phase 19: Retrieval-Augmented Variant** | HaluEval + FEVER (usable subset) | 2,500 (2,000 / 500) | 6, 11, 17, 19, 25 | Logistic Regression, XGBoost | Evaluate external evidence retrieval as an augmentation to internal signals | Standalone Variant (Not Core) |
+| **Baseline Classifiers** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 | 11 | Logistic Regression, XGBoost | Evaluate standalone white-box internal generation signals | Secondary (Baseline Reference) |
+| **Sequence Length Ablation** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 | 11 vs 12 | Logistic Regression, XGBoost | Quantify sensitivity and potential confound from token length feature | Secondary (Methodological Ablation) |
+| **Universal Core Detector** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 | 19 | Logistic Regression, XGBoost | Primary multi-signal benchmark combining internal, self-consistency, and NLI | **PRIMARY REFERENCE BENCHMARK** |
+| **Feature-Family Ablation** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 | 3, 5, 8, 11, 14, 16, 19 | Logistic Regression, XGBoost | Systematically isolate individual and pairwise contributions of feature groups | Secondary (Ablation Study) |
+| **Cross-Dataset Generalization** | LODO (FEVER, TruthfulQA, HaluEval) | 4,000 | 11, 14, 16, 19 | Logistic Regression, XGBoost | Measure out-of-domain transfer performance on completely unseen benchmarks | Secondary (Generalization Evaluation) |
+| **Probability Calibration** | Combined (HaluEval, TruthfulQA, FEVER) | 4,000 (2,560 / 640 / 800) | 19 | Logistic Regression, XGBoost (Platt, Isotonic) | Evaluate post-hoc calibration to ensure reliable posterior probability outputs | Secondary (Calibration Analysis) |
+| **Comprehensive Error Analysis** | Holdout Test Set | 800 | 19 | Logistic Regression, XGBoost | Post-hoc descriptive audit of confusion patterns, length profiles, and disagreements | Secondary (Error Profiling) |
+| **Retrieval-Augmented Variant** | HaluEval + FEVER (usable subset) | 2,500 (2,000 / 500) | 6, 11, 17, 19, 25 | Logistic Regression, XGBoost | Evaluate external evidence retrieval as an augmentation to internal signals | Standalone Variant (Not Core) |

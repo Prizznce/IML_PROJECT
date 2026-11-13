@@ -1,7 +1,7 @@
-# Phase 5: Generation and Internal Signal Extraction Pipeline
+# Generation and Internal Signal Extraction Pipeline
 
 ## 1. Executive Overview
-The **Generation and Internal Signal Extraction Pipeline** executes causal inference with language models and captures white-box token-level generation dynamics before sampling discretization. In this phase, we operationalize **Qwen/Qwen3.5-0.8B** on local GPU hardware (NVIDIA GeForce RTX 3050 Laptop GPU, 6 GB VRAM) to generate responses across benchmark queries and compute calibrated uncertainty signals for real-time hallucination detection.
+The **Generation and Internal Signal Extraction Pipeline** executes causal inference with language models and captures white-box token-level generation dynamics before sampling discretization. We operationalize **Qwen/Qwen3.5-0.8B** on local GPU hardware (NVIDIA GeForce RTX 3050 Laptop GPU, 6 GB VRAM) to generate responses across benchmark queries and compute calibrated uncertainty signals for real-time hallucination detection.
 
 ---
 
@@ -24,7 +24,7 @@ The **Generation and Internal Signal Extraction Pipeline** executes causal infer
 
 ## 3. Input Dataset & Conditioning
 
-- **Source File**: `data/processed/combined_processed.parquet` (Phase 3 standardized canonical benchmark)
+- **Source File**: `data/processed/combined_processed.parquet` (standardized canonical benchmark)
 - **Deterministic Sampling**:
   - Sample size: Exactly 30 examples for pilot verification
   - Random seed: `42` (`pandas.DataFrame.sample(n=30, random_state=42)`)

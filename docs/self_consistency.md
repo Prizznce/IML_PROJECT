@@ -1,6 +1,6 @@
 # Self-Consistency Signals: Methodology, Formulation, and Pilot Evaluation
 
-## 1. Executive Summary & Phase Context
+## 1. Executive Summary
 
 This document details the design, mathematical formulation, implementation, and empirical validation of **Self-Consistency signals**—the first additional hallucination signal group following the baseline internal-signal modeling pipeline.
 

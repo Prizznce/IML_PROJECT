@@ -59,8 +59,25 @@ def test_system_health_reflects_cpu_engine_when_selected_explicitly():
     assert "Single Precision (Float32 Native / CPU SIMD Vectorized)" in full_output
     assert "Host CPU Processor (13th Gen Intel Core i7 (24 vCPUs))" in full_output
 
-    # Pillar 2 Primary Generator must show HOST CPU target
+    # Pillar 2 Primary Generator must show HOST CPU target and official Qwen architecture
     assert "HOST CPU (13th Gen Intel Core i7)" in full_output
+    assert "Qwen3_5ForConditionalGeneration" in full_output
+
+
+def test_qwen_official_architecture_label():
+    """Verify that Qwen 3.5 official architecture label is Qwen3_5ForConditionalGeneration."""
+    from app.config import get_model_specs
+    specs = get_model_specs("Qwen 3.5 (0.8B)")
+    assert "Qwen3_5ForConditionalGeneration" in specs["arch"]
+
+    markdown_outputs = []
+    with patch("streamlit.markdown", side_effect=lambda text, **kw: markdown_outputs.append(str(text))), \
+         patch("streamlit.columns", side_effect=lambda spec, **kw: [MagicMock() for _ in range(len(spec) if isinstance(spec, list) else spec)]), \
+         patch("streamlit.button", return_value=False):
+        render_system_health_view(selected_model_name="Qwen 3.5 (0.8B)")
+
+    full_output = " ".join(markdown_outputs)
+    assert "Qwen3_5ForConditionalGeneration" in full_output
 
 
 def test_system_health_reflects_cpu_engine_from_detector_session_state():

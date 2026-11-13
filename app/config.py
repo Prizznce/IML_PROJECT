@@ -49,7 +49,7 @@ def get_model_specs(model_name: str):
             "pr_val": "0.7795 (XGB) / 0.7124 (LR)",
             "acc_val": "67.88% (XGB)",
             "ece_val": "0.0341",
-            "arch": "Qwen2ForCausalLM (24 Layers, SwiGLU)",
+            "arch": "Qwen3_5ForConditionalGeneration (24 Layers, SwiGLU)",
             "ctx_len": "32k Tokens",
         }
 

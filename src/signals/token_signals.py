@@ -253,7 +253,7 @@ def extract_raw_sequence_signals(
         Prompt tokens [0 .. P-1] are strictly excluded from response metrics.
 
     Parameters:
-        model: Causal language model (e.g. Qwen3_5ForCausalLM).
+        model: Causal language model (e.g. Qwen3_5ForConditionalGeneration).
         tokenizer: Fast or standard tokenizer.
         prompt (str): Input query / conditioning prompt.
         response (str): Generated candidate response or ground-truth answer.

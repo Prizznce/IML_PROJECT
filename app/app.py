@@ -207,6 +207,12 @@ elif active_nav == "System Health":
         active_model_id=active_model_id,
         threshold_low=threshold_low,
         threshold_high=threshold_high,
+        selected_device=selected_device,
+        cuda_available=cuda_available,
+        gpu_name=gpu_name,
+        gpu_display=gpu_display,
+        cpu_name=cpu_name,
+        cpu_display=cpu_display,
     )
 
 # ------------------------------------------------------------------------------

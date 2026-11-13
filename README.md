@@ -1,10 +1,11 @@
-# Catching an LLM Lying: A Lightweight Classifier for Real-Time Hallucination Detection from Internal Generation Signals
+# VeritasLM: Catching an LLM Lying — A Lightweight Classifier for Real-Time Hallucination Detection from Internal Generation Signals
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.1%2B-orange.svg)](https://pytorch.org/)
 [![CUDA](https://img.shields.io/badge/CUDA-12.8%20%7C%20RTX%203050-green.svg)](https://developer.nvidia.com/cuda-toolkit)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.0%2B-red.svg)](https://xgboost.readthedocs.io/)
 [![Streamlit Demo](https://img.shields.io/badge/Streamlit-Live%20App-FF4B4B.svg)](https://streamlit.io/)
+[![Tests](https://img.shields.io/badge/Tests-194%20Passing-brightgreen.svg)](tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -267,23 +268,38 @@ Every live inference query in the application passes through 15 staged and timed
 
 ---
 
-## 🖥️ Live Streamlit Interactive Web Application
+## 🖥️ Live Streamlit Interactive Web Application (VeritasLM Platform)
 
-An interactive web application is included to demonstrate the detector in real time:
+The project includes **VeritasLM**, an interactive developer and neural observability platform built with Streamlit featuring a modern Linear/Railway-inspired UI design system:
 
 ```bash
+# Launch via 1-click Windows batch script (enforces offline flags automatically)
+.\run_app.bat
+
+# Or direct Streamlit command
 streamlit run app/app.py
 ```
 
-### Key UI Capabilities:
-1. **Dynamic Model Switcher**: Easily toggle between **Qwen 3.5 (0.8B)**, **Llama 3.2 (1B Instruct)**, and **Gemma 3 (1B IT)** with real-time parameter and benchmark status display.
-2. **Interactive Token Confidence Heatmap**: Visualizes token-level uncertainty. Hover over any generated word to inspect its exact generation probability $P(y_t)$, Shannon entropy $H_t$, and token rank.
-3. **Model-Native Explainability ("Why was it flagged?")**: TreeSHAP breakdown showing the exact top positive and negative feature contributions shifting the hallucination risk score.
-4. **Dual Detection Modes**:
-   - **Universal Core Mode (19 features)**: Context-free detection using generation dynamics, consistency, and NLI.
-   - **Evidence Groundedness Mode**: Evaluates alignment against user-provided reference passages using dense semantic embeddings and evidence margins.
-5. **Interactive Presets**: Pre-populated examples from HaluEval, TruthfulQA, and FEVER demonstrating both faithful and hallucinated generations.
-6. **Detailed Millisecond Latency Profiler**: Granular latency table benchmarking all 15 stages.
+### Key Capabilities & Architectural Views:
+1. **Real-Time Detection Dashboard**:
+   - **Dynamic Model Switcher**: Seamlessly toggle between **Qwen 3.5 (0.8B)**, **Llama 3.2 (1B Instruct)**, and **Gemma 3 (1B IT)** with real-time architecture, parameter count, context length, and benchmark status displays.
+   - **Interactive Token Confidence Heatmap**: Visualizes token-by-token uncertainty. Hover over any generated word to inspect its generation probability $P(y_t)$, predictive Shannon entropy $H_t$, and vocabulary rank.
+   - **Model-Native Explainability ("Why Flagged?")**: TreeSHAP feature attribution breakdown displaying exact positive and negative log-odds contributions to the hallucination risk score.
+   - **Dual Detection Modes**:
+     - *Universal Core Mode (19 features)*: Zero-dependency, closed-book detection using internal generation dynamics, stochastic self-consistency, and NLI agreement.
+     - *Evidence Groundedness Mode*: Dense passage retrieval against reference context with evidence margin scoring and claim agreement.
+   - **Interactive Benchmark Presets**: Pre-populated examples from HaluEval, TruthfulQA, and FEVER covering both faithful and hallucinated completions.
+2. **Multi-Model Benchmark Studio**:
+   - Run multiple causal LLMs (Qwen 3.5, Llama 3.2, Gemma 3) simultaneously on the identical prompt.
+   - Side-by-side comparative scorecard featuring cross-model hallucination risk probabilities, entropy distributions, and consensus matrices.
+3. **System Health & Epistemic Drift Watchdog**:
+   - Live telemetry monitoring active compute hardware (CUDA GPU vs CPU fallback) and PyTorch tensor allocations.
+   - Real-time epistemic health tracking: session risk distribution, calibration Expected Calibration Error (ECE), and entropy collapse detection.
+4. **Session History & Audit Export**:
+   - Persistent query logging across session reruns with complete 15-stage millisecond timing profiles.
+   - One-click JSON serialization and downloadable audit reports.
+5. **Air-Gapped Offline Execution**:
+   - Default offline mode (`HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`) ensuring zero runtime network latency and complete data privacy.
 
 ---
 
@@ -291,43 +307,83 @@ streamlit run app/app.py
 
 ```
 IML_PROJECT/
-├── app/
-│   ├── app.py                     # Streamlit demonstration application
-│   └── inference.py               # Live 15-stage inference engine & caching
-├── configs/                       # Configuration files and hyperparameters
-├── data/
-│   ├── processed/                 # Curated 4,000-instance balanced benchmark
-│   └── raw/                       # Immutable raw source datasets
-├── docs/                          # Comprehensive research reports and analysis
+├── app/                           # VeritasLM Streamlit Observability Platform
+│   ├── app.py                     # Application entrypoint & view router
+│   ├── config.py                  # Model specifications, hardware detection & thresholds
+│   ├── inference.py               # 15-stage live inference engine & in-memory caching
+│   ├── session.py                 # Telemetry persistence, analytics & history management
+│   ├── styles.py                  # Custom CSS design system (Linear / Railway aesthetic)
+│   ├── assets/                    # Platform logos and branding icons
+│   └── components/                # Modular UI views & widgets
+│       ├── about.py               # Architectural & research documentation hub
+│       ├── benchmark_mode.py      # Multi-model comparative evaluation studio
+│       ├── benchmarks.py          # Benchmark portfolio status & specifications
+│       ├── controls.py            # User prompt, preset selector & inference controls
+│       ├── dashboard.py           # Real-time risk cards, token heatmap & SHAP waterfall
+│       ├── dialogs.py             # Infrastructure & threshold configuration modals
+│       ├── header.py              # Application header & hardware telemetry strip
+│       ├── history.py             # Query run history, inspection & JSON export
+│       ├── sidebar.py             # Navigation sidebar & model parameters
+│       └── system_health.py       # Neural runtime telemetry & epistemic watchdog
+├── configs/                       # Canonical configurations and hyperparameters
+│   ├── combined_features.yaml     # 19 universal features schema & forbidden columns
+│   └── data.yaml                  # Dataset pipeline configuration & splits
+├── data/                          # Benchmark data repository
+│   ├── external/                  # External reference corpora & Wikipedia chunks
+│   ├── processed/                 # Curated 4,000-instance balanced benchmark (Parquet)
+│   └── raw/                       # Immutable source benchmark datasets
+├── docs/                          # Comprehensive research papers & empirical reports
 │   ├── ablation_study.md          # Feature-family ablation report
+│   ├── baseline_modeling.md       # Internal signal baseline models
 │   ├── calibration_analysis.md    # Probability calibration report
-│   ├── cross_dataset_evaluation.md# Leave-One-Dataset-Out (LODO) report
-│   ├── error_analysis.md          # Comprehensive error analysis
-│   ├── final_project_report.md    # Authoritative scientific report
-│   ├── master_results_table.md    # Master verified experimental results
-│   └── retrieval_augmented_experiment.md # Standalone retrieval variant
-├── experiments/
-│   ├── baselines/                 # Baseline models & feature tables
-│   ├── calibration/               # Calibration partitions & artifacts
-│   ├── models/                    # Model-specific feature tables & runs
-│   │   ├── gemma_3_1b_it/         # Gemma 3 1B feature parquet & model results
-│   │   ├── llama_3_2_1b_instruct/ # Llama 3.2 1B feature parquet & model results
-│   │   └── qwen3_5_0_8b/          # Qwen 3.5 0.8B feature parquet & model results
-│   └── retrieval_augmented/       # Standalone retrieval parquet
-├── models/                        # Serialized classifiers (.joblib)
+│   ├── combined_model_training.md # Universal Core detector training report
+│   ├── cross_dataset_evaluation.md# Leave-One-Dataset-Out (LODO) generalization report
+│   ├── dataset_pipeline.md        # 4,000-instance benchmark curation report
+│   ├── error_analysis.md          # Comprehensive error analysis & failure mode audit
+│   ├── evidence_retrieval.md      # Dense passage retrieval & evidence margin report
+│   ├── final_project_report.md    # Authoritative scientific research paper
+│   ├── generation_pipeline.md     # Multi-model causal generation pipeline report
+│   ├── master_results_table.md    # Master verified experimental results repository
+│   ├── nli_agreement.md           # Bidirectional cross-encoder NLI agreement report
+│   ├── retrieval_augmented_experiment.md # Standalone retrieval variant report
+│   ├── self_consistency.md        # Stochastic self-consistency probing report
+│   ├── token_signals.md           # White-box token logit & entropy extraction report
+│   └── universal_feature_table.md # Canonical 19-feature schema & anti-leakage audit
+├── experiments/                   # Persisted experimental artifacts & run logs
+│   ├── ablation/                  # Feature ablation partitions & metrics
+│   ├── baselines/                 # 11-signal baseline model runs & feature parquets
+│   ├── calibration/               # 3-way nested calibration artifacts
+│   ├── cross_dataset/             # LODO zero-shot cross-benchmark results
+│   ├── error_analysis/            # Error classification records & metrics
+│   ├── models/                    # Architecture-specific parquets & results
+│   │   ├── gemma_3_1b_it/         # Gemma 3 1B feature parquet & models
+│   │   ├── llama_3_2_1b_instruct/ # Llama 3.2 1B feature parquet & models
+│   │   └── qwen3_5_0_8b/          # Qwen 3.5 0.8B feature parquet & models
+│   └── retrieval_augmented/       # Standalone retrieval variant parquets & evaluations
+├── models/                        # Production serialized classifiers (.joblib)
 │   ├── gemma_3_1b_it/             # Retrained XGBoost & LR pipelines for Gemma 3
 │   ├── llama_3_2_1b_instruct/     # Retrained XGBoost & LR pipelines for Llama 3.2
 │   └── qwen3_5_0_8b/              # Retrained XGBoost & LR pipelines for Qwen 3.5
-├── src/
+├── reports/                       # Scientific evaluation outputs and deep dives
+│   ├── evaluation/                # Test predictions & error records (JSON, CSV)
+│   ├── information_theoretic_entropy_filtering_study.md
+│   └── semantic_entropy_retraining_study.md
+├── src/                           # Core research & inference source code
 │   ├── consistency/               # Self-consistency & NLI agreement extraction
-│   ├── features/                  # Canonical 19-feature vector assembly
-│   ├── generation/                # Multi-model inference & prompt formatting
-│   ├── retrieval/                 # Dense retrieval & evidence margin computation
-│   ├── signals/                   # Token-level forward pass & logit extraction
-│   ├── training/                  # Retraining pipelines & cross-validation
-│   └── utils/                     # Model registry & GPU/CPU device resolution
-├── tests/                         # Unit and integration test suite (100% passing)
+│   ├── data/                      # Canonical dataset schema & loaders
+│   ├── evaluation/                # Ablation, calibration, LODO & error analysis CLI tools
+│   ├── features/                  # Canonical 19-feature vector assembly & validation
+│   ├── generation/                # Multi-model inference & prompt templating
+│   ├── retrieval/                 # Dense passage retrieval & evidence margin computation
+│   ├── signals/                   # Token forward passes & white-box logit extraction
+│   ├── training/                  # Retraining pipelines, calibration & cross-validation
+│   └── utils/                     # Unified model downloader, registry & hardware resolution
+├── tests/                         # Comprehensive unit & integration test suite (194 tests)
+├── .env.example                   # Environment configuration template
+├── pyproject.toml                 # Packaging metadata & dependency definitions
 ├── requirements.txt               # Locked project dependencies
+├── run_app.bat                    # 1-click Windows application launcher
+├── LICENSE                        # MIT License
 └── README.md                      # Comprehensive project documentation
 ```
 
@@ -352,32 +408,80 @@ python -m venv .venv
 
 # Install dependencies
 pip install -r requirements.txt
+
+# (Optional) Copy environment template if configuring a Hugging Face token:
+copy .env.example .env
 ```
 
-### 3. Run Test Suite
-Verify that all 226 unit and integration tests pass:
+### 3. Model Weight Acquisition & Offline Execution
+
+> [!NOTE]
+> **Zero `.env` Dependency for Default Workflow**:
+> - The primary generative model (**Qwen 3.5 0.8B**) and both auxiliary encoders (**MiniLM-L6** embeddings and **NLI-MiniLM2** cross-encoder) are **completely open-access**.
+> - You do **NOT** need a `.env` file or Hugging Face token to download or run Qwen 3.5 or the test suite.
+> - **Gated Models (Llama 3.2, Gemma 3)**: Require accepting license terms on Hugging Face. The token is needed **only once during download** and can be passed directly via `--token <HF_TOKEN>`, `.env`, or `huggingface-cli login`.
+> - **Does downloading ensure offline execution? YES.** Once models are cached locally, VeritasLM operates in strict air-gapped mode (`HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`). **No tokens, `.env`, or internet connections are ever required during inference or live app usage.**
+
+```powershell
+# 1. Download default model (Qwen 3.5 0.8B) + auxiliary encoders (No token or .env required)
+python src/utils/download_model.py qwen
+
+# 2. Download gated models (Requires accepted HF license; token needed only during download):
+python src/utils/download_model.py llama --token YOUR_HF_TOKEN
+python src/utils/download_model.py gemma --token YOUR_HF_TOKEN
+
+# 3. Verify local cache status (checks causal LLM and auxiliary encoders):
+python src/utils/download_model.py --check-only
+```
+
+### 4. Run Test Suite
+Verify that all 194 unit and integration tests pass (100% pass rate in ~16s):
 
 ```powershell
 python -m pytest tests
 ```
 
-### 4. Retraining the Detector on Any Model
-To retrain the complete 19-feature Universal Core pipeline on a causal LLM:
+### 5. Launch the Live Demonstration
+```powershell
+# Option A: 1-Click Windows batch script (enforces offline flags automatically)
+.\run_app.bat
+
+# Option B: Direct Streamlit command
+streamlit run app/app.py
+```
+
+### 6. Retraining the Detector on Any Model
+To retrain the complete 19-feature Universal Core pipeline on any supported causal LLM:
 
 ```powershell
 # Retrain on Qwen 3.5 0.8B
-python src/training/retrain_pipeline.py --model Qwen/Qwen3.5-0.8B
+python src/training/retrain_pipeline.py --model-id Qwen/Qwen3.5-0.8B
 
 # Retrain on Llama 3.2 1B Instruct
-python src/training/retrain_pipeline.py --model meta-llama/Llama-3.2-1B-Instruct
+python src/training/retrain_pipeline.py --model-id meta-llama/Llama-3.2-1B-Instruct
 
 # Retrain on Google Gemma 3 1B IT
-python src/training/retrain_pipeline.py --model google/gemma-3-1b-it
+python src/training/retrain_pipeline.py --model-id google/gemma-3-1b-it
 ```
 
-### 5. Launch the Live Demonstration
+### 7. Reproducing Core Scientific Experiments
+All empirical benchmark analyses can be reproduced independently via dedicated CLI scripts:
+
 ```powershell
-streamlit run app/app.py
+# Reproduce Feature-Family Ablation Study
+python src/evaluation/ablation_study.py
+
+# Reproduce Probability Calibration Analysis (ECE & Reliability Diagrams)
+python src/evaluation/calibration.py
+
+# Reproduce Leave-One-Dataset-Out (LODO) Cross-Dataset Evaluation
+python src/evaluation/cross_dataset.py
+
+# Reproduce Comprehensive Error Analysis Audit
+python src/evaluation/error_analysis.py
+
+# Reproduce Standalone Retrieval-Augmented Experiment
+python src/retrieval/retrieval_augmented_experiment.py
 ```
 
 ---
@@ -385,11 +489,16 @@ streamlit run app/app.py
 ## 📑 Research Documentation Map
 
 For in-depth mathematical formulations, ablation methodologies, and full diagnostic audits:
-- [docs/final_project_report.md](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/docs/final_project_report.md): The comprehensive 58KB research paper detailing theoretical foundations, split protocols, and experimental conclusions.
-- [docs/master_results_table.md](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/docs/master_results_table.md): Authoritative repository of all empirical benchmark tables and statistical comparisons across Phases 3–19.
-- [docs/ablation_study.md](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/docs/ablation_study.md): Detailed isolation and Shapley analysis of individual and combined feature families.
-- [docs/calibration_analysis.md](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/docs/calibration_analysis.md): Reliability diagrams, Platt scaling, and Isotonic regression calibration audit.
-- [docs/error_analysis.md](file:///c:/Aditya_workspace/IML_Project/IML_PROJECT/docs/error_analysis.md): Descriptive analysis of false positives, false negatives, confidence clustering, and model disagreements.
+- [docs/final_project_report.md](docs/final_project_report.md): Authoritative scientific research paper detailing theoretical foundations, split protocols, and experimental conclusions.
+- [docs/master_results_table.md](docs/master_results_table.md): Authoritative repository of all empirical benchmark tables and statistical comparisons across all experiments.
+- [docs/ablation_study.md](docs/ablation_study.md): Detailed isolation and Shapley analysis of individual and combined feature families.
+- [docs/calibration_analysis.md](docs/calibration_analysis.md): Reliability diagrams, Platt scaling, and Isotonic regression calibration audit.
+- [docs/cross_dataset_evaluation.md](docs/cross_dataset_evaluation.md): Leave-One-Dataset-Out (LODO) zero-shot cross-benchmark generalization report.
+- [docs/error_analysis.md](docs/error_analysis.md): Descriptive analysis of false positives, false negatives, confidence clustering, and model disagreements.
+- [docs/retrieval_augmented_experiment.md](docs/retrieval_augmented_experiment.md): Standalone external evidence retrieval augmentation experiment report.
+- [docs/universal_feature_table.md](docs/universal_feature_table.md): Canonical 19-feature schema and anti-confounder isolation policy.
+- [docs/baseline_modeling.md](docs/baseline_modeling.md): Standalone 11-signal internal generation dynamics modeling report.
+- [docs/evidence_retrieval.md](docs/evidence_retrieval.md): Dense passage retrieval architecture and evidence margin formulations.
 
 ---
 
@@ -398,9 +507,9 @@ For in-depth mathematical formulations, ablation methodologies, and full diagnos
 This project is licensed under the MIT License. If you use this methodology or codebase in your academic research, please cite:
 
 ```bibtex
-@misc{catching_llm_lying_2026,
+@misc{veritaslm_hallucination_detector_2026,
   author = {Aditya et al.},
-  title = {Catching an LLM Lying: A Lightweight Classifier for Real-Time Hallucination Detection from Internal Generation Signals},
+  title = {VeritasLM: Catching an LLM Lying — A Lightweight Classifier for Real-Time Hallucination Detection from Internal Generation Signals},
   year = {2026},
   publisher = {GitHub},
   howpublished = {\url{https://github.com/Prizznce/IML_PROJECT}}

@@ -48,6 +48,11 @@ CONFIGURED_MODELS: List[str] = [
     "google/gemma-3-1b-it",
 ]
 
+AUXILIARY_MODELS: List[str] = [
+    "sentence-transformers/all-MiniLM-L6-v2",
+    "cross-encoder/nli-MiniLM2-L6-H768",
+]
+
 MODEL_ALIASES: dict[str, str] = {
     "qwen": "Qwen/Qwen3.5-0.8B",
     "qwen3.5": "Qwen/Qwen3.5-0.8B",
@@ -58,6 +63,8 @@ MODEL_ALIASES: dict[str, str] = {
     "gemma": "google/gemma-3-1b-it",
     "gemma-1b": "google/gemma-3-1b-it",
     "gemma3": "google/gemma-3-1b-it",
+    "minilm": "sentence-transformers/all-MiniLM-L6-v2",
+    "nli": "cross-encoder/nli-MiniLM2-L6-H768",
 }
 
 
@@ -87,6 +94,10 @@ def resolve_model_id(model_name: str, allow_custom: bool = False) -> str:
     for configured in CONFIGURED_MODELS:
         if clean_name == configured or lower_name == configured.lower():
             return configured
+
+    for aux in AUXILIARY_MODELS:
+        if clean_name == aux or lower_name == aux.lower():
+            return aux
 
     # Check if registered in SUPPORTED_MODELS dictionary
     if clean_name in SUPPORTED_MODELS:
@@ -269,16 +280,36 @@ def download_model(
             os.environ.pop("TRANSFORMERS_OFFLINE", None)
 
 
+def ensure_auxiliary_models_cached(
+    cache_dir: Optional[str | Path] = None,
+    force: bool = False,
+) -> bool:
+    """
+    Ensure lightweight auxiliary models (SentenceTransformer, CrossEncoder NLI) are downloaded.
+    These models are open-access and require no authentication tokens.
+    """
+    all_ok = True
+    for aux_id in AUXILIARY_MODELS:
+        if not force and is_model_fully_cached(aux_id, cache_dir=cache_dir):
+            logger.info(f"Auxiliary encoder '{aux_id}' is already cached locally.")
+            continue
+        print(f"Ensuring auxiliary model '{aux_id}' is cached locally...", flush=True)
+        res = download_model(model=aux_id, force=force, cache_dir=cache_dir, allow_custom=True)
+        if res is None:
+            all_ok = False
+    return all_ok
+
+
 def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     """Parse command line arguments for unified model downloader."""
     parser = argparse.ArgumentParser(
-        description="Unified Model Downloader for VeritasLM (Qwen, Llama, Gemma, and standard Hugging Face models)."
+        description="Unified Model Downloader for VeritasLM (Qwen, Llama, Gemma, Encoders, and standard Hugging Face models)."
     )
     parser.add_argument(
         "model",
         nargs="?",
         default=None,
-        help="Model repository ID or convenience alias: 'qwen', 'llama', 'gemma', or full HF ID.",
+        help="Model repository ID or convenience alias: 'qwen', 'llama', 'gemma', 'encoders', or full HF ID.",
     )
     parser.add_argument(
         "--model-id",
@@ -291,7 +322,7 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         "--token",
         type=str,
         default=None,
-        help="Hugging Face access token (overrides HF_TOKEN env var).",
+        help="Hugging Face access token (overrides HF_TOKEN env var; only needed for gated models).",
     )
     parser.add_argument(
         "--force",
@@ -310,6 +341,11 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         help="Check whether the model is cached locally without initiating download.",
     )
     parser.add_argument(
+        "--no-encoders",
+        action="store_true",
+        help="Skip automatic verification and download of auxiliary encoder models.",
+    )
+    parser.add_argument(
         "--allow-custom",
         action="store_true",
         help="Allow downloading arbitrary Hugging Face repository IDs beyond configured VeritasLM models.",
@@ -324,9 +360,23 @@ def main(cli_args: Optional[List[str]] = None) -> None:
 
     target_model = args.model or args.model_id
     if not target_model:
-        print("Error: No model specified. Please specify a model ID or alias (e.g. 'qwen', 'llama', 'gemma').", file=sys.stderr)
+        print("Error: No model specified. Please specify a model ID or alias (e.g. 'qwen', 'llama', 'gemma', 'encoders').", file=sys.stderr)
         print("Configured models:\n  " + "\n  ".join(CONFIGURED_MODELS), file=sys.stderr)
+        print("Auxiliary encoders:\n  " + "\n  ".join(AUXILIARY_MODELS), file=sys.stderr)
         sys.exit(1)
+
+    # Special handling for auxiliary encoders bundle
+    if target_model.strip().lower() in ("encoders", "auxiliary", "encoder"):
+        if args.check_only:
+            all_cached = True
+            for aux_id in AUXILIARY_MODELS:
+                cached = is_model_fully_cached(aux_id, cache_dir=args.cache_dir)
+                print(f"Auxiliary encoder '{aux_id}' cached locally: {cached}")
+                if not cached:
+                    all_cached = False
+            sys.exit(0 if all_cached else 1)
+        ok = ensure_auxiliary_models_cached(cache_dir=args.cache_dir, force=args.force)
+        sys.exit(0 if ok else 1)
 
     try:
         canonical_id = resolve_model_id(target_model, allow_custom=args.allow_custom)
@@ -337,6 +387,9 @@ def main(cli_args: Optional[List[str]] = None) -> None:
     if args.check_only:
         cached = is_model_fully_cached(canonical_id, cache_dir=args.cache_dir)
         print(f"Model '{canonical_id}' cached locally: {cached}")
+        for aux_id in AUXILIARY_MODELS:
+            aux_cached = is_model_fully_cached(aux_id, cache_dir=args.cache_dir)
+            print(f"Auxiliary encoder '{aux_id}' cached locally: {aux_cached}")
         sys.exit(0 if cached else 1)
 
     snapshot_path = download_model(
@@ -349,6 +402,11 @@ def main(cli_args: Optional[List[str]] = None) -> None:
 
     if snapshot_path is None:
         sys.exit(1)
+
+    # Automatically ensure auxiliary encoders are present unless explicitly opted out
+    if not args.no_encoders and canonical_id not in AUXILIARY_MODELS:
+        ensure_auxiliary_models_cached(cache_dir=args.cache_dir, force=args.force)
+
     sys.exit(0)
 
 
